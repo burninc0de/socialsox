@@ -18,5 +18,8 @@
   "license": "ISC",
   "devDependencies": {
     "electron": "^39.2.3"
+  },
+  "dependencies": {
+    "twitter-api-v2": "^1.28.0"
   }
 }

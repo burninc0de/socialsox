@@ -56,14 +56,15 @@ Then open http://localhost:8000/ in your browser.
 
 #### Twitter
 
-⚠️ **Important**: Due to Twitter's OAuth 1.0a requirements, direct posting from the browser is not secure. Twitter posting requires a backend server to handle authentication securely.
-
-**Option 1 - Skip Twitter**: Just use Mastodon and Bluesky (deselect Twitter in the app).
-
-**Option 2 - Set up a backend**: Create a simple Node.js/Python server that handles Twitter OAuth. This requires:
-- Twitter Developer Account
-- App with API keys (API Key, API Secret, Access Token, Access Token Secret)
-- A backend proxy server (not included in this simple app)
+1. Go to [Twitter Developer Portal](https://developer.twitter.com/en/portal/dashboard)
+2. Create a project and app (or use existing)
+3. Go to your app's "Keys and Tokens" section
+4. Generate/copy:
+   - **API Key** (also called Consumer Key)
+   - **API Secret** (also called Consumer Secret)
+   - **Access Token**
+   - **Access Token Secret**
+5. Make sure your app has **Read and Write** permissions
 
 ### Enter Credentials & Post
 
@@ -73,23 +74,27 @@ Then select platforms, type your message, and click "Post to Selected Platforms"
 
 ## Security Notes
 
-- ✅ Everything runs locally in your browser
-- ✅ Credentials are stored in localStorage (browser only)
+- ✅ Everything runs locally on your computer
+- ✅ Credentials are stored in localStorage (Electron app storage)
+- ✅ Twitter OAuth handled securely in Electron backend
 - ✅ No external servers involved (except the social media APIs)
 - ⚠️ Anyone with access to your computer can potentially read localStorage
 - ⚠️ Use app-specific passwords where available (like Bluesky's app passwords)
 
 ## Limitations
 
-- Twitter requires a backend server for secure OAuth
-- No image/media upload support
+- No image/media upload support (yet)
 - No thread/reply support
-- Character limits not enforced per platform (280 chars is typical)
-- CORS may block some requests (use browser extensions if needed)
+- Character limits: Twitter 280 chars, Mastodon 500+ (varies by instance), Bluesky 300 chars
 
 ## Troubleshooting
 
-**CORS Errors**: Make sure you're using the local server (`python3 server.py` or `node server.js`) and accessing via http://localhost:8000/
+**Twitter Errors**: 
+- Make sure you have all 4 credentials: API Key, API Secret, Access Token, Access Token Secret
+- Verify your app has "Read and Write" permissions in Twitter Developer Portal
+- If you get "403 Forbidden", your app may not have write permissions
+
+**CORS Errors (Browser mode only)**: Make sure you're using the local server (`python3 server.py` or `node server.js`) and accessing via http://localhost:8000/
 
 **Instance URL Errors**: Use only the domain (e.g., `https://mastodon.social`), not your profile URL (e.g., NOT `https://mastodon.social/@username`)
 

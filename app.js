@@ -121,9 +121,17 @@ async function postToMastodon(message, instance, token) {
 }
 
 async function postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret) {
-    // Note: Twitter API v2 requires OAuth 1.0a which can't be done securely from the browser
-    // This is a placeholder - you'll need a backend server to handle Twitter posting
-    throw new Error('Twitter posting requires a backend server due to OAuth requirements. See README for setup.');
+    // Check if we're in Electron (has window.electron)
+    if (window.electron && window.electron.postToTwitter) {
+        const result = await window.electron.postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret);
+        if (!result.success) {
+            throw new Error(result.error);
+        }
+        return result.data;
+    } else {
+        // Running in browser - can't post to Twitter securely
+        throw new Error('Twitter posting requires Electron app (run: npm start)');
+    }
 }
 
 async function postToBluesky(message, handle, password) {
@@ -212,7 +220,21 @@ async function postToAll() {
         
         // Twitter
         if (platforms.twitter) {
-            results.push('✗ Twitter: Requires backend server (see README)');
+            const apiKey = document.getElementById('twitter-key').value;
+            const apiSecret = document.getElementById('twitter-secret').value;
+            const accessToken = document.getElementById('twitter-token').value;
+            const accessTokenSecret = document.getElementById('twitter-token-secret').value;
+            
+            if (apiKey && apiSecret && accessToken && accessTokenSecret) {
+                try {
+                    await postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret);
+                    results.push('✓ Twitter');
+                } catch (error) {
+                    results.push('✗ Twitter: ' + error.message);
+                }
+            } else {
+                results.push('✗ Twitter: Missing credentials');
+            }
         }
         
         // Bluesky
