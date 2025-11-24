@@ -20,8 +20,10 @@ function createWindow() {
 
     win.loadFile('index.html');
 
-    // Open DevTools in development
-    win.webContents.openDevTools();
+    // Open DevTools only in development (not in packaged builds)
+    if (!app.isPackaged) {
+        win.webContents.openDevTools();
+    }
 }
 
 // Handle Twitter posting from renderer

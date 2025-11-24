@@ -6,11 +6,13 @@ A simple, local Electron app for posting short messages to Mastodon, Twitter, an
 
 - 📝 Post to multiple platforms at once
 - 🔒 All credentials stored locally
-- 🎨 Clean, modern interface
+- 🎨 Clean, modern interface with native dark mode support
 - 🔄 Toggle platforms on/off
 - 📊 Character counter
 - ✅ Per-platform status feedback
+- 📤📥 Export/Import credentials for portability
 - 🖥️ Desktop app - no browser or server needed!
+- 📦 Cross-platform distributable builds
 
 ## Quick Start
 
@@ -21,7 +23,23 @@ npm install
 npm start
 ```
 
-### Option 2: Run as Web App
+For development with logging:
+```bash
+npm run electron:dev
+```
+
+### Option 2: Build Distributable Packages
+
+```bash
+npm run dist
+```
+
+This creates platform-specific packages in the `dist/` folder:
+- **Linux**: `.AppImage` file
+- **macOS**: `.dmg` file  
+- **Windows**: `.exe` installer
+
+### Option 3: Run as Web App
 
 ```bash
 # Using Python:
@@ -80,6 +98,8 @@ Then open http://localhost:8000/ in your browser.
 ### Enter Credentials & Post
 
 Click "⚙️ API Credentials" to expand the settings section and enter your credentials. They're stored locally.
+
+**Portability**: Use the "📤 Export Credentials" button to save your credentials to a JSON file for backup or transfer to another device. Use "📥 Import Credentials" to load them back.
 
 Then select platforms, type your message, and click "Post to Selected Platforms"!
 

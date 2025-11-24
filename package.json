@@ -6,6 +6,8 @@
   "scripts": {
     "start": "npx electron .",
     "electron:dev": "npx electron . --enable-logging",
+    "build": "electron-builder",
+    "dist": "electron-builder --publish=never",
     "server": "node server.js"
   },
   "keywords": [
@@ -18,9 +20,34 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^39.2.3"
+    "electron": "^39.2.3",
+    "electron-builder": "^26.0.12"
   },
   "dependencies": {
     "twitter-api-v2": "^1.28.0"
+  },
+  "build": {
+    "appId": "com.socialsox.app",
+    "productName": "SocialSox",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!dist/**/*",
+      "!build/**/*",
+      "!*.md",
+      "!package-lock.json"
+    ],
+    "mac": {
+      "category": "public.app-category.social-networking",
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
   }
 }
