@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld(
             ipcRenderer.invoke('import-credentials'),
         minimizeWindow: () => ipcRenderer.send('minimize-window'),
         maximizeWindow: () => ipcRenderer.send('maximize-window'),
-        closeWindow: () => ipcRenderer.send('close-window')
+        closeWindow: () => ipcRenderer.send('close-window'),
+        readClipboardImage: () => ipcRenderer.invoke('read-clipboard-image')
     }
 );

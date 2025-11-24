@@ -135,6 +135,15 @@ function setupImageUpload() {
             handleImageFile(file);
         }
     });
+    
+    // Paste from clipboard
+    document.addEventListener('paste', async (e) => {
+        const imageData = await window.electron.readClipboardImage();
+        if (imageData) {
+            const file = dataURLToFile(imageData, 'clipboard-image.png');
+            handleImageFile(file);
+        }
+    });
 }
 
 function handleImageFile(file) {
@@ -161,6 +170,18 @@ function removeImage() {
     document.getElementById('dropZone').style.display = 'block';
     document.getElementById('imagePreview').style.display = 'none';
     document.getElementById('fileInput').value = '';
+}
+
+function dataURLToFile(dataURL, filename) {
+    const arr = dataURL.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
 }
 
 async function postToMastodon(message, instance, token, imageFile = null) {

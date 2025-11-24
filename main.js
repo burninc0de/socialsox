@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, clipboard } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
 const { TwitterApi } = require('twitter-api-v2');
@@ -152,6 +152,15 @@ ipcMain.on('maximize-window', () => {
 ipcMain.on('close-window', () => {
     const win = BrowserWindow.getFocusedWindow();
     if (win) win.close();
+});
+
+// Handle clipboard image reading
+ipcMain.handle('read-clipboard-image', () => {
+    const image = clipboard.readImage();
+    if (image.isEmpty()) {
+        return null;
+    }
+    return image.toDataURL();
 });
 
 // Handle credential import
