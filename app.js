@@ -1,8 +1,8 @@
 // Platform selection state
 const platforms = {
-    mastodon: true,
-    twitter: true,
-    bluesky: true
+    mastodon: false,
+    twitter: false,
+    bluesky: false
 };
 
 // Image state
@@ -30,6 +30,9 @@ window.addEventListener('DOMContentLoaded', () => {
                 this.classList.add('border-gray-300', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
                 this.classList.remove('border-primary-500', 'bg-primary-500', 'text-white');
             }
+            
+            // Save platforms state
+            saveCredentials();
         });
     });
     
@@ -83,7 +86,8 @@ function saveCredentials() {
         twitterToken: document.getElementById('twitter-token').value,
         twitterTokenSecret: document.getElementById('twitter-token-secret').value,
         blueskyHandle: document.getElementById('bluesky-handle').value,
-        blueskyPassword: document.getElementById('bluesky-password').value
+        blueskyPassword: document.getElementById('bluesky-password').value,
+        platforms: { ...platforms }
     };
     
     localStorage.setItem('socialSoxCredentials', JSON.stringify(creds));
@@ -101,6 +105,25 @@ function loadCredentials() {
         document.getElementById('twitter-token-secret').value = creds.twitterTokenSecret || '';
         document.getElementById('bluesky-handle').value = creds.blueskyHandle || '';
         document.getElementById('bluesky-password').value = creds.blueskyPassword || '';
+        
+        // Load platforms
+        if (creds.platforms) {
+            Object.assign(platforms, creds.platforms);
+        }
+        
+        // Apply platforms to buttons
+        document.querySelectorAll('.platform-toggle').forEach(btn => {
+            const platform = btn.dataset.platform;
+            const isActive = platforms[platform];
+            btn.classList.toggle('active', isActive);
+            if (isActive) {
+                btn.classList.remove('border-gray-300', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
+                btn.classList.add('border-primary-500', 'bg-primary-500', 'text-white');
+            } else {
+                btn.classList.add('border-gray-300', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
+                btn.classList.remove('border-primary-500', 'bg-primary-500', 'text-white');
+            }
+        });
     }
 }
 
