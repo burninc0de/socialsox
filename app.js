@@ -21,6 +21,15 @@ window.addEventListener('DOMContentLoaded', () => {
             const platform = this.dataset.platform;
             platforms[platform] = !platforms[platform];
             this.classList.toggle('active');
+            
+            // Toggle Tailwind classes
+            if (platforms[platform]) {
+                this.classList.remove('border-gray-300', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
+                this.classList.add('border-primary-500', 'bg-primary-500', 'text-white');
+            } else {
+                this.classList.add('border-gray-300', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
+                this.classList.remove('border-primary-500', 'bg-primary-500', 'text-white');
+            }
         });
     });
     
@@ -36,8 +45,14 @@ window.addEventListener('DOMContentLoaded', () => {
 function toggleCollapsible() {
     const content = document.getElementById('credentials');
     const arrow = document.getElementById('arrow');
-    content.classList.toggle('open');
-    arrow.classList.toggle('open');
+    
+    if (content.style.maxHeight === '1000px') {
+        content.style.maxHeight = '0';
+        arrow.style.transform = 'rotate(0deg)';
+    } else {
+        content.style.maxHeight = '1000px';
+        arrow.style.transform = 'rotate(180deg)';
+    }
 }
 
 function updateCharCount() {
@@ -47,12 +62,15 @@ function updateCharCount() {
     
     countEl.textContent = `${count} characters`;
     
+    // Reset classes
+    countEl.className = 'text-right text-xs mb-5';
+    
     if (count > 280) {
-        countEl.className = 'char-count error';
+        countEl.classList.add('text-red-500');
     } else if (count > 250) {
-        countEl.className = 'char-count warning';
+        countEl.classList.add('text-orange-500');
     } else {
-        countEl.className = 'char-count';
+        countEl.classList.add('text-gray-500', 'dark:text-gray-400');
     }
 }
 
@@ -89,13 +107,17 @@ function loadCredentials() {
 function showStatus(message, type) {
     const status = document.getElementById('status');
     status.textContent = message;
-    status.className = `status ${type}`;
-    status.style.display = 'block';
+    status.className = 'mt-5 p-4 rounded-lg text-sm whitespace-pre-line block';
     
     if (type === 'success') {
+        status.classList.add('bg-green-100', 'dark:bg-green-900', 'text-green-800', 'dark:text-green-200', 'border', 'border-green-300', 'dark:border-green-600');
         setTimeout(() => {
-            status.style.display = 'none';
+            status.classList.add('hidden');
         }, 5000);
+    } else if (type === 'error') {
+        status.classList.add('bg-red-100', 'dark:bg-red-900', 'text-red-800', 'dark:text-red-200', 'border', 'border-red-300', 'dark:border-red-600');
+    } else if (type === 'info') {
+        status.classList.add('bg-blue-100', 'dark:bg-blue-900', 'text-blue-800', 'dark:text-blue-200', 'border', 'border-blue-300', 'dark:border-blue-600');
     }
 }
 
@@ -119,16 +141,16 @@ function setupImageUpload() {
     // Drag and drop
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        dropZone.classList.add('drag-over');
+        dropZone.classList.add('border-primary-500', 'bg-gray-100', 'dark:bg-gray-600');
     });
     
     dropZone.addEventListener('dragleave', () => {
-        dropZone.classList.remove('drag-over');
+        dropZone.classList.remove('border-primary-500', 'bg-gray-100', 'dark:bg-gray-600');
     });
     
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        dropZone.classList.remove('drag-over');
+        dropZone.classList.remove('border-primary-500', 'bg-gray-100', 'dark:bg-gray-600');
         
         const file = e.dataTransfer.files[0];
         if (file && file.type.startsWith('image/')) {
@@ -159,16 +181,16 @@ function handleImageFile(file) {
     const reader = new FileReader();
     reader.onload = (e) => {
         document.getElementById('previewImg').src = e.target.result;
-        document.getElementById('dropZone').style.display = 'none';
-        document.getElementById('imagePreview').style.display = 'block';
+        document.getElementById('dropZone').classList.add('hidden');
+        document.getElementById('imagePreview').classList.remove('hidden');
     };
     reader.readAsDataURL(file);
 }
 
 function removeImage() {
     selectedImage = null;
-    document.getElementById('dropZone').style.display = 'block';
-    document.getElementById('imagePreview').style.display = 'none';
+    document.getElementById('dropZone').classList.remove('hidden');
+    document.getElementById('imagePreview').classList.add('hidden');
     document.getElementById('fileInput').value = '';
 }
 

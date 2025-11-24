@@ -4,514 +4,155 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SocialSox - Multi-Platform Poster</title>
-    <style>
-        :root {
-            --bg-body: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --bg-container: white;
-            --text-primary: #333;
-            --text-secondary: #666;
-            --text-muted: #999;
-            --border-color: #ddd;
-            --input-bg: white;
-            --btn-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --btn-text: white;
-            --collapsible-bg: #f5f5f5;
-            --collapsible-hover: #eeeeee;
-            --status-success-bg: #e8f5e9;
-            --status-success-text: #2e7d32;
-            --status-success-border: #81c784;
-            --status-error-bg: #ffebee;
-            --status-error-text: #c62828;
-            --status-error-border: #e57373;
-            --status-info-bg: #e3f2fd;
-            --status-info-text: #1565c0;
-            --status-info-border: #64b5f6;
-            --platform-active-bg: #667eea;
-            --platform-active-text: white;
-            --platform-border: #ddd;
-            --platform-bg: white;
-            --platform-text: inherit;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-body: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-                --bg-container: #2d2d2d;
-                --text-primary: #e0e0e0;
-                --text-secondary: #b0b0b0;
-                --text-muted: #888;
-                --border-color: #555;
-                --input-bg: #3a3a3a;
-                --btn-gradient: linear-gradient(135deg, #4a90e2 0%, #5a67d8 100%);
-                --btn-text: #e0e0e0;
-                --collapsible-bg: #3a3a3a;
-                --collapsible-hover: #454545;
-                --status-success-bg: #1b5e20;
-                --status-success-text: #81c784;
-                --status-success-border: #4caf50;
-                --status-error-bg: #b71c1c;
-                --status-error-text: #ef5350;
-                --status-error-border: #f44336;
-                --status-info-bg: #0d47a1;
-                --status-info-text: #64b5f6;
-                --status-info-border: #2196f3;
-                --platform-active-bg: #4a90e2;
-                --platform-active-text: #e0e0e0;
-                --platform-border: #555;
-                --platform-bg: #3a3a3a;
-                --platform-text: #e0e0e0;
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'media',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            500: '#667eea',
+                            600: '#5a67d8',
+                            700: '#4c51bf',
+                        }
+                    }
+                }
             }
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: var(--bg-body);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 60px 20px 20px 20px;
-        }
-        
-        .container {
-            background: var(--bg-container);
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 600px;
-            width: 100%;
-            padding: 40px;
-        }
-        
+    </script>
+    <style>
         .title-bar {
             -webkit-app-region: drag;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 40px;
-            background: var(--bg-container);
-            border-radius: 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            z-index: 1000;
         }
-        
-        .title-bar h1 {
-            font-size: 16px;
-            color: var(--text-primary);
-            margin: 0;
-        }
-        
         .window-controls {
             -webkit-app-region: no-drag;
-            display: flex;
-            gap: 10px;
         }
-        
-        .window-controls button {
-            width: 12px;
-            height: 12px;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: opacity 0.2s;
+        .bg-gradient-purple {
+            background: linear-gradient(135deg, #4c51bf 0%, #5a4d8f 100%);
         }
-        
-        .window-controls button:hover {
-            opacity: 0.7;
+        .bg-gradient-dark {
+            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
         }
-        
-        .minimize {
-            background: #ffbd2e;
-        }
-        
-        .maximize {
-            background: #27ca3f;
-        }
-        
-        .close {
-            background: #ff605c;
-        }
-        
-        h1 {
-            color: var(--text-primary);
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-        
-        .subtitle {
-            color: var(--text-secondary);
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-        
-        .platforms {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .platform-toggle {
-            flex: 1;
-            padding: 12px;
-            border: 2px solid var(--platform-border);
-            border-radius: 8px;
-            background: var(--platform-bg);
-            color: var(--platform-text);
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        
-        .platform-toggle.active {
-            border-color: var(--platform-active-bg);
-            background: var(--platform-active-bg);
-            color: var(--platform-active-text);
-        }
-        
-        .platform-toggle:hover {
-            transform: translateY(-2px);
-        }
-        
-        .platform-icon {
-            width: 20px;
-            height: 20px;
-            margin-right: 8px;
-            vertical-align: middle;
-            filter: brightness(0) invert(1);
-        }
-        
-        textarea {
-            width: 100%;
-            min-height: 150px;
-            padding: 15px;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 16px;
-            font-family: inherit;
-            resize: vertical;
-            margin-bottom: 15px;
-            transition: border-color 0.3s;
-            background: var(--input-bg);
-            color: var(--text-primary);
-        }
-        
-        textarea:focus {
-            outline: none;
-            border-color: var(--platform-active-bg);
-        }
-        
-        .char-count {
-            text-align: right;
-            color: var(--text-muted);
-            font-size: 13px;
-            margin-bottom: 20px;
-        }
-        
-        .char-count.warning {
-            color: #ff9800;
-        }
-        
-        .char-count.error {
-            color: #f44336;
-        }
-        
-        .credentials {
-            background: var(--collapsible-bg);
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .credentials h3 {
-            font-size: 14px;
-            color: var(--text-primary);
-            margin-bottom: 15px;
-        }
-        
-        .credential-group {
-            margin-bottom: 15px;
-        }
-        
-        .credential-group:last-child {
-            margin-bottom: 0;
-        }
-        
-        .credential-group label {
-            display: block;
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-        
-        .credential-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 14px;
-            background: var(--input-bg);
-            color: var(--text-primary);
-        }
-        
-        .credential-group input:focus {
-            outline: none;
-            border-color: var(--platform-active-bg);
-        }
-        
-        .btn-post {
-            width: 100%;
-            padding: 15px;
-            background: var(--btn-gradient);
-            color: var(--btn-text);
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        
-        .btn-post:hover {
-            transform: translateY(-2px);
-        }
-        
-        .btn-post:active {
-            transform: translateY(0);
-        }
-        
-        .btn-post:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .status {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 14px;
-            display: none;
-        }
-        
-        .status.success {
-            background: var(--status-success-bg);
-            color: var(--status-success-text);
-            border: 1px solid var(--status-success-border);
-        }
-        
-        .status.error {
-            background: var(--status-error-bg);
-            color: var(--status-error-text);
-            border: 1px solid var(--status-error-border);
-        }
-        
-        .status.info {
-            background: var(--status-info-bg);
-            color: var(--status-info-text);
-            border: 1px solid var(--status-info-border);
-        }
-        
-        .collapsible {
-            margin-bottom: 20px;
-        }
-        
-        .collapsible-header {
-            background: var(--collapsible-bg);
-            padding: 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            user-select: none;
-        }
-        
-        .collapsible-header:hover {
-            background: var(--collapsible-hover);
-        }
-        
-        .collapsible-header h3 {
-            font-size: 14px;
-            color: var(--text-primary);
-        }
-        
-        .collapsible-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-        
-        .collapsible-content.open {
-            max-height: 1000px;
-            padding-top: 15px;
-        }
-        
-        .arrow {
-            transition: transform 0.3s;
-        }
-        
-        .arrow.open {
-            transform: rotate(180deg);
-        }
-        
-        .image-upload {
-            margin-bottom: 20px;
-        }
-        
-        .drop-zone {
-            border: 2px dashed var(--border-color);
-            border-radius: 8px;
-            padding: 40px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: var(--collapsible-bg);
-        }
-        
-        .drop-zone:hover, .drop-zone.drag-over {
-            border-color: var(--platform-active-bg);
-            background: var(--collapsible-hover);
-        }
-        
-        .drop-zone-text {
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-        
-        .image-preview {
-            position: relative;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            padding: 10px;
-            background: var(--collapsible-bg);
-        }
-        
-        .image-preview img {
-            max-width: 100%;
-            max-height: 300px;
-            display: block;
-            margin: 0 auto;
-            border-radius: 4px;
-        }
-        
-        .remove-image {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: #f44336;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 18px;
-            line-height: 1;
-            transition: background 0.2s;
-        }
-        
-        .remove-image:hover {
-            background: #d32f2f;
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+            }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="title-bar">
-            <h1>🧦 SocialSox</h1>
-            <div class="window-controls">
-                <button class="minimize" onclick="window.electron.minimizeWindow()"></button>
-                <button class="maximize" onclick="window.electron.maximizeWindow()"></button>
-                <button class="close" onclick="window.electron.closeWindow()"></button>
-            </div>
+<body class="bg-gradient-purple dark:bg-gradient-dark min-h-screen flex items-center justify-center pt-16 px-5 pb-5">
+    <!-- Title Bar -->
+    <div class="title-bar fixed top-0 left-0 right-0 h-10 bg-white dark:bg-gray-800 flex items-center justify-between px-5 z-50">
+        <h1 class="text-base text-gray-800 dark:text-gray-200 m-0">🧦 SocialSox</h1>
+        <div class="window-controls flex gap-2.5">
+            <button class="w-3 h-3 rounded-full bg-yellow-400 hover:opacity-70 transition-opacity" onclick="window.electron.minimizeWindow()"></button>
+            <button class="w-3 h-3 rounded-full bg-green-500 hover:opacity-70 transition-opacity" onclick="window.electron.maximizeWindow()"></button>
+            <button class="w-3 h-3 rounded-full bg-red-500 hover:opacity-70 transition-opacity" onclick="window.electron.closeWindow()"></button>
         </div>
-        <p class="subtitle">Post to multiple platforms at once</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full p-10">
+        <p class="text-gray-600 dark:text-gray-400 mb-8 text-sm">Post to multiple platforms at once</p>
         
-        <div class="platforms">
-            <button class="platform-toggle active" data-platform="mastodon"><img src="assets/masto.svg" alt="Mastodon" class="platform-icon"> Mastodon</button>
-            <button class="platform-toggle active" data-platform="twitter"><img src="assets/twit.svg" alt="Twitter" class="platform-icon"> Twitter</button>
-            <button class="platform-toggle active" data-platform="bluesky"><img src="assets/bsky.svg" alt="Bluesky" class="platform-icon"> Bluesky</button>
+        <!-- Platform Toggles -->
+        <div class="flex gap-2.5 mb-5">
+            <button class="platform-toggle flex-1 px-3 py-3 border-2 border-primary-500 rounded-lg bg-primary-500 text-white cursor-pointer transition-all duration-300 text-sm font-semibold hover:-translate-y-0.5 active" data-platform="mastodon">
+                <img src="assets/masto.svg" alt="Mastodon" class="w-5 h-5 mr-2 inline-block align-middle brightness-0 invert"> Mastodon
+            </button>
+            <button class="platform-toggle flex-1 px-3 py-3 border-2 border-primary-500 rounded-lg bg-primary-500 text-white cursor-pointer transition-all duration-300 text-sm font-semibold hover:-translate-y-0.5 active" data-platform="twitter">
+                <img src="assets/twit.svg" alt="Twitter" class="w-5 h-5 mr-2 inline-block align-middle brightness-0 invert"> Twitter
+            </button>
+            <button class="platform-toggle flex-1 px-3 py-3 border-2 border-primary-500 rounded-lg bg-primary-500 text-white cursor-pointer transition-all duration-300 text-sm font-semibold hover:-translate-y-0.5 active" data-platform="bluesky">
+                <img src="assets/bsky.svg" alt="Bluesky" class="w-5 h-5 mr-2 inline-block align-middle brightness-0 invert"> Bluesky
+            </button>
         </div>
         
-        <textarea id="message" placeholder="What's on your mind?"></textarea>
-        <div class="char-count" id="charCount">0 characters</div>
+        <!-- Message Input -->
+        <textarea id="message" placeholder="What's on your mind?" 
+            class="w-full min-h-[150px] p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-base resize-y mb-4 transition-colors bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500"></textarea>
+        <div class="text-right text-gray-500 dark:text-gray-400 text-xs mb-5" id="charCount">0 characters</div>
         
-        <div class="image-upload" id="imageUpload">
-            <div class="drop-zone" id="dropZone">
-                <div class="drop-zone-text">
+        <!-- Image Upload -->
+        <div class="mb-5" id="imageUpload">
+            <div id="dropZone" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-10 text-center cursor-pointer transition-all bg-gray-50 dark:bg-gray-700 hover:border-primary-500 hover:bg-gray-100 dark:hover:bg-gray-600">
+                <div class="text-gray-600 dark:text-gray-400 text-sm">
                     📸 Drag & drop an image here or click to select
-                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                    <input type="file" id="fileInput" accept="image/*" class="hidden">
                 </div>
             </div>
-            <div class="image-preview" id="imagePreview" style="display: none;">
-                <img id="previewImg" src="" alt="Preview">
-                <button class="remove-image" id="removeImage" onclick="removeImage()">✕</button>
+            <div id="imagePreview" class="relative border-2 border-gray-300 dark:border-gray-600 rounded-lg p-2.5 bg-gray-50 dark:bg-gray-700 hidden">
+                <img id="previewImg" src="" alt="Preview" class="max-w-full max-h-[300px] block mx-auto rounded">
+                <button id="removeImage" onclick="removeImage()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-red-500 text-white border-0 cursor-pointer text-lg leading-none hover:bg-red-600 transition-colors">✕</button>
             </div>
         </div>
         
-        <div class="collapsible">
-            <div class="collapsible-header" onclick="toggleCollapsible()">
-                <h3>⚙️ API Credentials (stored locally)</h3>
-                <span class="arrow" id="arrow">▼</span>
+        <!-- Credentials Collapsible -->
+        <div class="mb-5">
+            <div onclick="toggleCollapsible()" class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg cursor-pointer flex justify-between items-center select-none hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                <h3 class="text-sm text-gray-800 dark:text-gray-200">⚙️ API Credentials (stored locally)</h3>
+                <span id="arrow" class="transition-transform duration-300">▼</span>
             </div>
-            <div class="collapsible-content" id="credentials">
-                <div class="credentials">
-                    <div class="credential-group">
-                        <label>Mastodon Instance URL:</label>
-                        <input type="text" id="mastodon-instance" placeholder="https://mastodon.social">
+            <div id="credentials" class="max-h-0 overflow-hidden transition-[max-height] duration-300">
+                <div class="pt-4">
+                    <!-- Mastodon -->
+                    <div class="mb-4">
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Mastodon Instance URL:</label>
+                        <input type="text" id="mastodon-instance" placeholder="https://mastodon.social" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
                     </div>
-                    <div class="credential-group">
-                        <label>Mastodon Access Token:</label>
-                        <input type="password" id="mastodon-token" placeholder="Your access token">
-                    </div>
-                    
-                    <div class="credential-group" style="margin-top: 20px;">
-                        <label>Twitter API Key:</label>
-                        <input type="password" id="twitter-key" placeholder="Your API key">
-                    </div>
-                    <div class="credential-group">
-                        <label>Twitter API Secret:</label>
-                        <input type="password" id="twitter-secret" placeholder="Your API secret">
-                    </div>
-                    <div class="credential-group">
-                        <label>Twitter Access Token:</label>
-                        <input type="password" id="twitter-token" placeholder="Your access token">
-                    </div>
-                    <div class="credential-group">
-                        <label>Twitter Access Token Secret:</label>
-                        <input type="password" id="twitter-token-secret" placeholder="Your token secret">
+                    <div class="mb-4">
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Mastodon Access Token:</label>
+                        <input type="password" id="mastodon-token" placeholder="Your access token" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
                     </div>
                     
-                    <div class="credential-group" style="margin-top: 20px;">
-                        <label>Bluesky Handle:</label>
-                        <input type="text" id="bluesky-handle" placeholder="username.bsky.social">
+                    <!-- Twitter -->
+                    <div class="mb-4 mt-5">
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Twitter API Key:</label>
+                        <input type="password" id="twitter-key" placeholder="Your API key" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
                     </div>
-                    <div class="credential-group">
-                        <label>Bluesky App Password:</label>
-                        <input type="password" id="bluesky-password" placeholder="Your app password">
+                    <div class="mb-4">
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Twitter API Secret:</label>
+                        <input type="password" id="twitter-secret" placeholder="Your API secret" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Twitter Access Token:</label>
+                        <input type="password" id="twitter-token" placeholder="Your access token" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Twitter Access Token Secret:</label>
+                        <input type="password" id="twitter-token-secret" placeholder="Your token secret" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
                     </div>
                     
-                    <div class="credential-buttons" style="margin-top: 20px; display: flex; gap: 10px;">
-                        <button type="button" onclick="exportCredentials()" style="flex: 1; padding: 10px; background: var(--btn-gradient); color: var(--btn-text); border: none; border-radius: 6px; cursor: pointer;">📤 Export Credentials</button>
-                        <button type="button" onclick="importCredentials()" style="flex: 1; padding: 10px; background: var(--bg-container); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer;">📥 Import Credentials</button>
+                    <!-- Bluesky -->
+                    <div class="mb-4 mt-5">
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Bluesky Handle:</label>
+                        <input type="text" id="bluesky-handle" placeholder="username.bsky.social" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Bluesky App Password:</label>
+                        <input type="password" id="bluesky-password" placeholder="Your app password" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                    </div>
+                    
+                    <!-- Import/Export Buttons -->
+                    <div class="flex gap-2.5 mt-5">
+                        <button type="button" onclick="exportCredentials()" class="flex-1 py-2.5 px-4 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors">
+                            📤 Export Credentials
+                        </button>
+                        <button type="button" onclick="importCredentials()" class="flex-1 py-2.5 px-4 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer text-sm font-medium transition-colors">
+                            📥 Import Credentials
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
         
-        <button class="btn-post" id="postBtn" onclick="postToAll()">Post to Selected Platforms</button>
+        <!-- Post Button -->
+        <button id="postBtn" onclick="postToAll()" class="w-full py-3.5 px-4 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-lg text-base font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            Post to Selected Platforms
+        </button>
         
-        <div class="status" id="status"></div>
+        <!-- Status Message -->
+        <div id="status" class="mt-5 p-4 rounded-lg text-sm whitespace-pre-line hidden"></div>
     </div>
     
     <script src="app.js"></script>
