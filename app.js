@@ -123,9 +123,19 @@ async function postToMastodon(message, instance, token) {
 async function postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret) {
     // Check if we're in Electron (has window.electron)
     if (window.electron && window.electron.postToTwitter) {
+        console.log('Calling Electron backend for Twitter...');
         const result = await window.electron.postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret);
+        console.log('Twitter result:', result);
+        
         if (!result.success) {
-            throw new Error(result.error);
+            // Show more detailed error if available
+            let errorMsg = result.error;
+            if (result.details) {
+                console.error('Twitter error details:', result.details);
+                if (result.details.detail) errorMsg = result.details.detail;
+                else if (result.details.title) errorMsg = result.details.title;
+            }
+            throw new Error(errorMsg);
         }
         return result.data;
     } else {
@@ -230,7 +240,12 @@ async function postToAll() {
                     await postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret);
                     results.push('✓ Twitter');
                 } catch (error) {
-                    results.push('✗ Twitter: ' + error.message);
+                    let errorMsg = error.message;
+                    // Add helpful context for 403 errors
+                    if (errorMsg.includes('403') || errorMsg.includes('Forbidden')) {
+                        errorMsg = 'Permission denied. Make sure your Twitter app has "Read and Write" permissions in Developer Portal, then regenerate your Access Token and Access Token Secret.';
+                    }
+                    results.push('✗ Twitter: ' + errorMsg);
                 }
             } else {
                 results.push('✗ Twitter: Missing credentials');

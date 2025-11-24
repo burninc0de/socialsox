@@ -5,6 +5,7 @@
   "main": "main.js",
   "scripts": {
     "start": "npx electron .",
+    "electron:dev": "npx electron . --enable-logging",
     "server": "node server.js"
   },
   "keywords": [

@@ -58,13 +58,24 @@ Then open http://localhost:8000/ in your browser.
 
 1. Go to [Twitter Developer Portal](https://developer.twitter.com/en/portal/dashboard)
 2. Create a project and app (or use existing)
-3. Go to your app's "Keys and Tokens" section
-4. Generate/copy:
+3. **IMPORTANT: Configure OAuth 1.0a permissions:**
+   - Click on your app → **Settings** tab
+   - Scroll to "User authentication settings"
+   - Click **"Set up"** or **"Edit"**
+   - Enable **OAuth 1.0a**
+   - Set **App permissions** to **"Read and Write"** (not just "Read")
+   - For **Callback URL**: Enter `http://127.0.0.1` (not actually used, but required by Twitter)
+   - For **Website URL**: Enter any valid URL like `https://github.com/yourusername/socialsox` or just `http://localhost:8000`
+   - Click **Save**
+   
+   > **Note**: We're using OAuth 1.0a with your own Access Tokens (not the 3-legged OAuth flow), so the callback URL won't actually be used. Twitter just requires these fields to be filled in.
+4. Go to **"Keys and Tokens"** tab
+5. **Regenerate** your Access Token and Access Token Secret (important after changing permissions!)
+6. Copy all 4 credentials:
    - **API Key** (also called Consumer Key)
    - **API Secret** (also called Consumer Secret)
-   - **Access Token**
-   - **Access Token Secret**
-5. Make sure your app has **Read and Write** permissions
+   - **Access Token** (newly regenerated)
+   - **Access Token Secret** (newly regenerated)
 
 ### Enter Credentials & Post
 
@@ -90,9 +101,14 @@ Then select platforms, type your message, and click "Post to Selected Platforms"
 ## Troubleshooting
 
 **Twitter Errors**: 
-- Make sure you have all 4 credentials: API Key, API Secret, Access Token, Access Token Secret
-- Verify your app has "Read and Write" permissions in Twitter Developer Portal
-- If you get "403 Forbidden", your app may not have write permissions
+- **"oauth1 app permissions" error**: Your app isn't configured correctly
+  1. Go to your app's **Settings** → "User authentication settings" 
+  2. Enable **OAuth 1.0a** with **"Read and Write"** permissions
+  3. Go to **"Keys and Tokens"** tab
+  4. **Regenerate** your Access Token and Access Token Secret (critical!)
+  5. Use the new tokens in SocialSox
+- Make sure you have all 4 credentials entered correctly
+- Old tokens won't work after changing permissions - you must regenerate them
 
 **CORS Errors (Browser mode only)**: Make sure you're using the local server (`python3 server.py` or `node server.js`) and accessing via http://localhost:8000/
 
