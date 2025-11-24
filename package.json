@@ -24,6 +24,7 @@
     "electron-builder": "^26.0.12"
   },
   "dependencies": {
+    "@atproto/api": "^0.18.1",
     "twitter-api-v2": "^1.28.0"
   },
   "build": {

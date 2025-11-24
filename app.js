@@ -164,7 +164,36 @@ async function postToBluesky(message, handle, password) {
     
     const session = await sessionResponse.json();
     
-    // Create post
+    // Detect links and mentions in the text (richtext facets)
+    const facets = [];
+    
+    // Regex to find URLs
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    let match;
+    while ((match = urlRegex.exec(message)) !== null) {
+        facets.push({
+            index: {
+                byteStart: new TextEncoder().encode(message.slice(0, match.index)).length,
+                byteEnd: new TextEncoder().encode(message.slice(0, match.index + match[0].length)).length
+            },
+            features: [{
+                $type: 'app.bsky.richtext.facet#link',
+                uri: match[0]
+            }]
+        });
+    }
+    
+    // Create post with facets
+    const record = {
+        text: message,
+        createdAt: new Date().toISOString()
+    };
+    
+    // Only add facets if we found any
+    if (facets.length > 0) {
+        record.facets = facets;
+    }
+    
     const postResponse = await fetch('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
         method: 'POST',
         headers: {
@@ -174,10 +203,7 @@ async function postToBluesky(message, handle, password) {
         body: JSON.stringify({
             repo: session.did,
             collection: 'app.bsky.feed.post',
-            record: {
-                text: message,
-                createdAt: new Date().toISOString()
-            }
+            record: record
         })
     });
     
