@@ -182,6 +182,14 @@
             transform: translateY(-2px);
         }
         
+        .platform-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            vertical-align: middle;
+            filter: brightness(0) invert(1);
+        }
+        
         textarea {
             width: 100%;
             min-height: 150px;
@@ -430,9 +438,9 @@
         <p class="subtitle">Post to multiple platforms at once</p>
         
         <div class="platforms">
-            <button class="platform-toggle active" data-platform="mastodon">🐘 Mastodon</button>
-            <button class="platform-toggle active" data-platform="twitter">🐦 Twitter</button>
-            <button class="platform-toggle active" data-platform="bluesky">🦋 Bluesky</button>
+            <button class="platform-toggle active" data-platform="mastodon"><img src="assets/masto.svg" alt="Mastodon" class="platform-icon"> Mastodon</button>
+            <button class="platform-toggle active" data-platform="twitter"><img src="assets/twit.svg" alt="Twitter" class="platform-icon"> Twitter</button>
+            <button class="platform-toggle active" data-platform="bluesky"><img src="assets/bsky.svg" alt="Bluesky" class="platform-icon"> Bluesky</button>
         </div>
         
         <textarea id="message" placeholder="What's on your mind?"></textarea>
