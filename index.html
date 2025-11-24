@@ -64,14 +64,20 @@
 
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full p-10">
         <!-- Tabs -->
-        <div class="flex mb-6 border-b border-gray-200 dark:border-gray-700">
-            <button id="postTab" class="tab-button px-4 py-2 text-sm font-medium text-primary-600 dark:text-primary-400 border-b-2 border-primary-600 dark:border-primary-400 bg-transparent cursor-pointer transition-colors flex items-center gap-2" data-tab="post">
-                <i data-lucide="pen-square" class="w-4 h-4"></i>
-                Post
-            </button>
-            <button id="historyTab" class="tab-button px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 border-b-2 border-transparent bg-transparent cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center gap-2" data-tab="history">
-                <i data-lucide="history" class="w-4 h-4"></i>
-                History
+        <div class="flex justify-between mb-6 border-b border-gray-200 dark:border-gray-700">
+            <div class="flex">
+                <button id="postTab" class="tab-button px-4 py-2 text-sm font-medium text-primary-600 dark:text-primary-400 border-b-2 border-primary-600 dark:border-primary-400 bg-transparent cursor-pointer transition-colors flex items-center gap-2" data-tab="post">
+                    <i data-lucide="pen-square" class="w-4 h-4"></i>
+                    Post
+                </button>
+                <button id="historyTab" class="tab-button px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 border-b-2 border-transparent bg-transparent cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center gap-2" data-tab="history">
+                    <i data-lucide="history" class="w-4 h-4"></i>
+                    History
+                </button>
+            </div>
+            <button id="settingsTab" class="tab-button px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 border-b-2 border-transparent bg-transparent cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center gap-2" data-tab="settings">
+                <i data-lucide="settings" class="w-4 h-4"></i>
+                Settings
             </button>
         </div>
         
@@ -111,70 +117,6 @@
             </div>
         </div>
         
-        <!-- Credentials Collapsible -->
-        <div class="mb-5">
-            <div onclick="toggleCollapsible()" class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg cursor-pointer flex justify-between items-center select-none hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                <h3 class="text-sm text-gray-800 dark:text-gray-200 flex items-center gap-2">
-                    <i data-lucide="settings" class="w-4 h-4"></i>
-                    API Credentials (stored locally)
-                </h3>
-                <span id="arrow" class="transition-transform duration-300">▼</span>
-            </div>
-            <div id="credentials" class="max-h-0 overflow-hidden transition-[max-height] duration-300">
-                <div class="pt-4">
-                    <!-- Mastodon -->
-                    <div class="mb-4">
-                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Mastodon Instance URL:</label>
-                        <input type="text" id="mastodon-instance" placeholder="https://mastodon.social" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Mastodon Access Token:</label>
-                        <input type="password" id="mastodon-token" placeholder="Your access token" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
-                    </div>
-                    
-                    <!-- Twitter -->
-                    <div class="mb-4 mt-5">
-                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Twitter API Key:</label>
-                        <input type="password" id="twitter-key" placeholder="Your API key" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Twitter API Secret:</label>
-                        <input type="password" id="twitter-secret" placeholder="Your API secret" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Twitter Access Token:</label>
-                        <input type="password" id="twitter-token" placeholder="Your access token" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Twitter Access Token Secret:</label>
-                        <input type="password" id="twitter-token-secret" placeholder="Your token secret" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
-                    </div>
-                    
-                    <!-- Bluesky -->
-                    <div class="mb-4 mt-5">
-                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Bluesky Handle:</label>
-                        <input type="text" id="bluesky-handle" placeholder="username.bsky.social" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Bluesky App Password:</label>
-                        <input type="password" id="bluesky-password" placeholder="Your app password" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
-                    </div>
-                    
-                    <!-- Import/Export Buttons -->
-                    <div class="flex gap-2.5 mt-5">
-                        <button type="button" onclick="exportCredentials()" class="flex-1 py-2.5 px-4 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                            <i data-lucide="download" class="w-4 h-4"></i>
-                            Export Credentials
-                        </button>
-                        <button type="button" onclick="importCredentials()" class="flex-1 py-2.5 px-4 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                            <i data-lucide="upload" class="w-4 h-4"></i>
-                            Import Credentials
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
         <!-- Post Button -->
         <button id="postBtn" onclick="postToAll()" class="w-full py-3.5 px-4 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-lg text-base font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
             Post to Selected Platforms
@@ -192,6 +134,61 @@
             </div>
             <div id="noHistory" class="text-center text-gray-500 dark:text-gray-400 py-8">
                 No posts yet. Start posting to see your history here!
+            </div>
+        </div>
+        
+        <!-- Settings Tab Content -->
+        <div id="settingsContent" class="tab-content hidden">
+            <p class="text-gray-600 dark:text-gray-400 mb-8 text-sm">Configure your API credentials</p>
+            
+            <!-- Mastodon -->
+            <div class="mb-4">
+                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Mastodon Instance URL:</label>
+                <input type="text" id="mastodon-instance" placeholder="https://mastodon.social" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+            </div>
+            <div class="mb-4">
+                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Mastodon Access Token:</label>
+                <input type="password" id="mastodon-token" placeholder="Your access token" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+            </div>
+            
+            <!-- Twitter -->
+            <div class="mb-4 mt-5">
+                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Twitter API Key:</label>
+                <input type="password" id="twitter-key" placeholder="Your API key" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+            </div>
+            <div class="mb-4">
+                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Twitter API Secret:</label>
+                <input type="password" id="twitter-secret" placeholder="Your API secret" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+            </div>
+            <div class="mb-4">
+                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Twitter Access Token:</label>
+                <input type="password" id="twitter-token" placeholder="Your access token" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+            </div>
+            <div class="mb-4">
+                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Twitter Access Token Secret:</label>
+                <input type="password" id="twitter-token-secret" placeholder="Your token secret" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+            </div>
+            
+            <!-- Bluesky -->
+            <div class="mb-4 mt-5">
+                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Bluesky Handle:</label>
+                <input type="text" id="bluesky-handle" placeholder="username.bsky.social" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+            </div>
+            <div class="mb-4">
+                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Bluesky App Password:</label>
+                <input type="password" id="bluesky-password" placeholder="Your app password" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+            </div>
+            
+            <!-- Import/Export Buttons -->
+            <div class="flex gap-2.5 mt-5">
+                <button type="button" onclick="exportCredentials()" class="flex-1 py-2.5 px-4 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    Export Credentials
+                </button>
+                <button type="button" onclick="importCredentials()" class="flex-1 py-2.5 px-4 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="upload" class="w-4 h-4"></i>
+                    Import Credentials
+                </button>
             </div>
         </div>
     
