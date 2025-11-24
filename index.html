@@ -302,6 +302,66 @@
         .arrow.open {
             transform: rotate(180deg);
         }
+        
+        .image-upload {
+            margin-bottom: 20px;
+        }
+        
+        .drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: var(--collapsible-bg);
+        }
+        
+        .drop-zone:hover, .drop-zone.drag-over {
+            border-color: var(--platform-active-bg);
+            background: var(--collapsible-hover);
+        }
+        
+        .drop-zone-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .image-preview {
+            position: relative;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            background: var(--collapsible-bg);
+        }
+        
+        .image-preview img {
+            max-width: 100%;
+            max-height: 300px;
+            display: block;
+            margin: 0 auto;
+            border-radius: 4px;
+        }
+        
+        .remove-image {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #f44336;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+            transition: background 0.2s;
+        }
+        
+        .remove-image:hover {
+            background: #d32f2f;
+        }
     </style>
 </head>
 <body>
@@ -317,6 +377,19 @@
         
         <textarea id="message" placeholder="What's on your mind?"></textarea>
         <div class="char-count" id="charCount">0 characters</div>
+        
+        <div class="image-upload" id="imageUpload">
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-zone-text">
+                    📸 Drag & drop an image here or click to select
+                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                </div>
+            </div>
+            <div class="image-preview" id="imagePreview" style="display: none;">
+                <img id="previewImg" src="" alt="Preview">
+                <button class="remove-image" id="removeImage" onclick="removeImage()">✕</button>
+            </div>
+        </div>
         
         <div class="collapsible">
             <div class="collapsible-header" onclick="toggleCollapsible()">

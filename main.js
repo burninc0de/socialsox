@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
 const { TwitterApi } = require('twitter-api-v2');
+const sharp = require('sharp');
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -27,14 +28,11 @@ function createWindow() {
 }
 
 // Handle Twitter posting from renderer
-ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, accessToken, accessTokenSecret }) => {
+ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData }) => {
     try {
         console.log('Twitter: Attempting to post...');
         console.log('Twitter: Message length:', message.length);
-        console.log('Twitter: Has API Key:', !!apiKey);
-        console.log('Twitter: Has API Secret:', !!apiSecret);
-        console.log('Twitter: Has Access Token:', !!accessToken);
-        console.log('Twitter: Has Access Token Secret:', !!accessTokenSecret);
+        console.log('Twitter: Has image:', !!imageData);
         
         const client = new TwitterApi({
             appKey: apiKey,
@@ -43,7 +41,25 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
             accessSecret: accessTokenSecret,
         });
 
-        const result = await client.v2.tweet(message);
+        let mediaId = null;
+        
+        // Upload image if provided
+        if (imageData) {
+            console.log('Twitter: Uploading image...');
+            // Convert base64 to buffer
+            const base64Data = imageData.split(',')[1];
+            const buffer = Buffer.from(base64Data, 'base64');
+            mediaId = await client.v1.uploadMedia(buffer, { mimeType: 'image/jpeg' });
+            console.log('Twitter: Image uploaded, mediaId:', mediaId);
+        }
+        
+        // Create tweet with optional media
+        const tweetData = { text: message };
+        if (mediaId) {
+            tweetData.media = { media_ids: [mediaId] };
+        }
+        
+        const result = await client.v2.tweet(tweetData);
         console.log('Twitter: Success!', result);
         return { success: true, data: result };
     } catch (error) {

@@ -114,9 +114,10 @@ Then select platforms, type your message, and click "Post to Selected Platforms"
 
 ## Limitations
 
-- No image/media upload support (yet)
+- No multiple image support (single image only)
 - No thread/reply support
 - Character limits: Twitter 280 chars, Mastodon 500+ (varies by instance), Bluesky 300 chars
+- Image size limit: 5MB
 
 ## Troubleshooting
 

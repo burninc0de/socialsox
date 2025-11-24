@@ -5,6 +5,9 @@ const platforms = {
     bluesky: true
 };
 
+// Image state
+let selectedImage = null;
+
 // Load credentials from localStorage on page load
 window.addEventListener('DOMContentLoaded', () => {
     loadCredentials();
@@ -25,6 +28,9 @@ window.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('input').forEach(input => {
         input.addEventListener('change', saveCredentials);
     });
+    
+    // Image upload handlers
+    setupImageUpload();
 });
 
 function toggleCollapsible() {
@@ -93,7 +99,71 @@ function showStatus(message, type) {
     }
 }
 
-async function postToMastodon(message, instance, token) {
+function setupImageUpload() {
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    
+    // Click to select file
+    dropZone.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    // File selected via input
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            handleImageFile(file);
+        }
+    });
+    
+    // Drag and drop
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+    });
+    
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag-over');
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+            handleImageFile(file);
+        }
+    });
+}
+
+function handleImageFile(file) {
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        showStatus('Image too large! Max size is 5MB', 'error');
+        return;
+    }
+    
+    selectedImage = file;
+    
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        document.getElementById('previewImg').src = e.target.result;
+        document.getElementById('dropZone').style.display = 'none';
+        document.getElementById('imagePreview').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeImage() {
+    selectedImage = null;
+    document.getElementById('dropZone').style.display = 'block';
+    document.getElementById('imagePreview').style.display = 'none';
+    document.getElementById('fileInput').value = '';
+}
+
+async function postToMastodon(message, instance, token, imageFile = null) {
     // Ensure instance URL doesn't have trailing slash or username path
     let cleanInstance = instance.trim();
     if (cleanInstance.endsWith('/')) {
@@ -103,13 +173,43 @@ async function postToMastodon(message, instance, token) {
     const url = new URL(cleanInstance);
     cleanInstance = `${url.protocol}//${url.host}`;
     
+    let mediaId = null;
+    
+    // Upload image if provided
+    if (imageFile) {
+        const formData = new FormData();
+        formData.append('file', imageFile);
+        
+        const mediaResponse = await fetch(`${cleanInstance}/api/v2/media`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        });
+        
+        if (!mediaResponse.ok) {
+            const errorText = await mediaResponse.text();
+            throw new Error(`Image upload failed: ${errorText}`);
+        }
+        
+        const mediaData = await mediaResponse.json();
+        mediaId = mediaData.id;
+    }
+    
+    // Create post
+    const postData = { status: message };
+    if (mediaId) {
+        postData.media_ids = [mediaId];
+    }
+    
     const response = await fetch(`${cleanInstance}/api/v1/statuses`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ status: message })
+        body: JSON.stringify(postData)
     });
     
     if (!response.ok) {
@@ -120,11 +220,11 @@ async function postToMastodon(message, instance, token) {
     return await response.json();
 }
 
-async function postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret) {
+async function postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData = null) {
     // Check if we're in Electron (has window.electron)
     if (window.electron && window.electron.postToTwitter) {
         console.log('Calling Electron backend for Twitter...');
-        const result = await window.electron.postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret);
+        const result = await window.electron.postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData);
         console.log('Twitter result:', result);
         
         if (!result.success) {
@@ -144,7 +244,7 @@ async function postToTwitter(message, apiKey, apiSecret, accessToken, accessToke
     }
 }
 
-async function postToBluesky(message, handle, password) {
+async function postToBluesky(message, handle, password, imageFile = null) {
     // Create session
     const sessionResponse = await fetch('https://bsky.social/xrpc/com.atproto.server.createSession', {
         method: 'POST',
@@ -163,6 +263,30 @@ async function postToBluesky(message, handle, password) {
     }
     
     const session = await sessionResponse.json();
+    
+    let imageBlob = null;
+    
+    // Upload image if provided
+    if (imageFile) {
+        const imageBytes = await imageFile.arrayBuffer();
+        
+        const uploadResponse = await fetch('https://bsky.social/xrpc/com.atproto.repo.uploadBlob', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${session.accessJwt}`,
+                'Content-Type': imageFile.type
+            },
+            body: imageBytes
+        });
+        
+        if (!uploadResponse.ok) {
+            const errorText = await uploadResponse.text();
+            throw new Error(`Image upload failed: ${errorText}`);
+        }
+        
+        const uploadData = await uploadResponse.json();
+        imageBlob = uploadData.blob;
+    }
     
     // Detect links and mentions in the text (richtext facets)
     const facets = [];
@@ -183,7 +307,7 @@ async function postToBluesky(message, handle, password) {
         });
     }
     
-    // Create post with facets
+    // Create post with facets and optional image
     const record = {
         text: message,
         createdAt: new Date().toISOString()
@@ -192,6 +316,17 @@ async function postToBluesky(message, handle, password) {
     // Only add facets if we found any
     if (facets.length > 0) {
         record.facets = facets;
+    }
+    
+    // Add image embed if present
+    if (imageBlob) {
+        record.embed = {
+            $type: 'app.bsky.embed.images',
+            images: [{
+                alt: '',
+                image: imageBlob
+            }]
+        };
     }
     
     const postResponse = await fetch('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
@@ -236,6 +371,16 @@ async function postToAll() {
     
     const results = [];
     
+    // Get image data if present
+    let imageData = null;
+    if (selectedImage) {
+        const reader = new FileReader();
+        imageData = await new Promise((resolve) => {
+            reader.onload = (e) => resolve(e.target.result);
+            reader.readAsDataURL(selectedImage);
+        });
+    }
+    
     try {
         // Mastodon
         if (platforms.mastodon) {
@@ -244,7 +389,7 @@ async function postToAll() {
             
             if (instance && token) {
                 try {
-                    await postToMastodon(message, instance, token);
+                    await postToMastodon(message, instance, token, selectedImage);
                     results.push('✓ Mastodon');
                 } catch (error) {
                     results.push('✗ Mastodon: ' + error.message);
@@ -263,7 +408,7 @@ async function postToAll() {
             
             if (apiKey && apiSecret && accessToken && accessTokenSecret) {
                 try {
-                    await postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret);
+                    await postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData);
                     results.push('✓ Twitter');
                 } catch (error) {
                     let errorMsg = error.message;
@@ -285,7 +430,7 @@ async function postToAll() {
             
             if (handle && password) {
                 try {
-                    await postToBluesky(message, handle, password);
+                    await postToBluesky(message, handle, password, selectedImage);
                     results.push('✓ Bluesky');
                 } catch (error) {
                     results.push('✗ Bluesky: ' + error.message);
@@ -304,10 +449,11 @@ async function postToAll() {
         
         showStatus(results.join('\n'), statusType);
         
-        // Clear message if all successful
+        // Clear message and image if all successful
         if (hasSuccess && !hasFailure) {
             document.getElementById('message').value = '';
             updateCharCount();
+            removeImage();
         }
         
     } catch (error) {
