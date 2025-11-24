@@ -36,7 +36,8 @@ async function createWindow() {
         icon: path.join(__dirname, 'appicon.png'),
         title: '🧦 SocialSox',
         autoHideMenuBar: true,
-        frame: false
+        frame: false,
+        backgroundColor: '#1a1a1a'
     });
 
     // Load from Vite dev server in development, file in production
