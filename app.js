@@ -291,3 +291,101 @@ async function postToAll() {
         btn.textContent = 'Post to Selected Platforms';
     }
 }
+
+async function exportCredentials() {
+    try {
+        const creds = {
+            mastodonInstance: document.getElementById('mastodon-instance').value,
+            mastodonToken: document.getElementById('mastodon-token').value,
+            twitterKey: document.getElementById('twitter-key').value,
+            twitterSecret: document.getElementById('twitter-secret').value,
+            twitterToken: document.getElementById('twitter-token').value,
+            twitterTokenSecret: document.getElementById('twitter-token-secret').value,
+            blueskyHandle: document.getElementById('bluesky-handle').value,
+            blueskyPassword: document.getElementById('bluesky-password').value
+        };
+
+        if (window.electron && window.electron.exportCredentials) {
+            const result = await window.electron.exportCredentials(creds);
+            if (result.success) {
+                showStatus('Credentials exported successfully!', 'success');
+            } else if (!result.canceled) {
+                showStatus('Failed to export credentials: ' + result.error, 'error');
+            }
+        } else {
+            // Fallback for browser mode - download as JSON
+            const dataStr = JSON.stringify(creds, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'socialsox-credentials.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showStatus('Credentials exported to download!', 'success');
+        }
+    } catch (error) {
+        showStatus('Export failed: ' + error.message, 'error');
+    }
+}
+
+async function importCredentials() {
+    try {
+        if (window.electron && window.electron.importCredentials) {
+            const result = await window.electron.importCredentials();
+            if (result.success && result.credentials) {
+                // Load the imported credentials into the form
+                const creds = result.credentials;
+                document.getElementById('mastodon-instance').value = creds.mastodonInstance || '';
+                document.getElementById('mastodon-token').value = creds.mastodonToken || '';
+                document.getElementById('twitter-key').value = creds.twitterKey || '';
+                document.getElementById('twitter-secret').value = creds.twitterSecret || '';
+                document.getElementById('twitter-token').value = creds.twitterToken || '';
+                document.getElementById('twitter-token-secret').value = creds.twitterTokenSecret || '';
+                document.getElementById('bluesky-handle').value = creds.blueskyHandle || '';
+                document.getElementById('bluesky-password').value = creds.blueskyPassword || '';
+                
+                // Save to localStorage
+                saveCredentials();
+                showStatus('Credentials imported successfully!', 'success');
+            } else if (!result.canceled) {
+                showStatus('Failed to import credentials: ' + result.error, 'error');
+            }
+        } else {
+            // Fallback for browser mode - use file input
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    try {
+                        const text = await file.text();
+                        const creds = JSON.parse(text);
+                        
+                        // Load the imported credentials into the form
+                        document.getElementById('mastodon-instance').value = creds.mastodonInstance || '';
+                        document.getElementById('mastodon-token').value = creds.mastodonToken || '';
+                        document.getElementById('twitter-key').value = creds.twitterKey || '';
+                        document.getElementById('twitter-secret').value = creds.twitterSecret || '';
+                        document.getElementById('twitter-token').value = creds.twitterToken || '';
+                        document.getElementById('twitter-token-secret').value = creds.twitterTokenSecret || '';
+                        document.getElementById('bluesky-handle').value = creds.blueskyHandle || '';
+                        document.getElementById('bluesky-password').value = creds.blueskyPassword || '';
+                        
+                        // Save to localStorage
+                        saveCredentials();
+                        showStatus('Credentials imported successfully!', 'success');
+                    } catch (error) {
+                        showStatus('Failed to parse credentials file: ' + error.message, 'error');
+                    }
+                }
+            };
+            input.click();
+        }
+    } catch (error) {
+        showStatus('Import failed: ' + error.message, 'error');
+    }
+}

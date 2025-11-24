@@ -359,6 +359,11 @@
                         <label>Bluesky App Password:</label>
                         <input type="password" id="bluesky-password" placeholder="Your app password">
                     </div>
+                    
+                    <div class="credential-buttons" style="margin-top: 20px; display: flex; gap: 10px;">
+                        <button type="button" onclick="exportCredentials()" style="flex: 1; padding: 10px; background: var(--btn-gradient); color: var(--btn-text); border: none; border-radius: 6px; cursor: pointer;">📤 Export Credentials</button>
+                        <button type="button" onclick="importCredentials()" style="flex: 1; padding: 10px; background: var(--bg-container); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer;">📥 Import Credentials</button>
+                    </div>
                 </div>
             </div>
         </div>

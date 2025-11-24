@@ -1,5 +1,6 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
+const fs = require('fs').promises;
 const { TwitterApi } = require('twitter-api-v2');
 
 function createWindow() {
@@ -57,6 +58,51 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
         }
         
         return { success: false, error: errorMessage, code: error.code, details: error.data };
+    }
+});
+
+// Handle credential export
+ipcMain.handle('export-credentials', async (event, credentials) => {
+    try {
+        const result = await dialog.showSaveDialog(BrowserWindow.getFocusedWindow(), {
+            title: 'Export SocialSox Credentials',
+            defaultPath: 'socialsox-credentials.json',
+            filters: [
+                { name: 'JSON Files', extensions: ['json'] },
+                { name: 'All Files', extensions: ['*'] }
+            ]
+        });
+
+        if (!result.canceled) {
+            await fs.writeFile(result.filePath, JSON.stringify(credentials, null, 2));
+            return { success: true };
+        }
+        return { success: false, canceled: true };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+});
+
+// Handle credential import
+ipcMain.handle('import-credentials', async (event) => {
+    try {
+        const result = await dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
+            title: 'Import SocialSox Credentials',
+            filters: [
+                { name: 'JSON Files', extensions: ['json'] },
+                { name: 'All Files', extensions: ['*'] }
+            ],
+            properties: ['openFile']
+        });
+
+        if (!result.canceled && result.filePaths.length > 0) {
+            const fileContent = await fs.readFile(result.filePaths[0], 'utf8');
+            const credentials = JSON.parse(fileContent);
+            return { success: true, credentials };
+        }
+        return { success: false, canceled: true };
+    } catch (error) {
+        return { success: false, error: error.message };
     }
 });
 
