@@ -76,7 +76,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 60px 20px 20px 20px;
         }
         
         .container {
@@ -86,6 +86,59 @@
             max-width: 600px;
             width: 100%;
             padding: 40px;
+        }
+        
+        .title-bar {
+            -webkit-app-region: drag;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: var(--bg-container);
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+        }
+        
+        .title-bar h1 {
+            font-size: 16px;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .window-controls {
+            -webkit-app-region: no-drag;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .window-controls button {
+            width: 12px;
+            height: 12px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        .window-controls button:hover {
+            opacity: 0.7;
+        }
+        
+        .minimize {
+            background: #ffbd2e;
+        }
+        
+        .maximize {
+            background: #27ca3f;
+        }
+        
+        .close {
+            background: #ff605c;
         }
         
         h1 {
@@ -366,7 +419,14 @@
 </head>
 <body>
     <div class="container">
-        <h1>🧦 SocialSox</h1>
+        <div class="title-bar">
+            <h1>🧦 SocialSox</h1>
+            <div class="window-controls">
+                <button class="minimize" onclick="window.electron.minimizeWindow()"></button>
+                <button class="maximize" onclick="window.electron.maximizeWindow()"></button>
+                <button class="close" onclick="window.electron.closeWindow()"></button>
+            </div>
+        </div>
         <p class="subtitle">Post to multiple platforms at once</p>
         
         <div class="platforms">

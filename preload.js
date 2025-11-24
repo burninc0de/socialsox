@@ -10,6 +10,9 @@ contextBridge.exposeInMainWorld(
         exportCredentials: (credentials) => 
             ipcRenderer.invoke('export-credentials', credentials),
         importCredentials: () => 
-            ipcRenderer.invoke('import-credentials')
+            ipcRenderer.invoke('import-credentials'),
+        minimizeWindow: () => ipcRenderer.send('minimize-window'),
+        maximizeWindow: () => ipcRenderer.send('maximize-window'),
+        closeWindow: () => ipcRenderer.send('close-window')
     }
 );

@@ -4,10 +4,29 @@ const fs = require('fs').promises;
 const { TwitterApi } = require('twitter-api-v2');
 const sharp = require('sharp');
 
-function createWindow() {
+const configPath = path.join(app.getPath('userData'), 'window-config.json');
+
+async function getWindowBounds() {
+    try {
+        const data = await fs.readFile(configPath, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        return { width: 800, height: 900 };
+    }
+}
+
+async function saveWindowBounds(bounds) {
+    try {
+        await fs.writeFile(configPath, JSON.stringify(bounds));
+    } catch (error) {
+        console.error('Failed to save window bounds:', error);
+    }
+}
+
+async function createWindow() {
+    const bounds = await getWindowBounds();
     const win = new BrowserWindow({
-        width: 800,
-        height: 900,
+        ...bounds,
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -16,10 +35,22 @@ function createWindow() {
         },
         icon: path.join(__dirname, 'appicon.png'),
         title: '🧦 SocialSox',
-        autoHideMenuBar: true
+        autoHideMenuBar: true,
+        frame: false
     });
 
     win.loadFile('index.html');
+
+    // Save window bounds on move and resize
+    win.on('move', () => {
+        const bounds = win.getBounds();
+        saveWindowBounds(bounds);
+    });
+
+    win.on('resize', () => {
+        const bounds = win.getBounds();
+        saveWindowBounds(bounds);
+    });
 
     // Open DevTools only in development (not in packaged builds)
     if (!app.isPackaged) {
@@ -99,6 +130,28 @@ ipcMain.handle('export-credentials', async (event, credentials) => {
     } catch (error) {
         return { success: false, error: error.message };
     }
+});
+
+// Handle window controls
+ipcMain.on('minimize-window', () => {
+    const win = BrowserWindow.getFocusedWindow();
+    if (win) win.minimize();
+});
+
+ipcMain.on('maximize-window', () => {
+    const win = BrowserWindow.getFocusedWindow();
+    if (win) {
+        if (win.isMaximized()) {
+            win.unmaximize();
+        } else {
+            win.maximize();
+        }
+    }
+});
+
+ipcMain.on('close-window', () => {
+    const win = BrowserWindow.getFocusedWindow();
+    if (win) win.close();
 });
 
 // Handle credential import
