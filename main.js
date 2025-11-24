@@ -14,7 +14,7 @@ function createWindow() {
             enableRemoteModule: false,
             preload: path.join(__dirname, 'preload.js')
         },
-        // icon: path.join(__dirname, 'icon.png'), // Commented out - file doesn't exist
+        icon: path.join(__dirname, 'appicon.png'),
         title: '🧦 SocialSox',
         autoHideMenuBar: true
     });

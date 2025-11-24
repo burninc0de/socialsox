@@ -8,6 +8,7 @@
     "electron:dev": "npx electron . --enable-logging",
     "build": "electron-builder",
     "dist": "electron-builder --publish=never",
+    "postinstall": "electron-builder install-app-deps",
     "server": "node server.js"
   },
   "keywords": [
@@ -31,6 +32,11 @@
   "build": {
     "appId": "com.socialsox.app",
     "productName": "SocialSox",
+    "icon": "appicon.png",
+    "asarUnpack": [
+      "**/node_modules/sharp/**",
+      "**/node_modules/@img/**"
+    ],
     "directories": {
       "output": "dist"
     },
