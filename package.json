@@ -31,6 +31,7 @@
     "vite-plugin-electron-renderer": "^0.14.6"
   },
   "dependencies": {
+    "lucide": "^0.554.0",
     "sharp": "^0.34.5",
     "twitter-api-v2": "^1.28.0"
   },
