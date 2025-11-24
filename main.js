@@ -34,7 +34,7 @@ async function createWindow() {
             preload: path.join(__dirname, 'preload.js')
         },
         icon: path.join(__dirname, 'appicon.png'),
-        title: '🧦 SocialSox',
+        title: 'SocialSox',
         autoHideMenuBar: true,
         frame: false,
         backgroundColor: '#1a1a1a'

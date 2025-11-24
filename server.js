@@ -45,7 +45,7 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-    console.log(`🧦 SocialSox server running at http://localhost:${PORT}/`);
+    console.log(`SocialSox server running at http://localhost:${PORT}/`);
     console.log(`   Open http://localhost:${PORT}/ in your browser`);
     console.log(`   Press Ctrl+C to stop`);
 });

@@ -13,6 +13,11 @@ window.addEventListener('DOMContentLoaded', () => {
     loadCredentials();
     loadHistory();
     
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+    
     // Character counter
     document.getElementById('message').addEventListener('input', updateCharCount);
     

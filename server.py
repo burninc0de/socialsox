@@ -18,7 +18,7 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 with socketserver.TCPServer(("", PORT), MyHTTPRequestHandler) as httpd:
-    print(f"🧦 SocialSox server running at http://localhost:{PORT}/")
+    print(f"SocialSox server running at http://localhost:{PORT}/")
     print(f"   Open http://localhost:{PORT}/ in your browser")
     print(f"   Press Ctrl+C to stop")
     try:
