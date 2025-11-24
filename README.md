@@ -13,6 +13,11 @@ A simple, local Electron app for posting short messages to Mastodon, Twitter, an
 - 📤📥 Export/Import credentials for portability
 - 🖥️ Desktop app - no browser or server needed!
 - 📦 Cross-platform distributable builds
+- 📋 Tabbed interface: Post, History, Settings
+- 🖼️ Image upload support
+- 📜 Posting history with status tracking
+- 🎛️ Dedicated settings tab for API configuration
+- 🌙 Custom dark scrollbars and theme
 
 ## Quick Start
 
@@ -97,11 +102,17 @@ Then open http://localhost:8000/ in your browser.
 
 ### Enter Credentials & Post
 
-Click "⚙️ API Credentials" to expand the settings section and enter your credentials. They're stored locally.
+Use the **Settings** tab to configure your API credentials. They're stored locally in the app.
 
 **Portability**: Use the "📤 Export Credentials" button to save your credentials to a JSON file for backup or transfer to another device. Use "📥 Import Credentials" to load them back.
 
-Then select platforms, type your message, and click "Post to Selected Platforms"!
+Switch to the **Post** tab to:
+- Select platforms to post to
+- Type your message (with character counter)
+- Upload an image (drag & drop or click)
+- Click "Post to Selected Platforms"!
+
+Check the **History** tab to view your past posts and their status.
 
 ## Security Notes
 
@@ -118,8 +129,11 @@ Then select platforms, type your message, and click "Post to Selected Platforms"
 - No thread/reply support
 - Character limits: Twitter 280 chars, Mastodon 500+ (varies by instance), Bluesky 300 chars
 - Image size limit: 5MB
+- Image format support: PNG, JPG, GIF, WebP
 
 ## Troubleshooting
+
+**App won't start or icons don't load**: Try running with debug console: `DEBUG=1 ./SocialSox.exe` (Windows) or `DEBUG=1 ./SocialSox` (Linux/Mac) to see error messages.
 
 **Twitter Errors**: 
 - **"oauth1 app permissions" error**: Your app isn't configured correctly
@@ -138,6 +152,49 @@ Then select platforms, type your message, and click "Post to Selected Platforms"
 **Mastodon Errors**: Make sure your instance URL is correct and includes `https://`
 
 **Bluesky Errors**: Use your full handle including the domain (e.g., `user.bsky.social`)
+
+**Image Upload Issues**: Ensure your image is under 5MB and in a supported format (PNG, JPG, GIF, WebP)
+
+## Development
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+
+### Setup
+
+```bash
+git clone <repository-url>
+cd socialsox
+npm install
+```
+
+### Development Commands
+
+```bash
+# Start dev server with hot reload
+npm run dev
+
+# Start Electron app in dev mode
+npm start
+
+# Start Electron with logging
+npm run electron:dev
+
+# Build for production
+npm run build
+
+# Create distributable packages
+npm run dist
+```
+
+### Debugging Built App
+
+To run the built app with developer console:
+
+- Windows: `DEBUG=1 && dist\win-unpacked\SocialSox.exe`
+- Linux/Mac: `DEBUG=1 ./dist/win-unpacked/SocialSox`
 
 ## License
 

@@ -58,8 +58,8 @@ async function createWindow() {
         saveWindowBounds(bounds);
     });
 
-    // Open DevTools only in development (not in packaged builds)
-    if (!app.isPackaged) {
+    // Open DevTools in development or when DEBUG env var is set
+    if (!app.isPackaged || process.env.DEBUG) {
         win.webContents.openDevTools();
     }
 }
