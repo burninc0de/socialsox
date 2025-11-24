@@ -1,0 +1,22 @@
+{
+  "name": "socialsox",
+  "version": "1.0.0",
+  "description": "A simple, local-only web application for posting short messages to Mastodon, Twitter, and Bluesky simultaneously.",
+  "main": "main.js",
+  "scripts": {
+    "start": "npx electron .",
+    "server": "node server.js"
+  },
+  "keywords": [
+    "mastodon",
+    "twitter",
+    "bluesky",
+    "social media",
+    "cross-posting"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^39.2.3"
+  }
+}

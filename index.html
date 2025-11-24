@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SocialSox - Multi-Platform Poster</title>
+    <style>
+        :root {
+            --bg-body: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-container: white;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --text-muted: #999;
+            --border-color: #ddd;
+            --input-bg: white;
+            --btn-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --btn-text: white;
+            --collapsible-bg: #f5f5f5;
+            --collapsible-hover: #eeeeee;
+            --status-success-bg: #e8f5e9;
+            --status-success-text: #2e7d32;
+            --status-success-border: #81c784;
+            --status-error-bg: #ffebee;
+            --status-error-text: #c62828;
+            --status-error-border: #e57373;
+            --status-info-bg: #e3f2fd;
+            --status-info-text: #1565c0;
+            --status-info-border: #64b5f6;
+            --platform-active-bg: #667eea;
+            --platform-active-text: white;
+            --platform-border: #ddd;
+            --platform-bg: white;
+            --platform-text: inherit;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-body: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                --bg-container: #2d2d2d;
+                --text-primary: #e0e0e0;
+                --text-secondary: #b0b0b0;
+                --text-muted: #888;
+                --border-color: #555;
+                --input-bg: #3a3a3a;
+                --btn-gradient: linear-gradient(135deg, #4a90e2 0%, #5a67d8 100%);
+                --btn-text: #e0e0e0;
+                --collapsible-bg: #3a3a3a;
+                --collapsible-hover: #454545;
+                --status-success-bg: #1b5e20;
+                --status-success-text: #81c784;
+                --status-success-border: #4caf50;
+                --status-error-bg: #b71c1c;
+                --status-error-text: #ef5350;
+                --status-error-border: #f44336;
+                --status-info-bg: #0d47a1;
+                --status-info-text: #64b5f6;
+                --status-info-border: #2196f3;
+                --platform-active-bg: #4a90e2;
+                --platform-active-text: #e0e0e0;
+                --platform-border: #555;
+                --platform-bg: #3a3a3a;
+                --platform-text: #e0e0e0;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-body);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: var(--bg-container);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        h1 {
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .platforms {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .platform-toggle {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--platform-border);
+            border-radius: 8px;
+            background: var(--platform-bg);
+            color: var(--platform-text);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .platform-toggle.active {
+            border-color: var(--platform-active-bg);
+            background: var(--platform-active-bg);
+            color: var(--platform-active-text);
+        }
+        
+        .platform-toggle:hover {
+            transform: translateY(-2px);
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+            background: var(--input-bg);
+            color: var(--text-primary);
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: var(--platform-active-bg);
+        }
+        
+        .char-count {
+            text-align: right;
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+        
+        .char-count.warning {
+            color: #ff9800;
+        }
+        
+        .char-count.error {
+            color: #f44336;
+        }
+        
+        .credentials {
+            background: var(--collapsible-bg);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .credentials h3 {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+        }
+        
+        .credential-group {
+            margin-bottom: 15px;
+        }
+        
+        .credential-group:last-child {
+            margin-bottom: 0;
+        }
+        
+        .credential-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .credential-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+        }
+        
+        .credential-group input:focus {
+            outline: none;
+            border-color: var(--platform-active-bg);
+        }
+        
+        .btn-post {
+            width: 100%;
+            padding: 15px;
+            background: var(--btn-gradient);
+            color: var(--btn-text);
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn-post:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-post:active {
+            transform: translateY(0);
+        }
+        
+        .btn-post:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .status.success {
+            background: var(--status-success-bg);
+            color: var(--status-success-text);
+            border: 1px solid var(--status-success-border);
+        }
+        
+        .status.error {
+            background: var(--status-error-bg);
+            color: var(--status-error-text);
+            border: 1px solid var(--status-error-border);
+        }
+        
+        .status.info {
+            background: var(--status-info-bg);
+            color: var(--status-info-text);
+            border: 1px solid var(--status-info-border);
+        }
+        
+        .collapsible {
+            margin-bottom: 20px;
+        }
+        
+        .collapsible-header {
+            background: var(--collapsible-bg);
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+        
+        .collapsible-header:hover {
+            background: var(--collapsible-hover);
+        }
+        
+        .collapsible-header h3 {
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+        
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .collapsible-content.open {
+            max-height: 1000px;
+            padding-top: 15px;
+        }
+        
+        .arrow {
+            transition: transform 0.3s;
+        }
+        
+        .arrow.open {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧦 SocialSox</h1>
+        <p class="subtitle">Post to multiple platforms at once</p>
+        
+        <div class="platforms">
+            <button class="platform-toggle active" data-platform="mastodon">🐘 Mastodon</button>
+            <button class="platform-toggle active" data-platform="twitter">🐦 Twitter</button>
+            <button class="platform-toggle active" data-platform="bluesky">🦋 Bluesky</button>
+        </div>
+        
+        <textarea id="message" placeholder="What's on your mind?"></textarea>
+        <div class="char-count" id="charCount">0 characters</div>
+        
+        <div class="collapsible">
+            <div class="collapsible-header" onclick="toggleCollapsible()">
+                <h3>⚙️ API Credentials (stored locally)</h3>
+                <span class="arrow" id="arrow">▼</span>
+            </div>
+            <div class="collapsible-content" id="credentials">
+                <div class="credentials">
+                    <div class="credential-group">
+                        <label>Mastodon Instance URL:</label>
+                        <input type="text" id="mastodon-instance" placeholder="https://mastodon.social">
+                    </div>
+                    <div class="credential-group">
+                        <label>Mastodon Access Token:</label>
+                        <input type="password" id="mastodon-token" placeholder="Your access token">
+                    </div>
+                    
+                    <div class="credential-group" style="margin-top: 20px;">
+                        <label>Twitter API Key:</label>
+                        <input type="password" id="twitter-key" placeholder="Your API key">
+                    </div>
+                    <div class="credential-group">
+                        <label>Twitter API Secret:</label>
+                        <input type="password" id="twitter-secret" placeholder="Your API secret">
+                    </div>
+                    <div class="credential-group">
+                        <label>Twitter Access Token:</label>
+                        <input type="password" id="twitter-token" placeholder="Your access token">
+                    </div>
+                    <div class="credential-group">
+                        <label>Twitter Access Token Secret:</label>
+                        <input type="password" id="twitter-token-secret" placeholder="Your token secret">
+                    </div>
+                    
+                    <div class="credential-group" style="margin-top: 20px;">
+                        <label>Bluesky Handle:</label>
+                        <input type="text" id="bluesky-handle" placeholder="username.bsky.social">
+                    </div>
+                    <div class="credential-group">
+                        <label>Bluesky App Password:</label>
+                        <input type="password" id="bluesky-password" placeholder="Your app password">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="btn-post" id="postBtn" onclick="postToAll()">Post to Selected Platforms</button>
+        
+        <div class="status" id="status"></div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
