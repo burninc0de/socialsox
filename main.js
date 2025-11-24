@@ -39,7 +39,12 @@ async function createWindow() {
         frame: false
     });
 
-    win.loadFile('index.html');
+    // Load from Vite dev server in development, file in production
+    if (process.env.VITE_DEV_SERVER_URL) {
+        win.loadURL(process.env.VITE_DEV_SERVER_URL);
+    } else {
+        win.loadFile('index.html');
+    }
 
     // Save window bounds on move and resize
     win.on('move', () => {

@@ -4,11 +4,11 @@
   "description": "A simple, local-only web application for posting short messages to Mastodon, Twitter, and Bluesky simultaneously.",
   "main": "main.js",
   "scripts": {
-    "start": "npx electron .",
-    "electron:dev": "npx electron . --enable-logging",
+    "dev": "npx vite",
+    "start": "electron .",
+    "electron:dev": "electron . --enable-logging",
     "build": "electron-builder",
     "dist": "electron-builder --publish=never",
-    "postinstall": "electron-builder install-app-deps",
     "server": "node server.js"
   },
   "keywords": [
@@ -25,10 +25,12 @@
     "electron": "^39.2.3",
     "electron-builder": "^26.0.12",
     "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.17"
+    "tailwindcss": "^4.1.17",
+    "vite": "^7.2.4",
+    "vite-plugin-electron": "^0.29.0",
+    "vite-plugin-electron-renderer": "^0.14.6"
   },
   "dependencies": {
-    "@atproto/api": "^0.18.1",
     "sharp": "^0.34.5",
     "twitter-api-v2": "^1.28.0"
   },
@@ -46,9 +48,13 @@
     "files": [
       "**/*",
       "!dist/**/*",
+      "!dist-vite/**/*",
+      "!dist-electron/**/*",
       "!build/**/*",
       "!*.md",
-      "!package-lock.json"
+      "!package-lock.json",
+      "!vite.config.js",
+      "!electron-mock.js"
     ],
     "mac": {
       "category": "public.app-category.social-networking",
