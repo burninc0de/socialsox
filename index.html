@@ -71,6 +71,14 @@
             background: #4b5563; /* Dark mode hover */
         }
         
+        /* Platform button active state icons */
+        .platform-toggle img {
+            transition: filter 300ms ease;
+        }
+        .platform-toggle.active img {
+            filter: brightness(0) invert(1);
+        }
+        
         /* Dark Mode Toggle */
         #darkModeToggle:checked + div {
             background-color: #4f46e5;
