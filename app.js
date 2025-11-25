@@ -13,6 +13,14 @@ window.addEventListener('DOMContentLoaded', () => {
     loadCredentials();
     loadHistory();
     
+    // Load notifications cache from previous session
+    loadNotificationsCache();
+    
+    // Display cached notifications if available
+    if (notificationsCache.data.length > 0) {
+        displayNotifications(notificationsCache.data);
+    }
+    
     // Start automatic notification checking
     startNotificationPolling();
     
@@ -821,6 +829,33 @@ let notificationsCache = {
 
 let notificationCheckInterval = null;
 
+// Load notifications cache from localStorage
+function loadNotificationsCache() {
+    const cached = localStorage.getItem('notificationsCache');
+    if (cached) {
+        try {
+            const parsed = JSON.parse(cached);
+            // Check if cache is still valid (within TTL)
+            const now = Date.now();
+            if (parsed.timestamp && (now - parsed.timestamp) < parsed.ttl) {
+                notificationsCache = parsed;
+                console.log('Loaded notifications cache from localStorage');
+            }
+        } catch (e) {
+            console.error('Failed to parse notifications cache:', e);
+        }
+    }
+}
+
+// Save notifications cache to localStorage
+function saveNotificationsCache() {
+    try {
+        localStorage.setItem('notificationsCache', JSON.stringify(notificationsCache));
+    } catch (e) {
+        console.error('Failed to save notifications cache:', e);
+    }
+}
+
 // Load seen notifications from localStorage
 function getSeenNotifications() {
     const seen = localStorage.getItem('seenNotifications');
@@ -835,6 +870,7 @@ function saveSeenNotifications(notificationIds) {
 // Clear seen notifications cache
 function clearNotificationsCache() {
     localStorage.removeItem('seenNotifications');
+    localStorage.removeItem('notificationsCache');
     notificationsCache = {
         data: [],
         timestamp: 0,
@@ -967,6 +1003,7 @@ async function loadNotifications(silent = false) {
         // Cache the results
         notificationsCache.data = allNotifications;
         notificationsCache.timestamp = Date.now();
+        saveNotificationsCache(); // Persist to localStorage
         
         displayNotifications(allNotifications);
         
