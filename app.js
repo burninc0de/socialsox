@@ -8,6 +8,13 @@ const platforms = {
 // Image state
 let selectedImage = null;
 
+// Notification polling intervals
+let notificationPollingIntervals = {
+    mastodon: null,
+    twitter: null,
+    bluesky: null
+};
+
 // Load credentials from localStorage on page load
 window.addEventListener('DOMContentLoaded', () => {
     loadCredentials();
@@ -89,6 +96,23 @@ window.addEventListener('DOMContentLoaded', () => {
         input.addEventListener('change', saveCredentials);
     });
     
+    // Polling interval sliders
+    document.getElementById('mastodonInterval').addEventListener('input', function() {
+        document.getElementById('mastodonIntervalValue').textContent = this.value;
+        saveCredentials();
+        restartNotificationPolling();
+    });
+    document.getElementById('twitterInterval').addEventListener('input', function() {
+        document.getElementById('twitterIntervalValue').textContent = this.value;
+        saveCredentials();
+        restartNotificationPolling();
+    });
+    document.getElementById('blueskyInterval').addEventListener('input', function() {
+        document.getElementById('blueskyIntervalValue').textContent = this.value;
+        saveCredentials();
+        restartNotificationPolling();
+    });
+    
     // Image upload handlers
     setupImageUpload();
 });
@@ -135,7 +159,12 @@ function saveCredentials() {
         twitterTokenSecret: document.getElementById('twitter-token-secret').value,
         blueskyHandle: document.getElementById('bluesky-handle').value,
         blueskyPassword: document.getElementById('bluesky-password').value,
-        platforms: { ...platforms }
+        platforms: { ...platforms },
+        pollingIntervals: {
+            mastodon: parseInt(document.getElementById('mastodonInterval').value) || 5,
+            twitter: parseInt(document.getElementById('twitterInterval').value) || 15,
+            bluesky: parseInt(document.getElementById('blueskyInterval').value) || 5
+        }
     };
     
     localStorage.setItem('socialSoxCredentials', JSON.stringify(creds));
@@ -157,6 +186,24 @@ function loadCredentials() {
         // Load platforms
         if (creds.platforms) {
             Object.assign(platforms, creds.platforms);
+        }
+        
+        // Load polling intervals
+        if (creds.pollingIntervals) {
+            document.getElementById('mastodonInterval').value = creds.pollingIntervals.mastodon || 5;
+            document.getElementById('mastodonIntervalValue').textContent = creds.pollingIntervals.mastodon || 5;
+            document.getElementById('twitterInterval').value = creds.pollingIntervals.twitter || 15;
+            document.getElementById('twitterIntervalValue').textContent = creds.pollingIntervals.twitter || 15;
+            document.getElementById('blueskyInterval').value = creds.pollingIntervals.bluesky || 5;
+            document.getElementById('blueskyIntervalValue').textContent = creds.pollingIntervals.bluesky || 5;
+        } else {
+            // Defaults
+            document.getElementById('mastodonInterval').value = 5;
+            document.getElementById('mastodonIntervalValue').textContent = 5;
+            document.getElementById('twitterInterval').value = 15;
+            document.getElementById('twitterIntervalValue').textContent = 15;
+            document.getElementById('blueskyInterval').value = 5;
+            document.getElementById('blueskyIntervalValue').textContent = 5;
         }
         
         // Apply platforms to buttons
@@ -190,6 +237,25 @@ function showStatus(message, type) {
     } else if (type === 'info') {
         status.classList.add('bg-blue-100', 'dark:bg-blue-900', 'text-blue-800', 'dark:text-blue-200', 'border', 'border-blue-300', 'dark:border-blue-600');
     }
+}
+
+function showToast(message, type = 'info', duration = 3000) {
+    const toastContainer = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    
+    toastContainer.appendChild(toast);
+    
+    // Auto remove after duration
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, duration);
 }
 
 function setupImageUpload() {
@@ -863,23 +929,117 @@ function clearNotificationsCache() {
 
 // Start automatic notification checking
 function startNotificationPolling() {
-    // Clear any existing interval
-    if (notificationCheckInterval) {
-        clearInterval(notificationCheckInterval);
-    }
+    // Clear any existing intervals
+    stopNotificationPolling();
     
-    // Check every 15 minutes (900000 ms)
-    notificationCheckInterval = setInterval(() => {
-        console.log('Auto-checking notifications...');
-        loadNotifications(true); // Pass true for silent mode
-    }, 900000);
+    // Get polling intervals from settings
+    const creds = JSON.parse(localStorage.getItem('socialSoxCredentials') || '{}');
+    const intervals = creds.pollingIntervals || { mastodon: 5, twitter: 15, bluesky: 5 };
+    
+    // Start polling for each platform
+    ['mastodon', 'twitter', 'bluesky'].forEach(platform => {
+        const intervalMinutes = intervals[platform];
+        const intervalMs = intervalMinutes * 60 * 1000;
+        
+        notificationPollingIntervals[platform] = setInterval(() => {
+            console.log(`Auto-checking ${platform} notifications...`);
+            loadPlatformNotifications(platform, true); // Silent mode
+        }, intervalMs);
+    });
+}
+
+// Restart polling (called when intervals change)
+function restartNotificationPolling() {
+    startNotificationPolling();
 }
 
 // Stop automatic notification checking
 function stopNotificationPolling() {
-    if (notificationCheckInterval) {
-        clearInterval(notificationCheckInterval);
-        notificationCheckInterval = null;
+    Object.keys(notificationPollingIntervals).forEach(platform => {
+        if (notificationPollingIntervals[platform]) {
+            clearInterval(notificationPollingIntervals[platform]);
+            notificationPollingIntervals[platform] = null;
+        }
+    });
+}
+
+// Load notifications for a specific platform
+async function loadPlatformNotifications(platform, silent = true) {
+    // Show toast when polling starts
+    const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
+    showToast(`Checking ${platformName}...`, 'info', silent ? 1500 : 2000);
+    
+    const newNotifications = [];
+    
+    try {
+        if (platform === 'mastodon') {
+            const mastodonInstance = document.getElementById('mastodon-instance').value;
+            const mastodonToken = document.getElementById('mastodon-token').value;
+            
+            if (mastodonInstance && mastodonToken) {
+                const lastSeenId = localStorage.getItem('mastodonLastNotificationId');
+                const mastodonNotifs = await fetchMastodonNotifications(mastodonInstance, mastodonToken, lastSeenId);
+                newNotifications.push(...mastodonNotifs.map(n => ({ ...n, platform: 'mastodon' })));
+                
+                // Save the latest notification ID
+                if (mastodonNotifs.length > 0) {
+                    const latestId = Math.max(...mastodonNotifs.map(n => parseInt(n.id)));
+                    localStorage.setItem('mastodonLastNotificationId', latestId.toString());
+                }
+            }
+        } else if (platform === 'twitter') {
+            const twitterKey = document.getElementById('twitter-key').value;
+            const twitterSecret = document.getElementById('twitter-secret').value;
+            const twitterToken = document.getElementById('twitter-token').value;
+            const twitterTokenSecret = document.getElementById('twitter-token-secret').value;
+            
+            if (twitterKey && twitterSecret && twitterToken && twitterTokenSecret) {
+                const twitterNotifs = await fetchTwitterNotifications(twitterKey, twitterSecret, twitterToken, twitterTokenSecret);
+                newNotifications.push(...twitterNotifs.map(n => ({ ...n, platform: 'twitter' })));
+            }
+        } else if (platform === 'bluesky') {
+            const blueskyHandle = document.getElementById('bluesky-handle').value;
+            const blueskyPassword = document.getElementById('bluesky-password').value;
+            
+            if (blueskyHandle && blueskyPassword) {
+                const blueskyNotifs = await fetchBlueskyNotifications(blueskyHandle, blueskyPassword);
+                newNotifications.push(...blueskyNotifs.map(n => ({ ...n, platform: 'bluesky' })));
+            }
+        }
+        
+        // Get existing cached notifications
+        const cachedNotifications = getAllCachedNotifications();
+        const cachedIds = new Set(cachedNotifications.map(n => n.id));
+        
+        // Filter out duplicates
+        const uniqueNewNotifications = newNotifications.filter(n => !cachedIds.has(n.id));
+        
+        if (uniqueNewNotifications.length > 0) {
+            // Add to cache
+            const updatedCache = [...cachedNotifications, ...uniqueNewNotifications];
+            localStorage.setItem('allNotifications', JSON.stringify(updatedCache));
+            
+            // Update UI if not silent
+            if (!silent) {
+                displayNotifications(updatedCache);
+            } else {
+                // Show notification for new items
+                if (window.electron && window.electron.showNotification) {
+                    const count = uniqueNewNotifications.length;
+                    const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
+                    window.electron.showNotification(
+                        `New ${platformName} notifications`,
+                        `You have ${count} new notification${count > 1 ? 's' : ''} on ${platformName}`
+                    );
+                }
+            }
+        }
+        
+    } catch (error) {
+        console.error(`${platform} notifications error:`, error);
+        if (!silent) {
+            showStatus(`Failed to load ${platform} notifications: ${error.message}`, 'error');
+        }
     }
 }
 
@@ -896,139 +1056,27 @@ async function loadNotifications(silent = false) {
     
     noNotifications.style.display = 'none';
     
-    const newNotifications = [];
-    
     try {
-        // Load Mastodon notifications (check credentials, not platform toggle)
-        const mastodonInstance = document.getElementById('mastodon-instance').value;
-        const mastodonToken = document.getElementById('mastodon-token').value;
+        // Load notifications from all platforms in parallel
+        const loadPromises = ['mastodon', 'twitter', 'bluesky'].map(platform => 
+            loadPlatformNotifications(platform, silent) // Pass the silent flag
+        );
         
-        if (mastodonInstance && mastodonToken) {
-            try {
-                const lastSeenId = localStorage.getItem('mastodonLastNotificationId');
-                const mastodonNotifs = await fetchMastodonNotifications(mastodonInstance, mastodonToken, lastSeenId);
-                newNotifications.push(...mastodonNotifs.map(n => ({ ...n, platform: 'mastodon' })));
-                
-                // Save the latest notification ID
-                if (mastodonNotifs.length > 0) {
-                    const latestId = Math.max(...mastodonNotifs.map(n => parseInt(n.id)));
-                    localStorage.setItem('mastodonLastNotificationId', latestId.toString());
-                }
-            } catch (error) {
-                console.error('Mastodon notifications error:', error);
-                newNotifications.push({
-                    platform: 'mastodon',
-                    error: true,
-                    message: 'Failed to load Mastodon notifications: ' + error.message
-                });
-            }
-        }
+        await Promise.all(loadPromises);
         
-        // Load Twitter notifications (check credentials, not platform toggle)
-        const twitterKey = document.getElementById('twitter-key').value;
-        const twitterSecret = document.getElementById('twitter-secret').value;
-        const twitterToken = document.getElementById('twitter-token').value;
-        const twitterTokenSecret = document.getElementById('twitter-token-secret').value;
+        // Get all cached notifications and display
+        const allNotifications = getAllCachedNotifications();
+        displayNotifications(allNotifications);
         
-        if (twitterKey && twitterSecret && twitterToken && twitterTokenSecret) {
-            try {
-                const twitterNotifs = await fetchTwitterNotifications(twitterKey, twitterSecret, twitterToken, twitterTokenSecret);
-                newNotifications.push(...twitterNotifs.map(n => ({ ...n, platform: 'twitter' })));
-            } catch (error) {
-                console.error('Twitter notifications error:', error);
-                newNotifications.push({
-                    platform: 'twitter',
-                    error: true,
-                    message: 'Failed to load Twitter notifications: ' + error.message
-                });
-            }
-        }
-        
-        // Load Bluesky notifications (check credentials, not platform toggle)
-        const blueskyHandle = document.getElementById('bluesky-handle').value;
-        const blueskyPassword = document.getElementById('bluesky-password').value;
-        
-        if (blueskyHandle && blueskyPassword) {
-            try {
-                const blueskyNotifs = await fetchBlueskyNotifications(blueskyHandle, blueskyPassword);
-                newNotifications.push(...blueskyNotifs.map(n => ({ ...n, platform: 'bluesky' })));
-            } catch (error) {
-                console.error('Bluesky notifications error:', error);
-                newNotifications.push({
-                    platform: 'bluesky',
-                    error: true,
-                    message: 'Failed to load Bluesky notifications: ' + error.message
-                });
-            }
-        }
-        
-        // Get existing cached notifications
-        const cachedNotifications = getAllCachedNotifications();
-        const cachedIds = new Set(cachedNotifications.map(n => n.id));
-        
-        // Merge: add new notifications to the cache
-        const mergedNotifications = [...cachedNotifications];
-        let newCount = 0;
-        
-        newNotifications.forEach(notif => {
-            if (!notif.error && !cachedIds.has(notif.id)) {
-                notif.isNew = true; // Mark as new
-                mergedNotifications.push(notif);
-                newCount++;
-            } else if (notif.error) {
-                // Always show errors
-                mergedNotifications.push(notif);
-            }
-        });
-        
-        // Sort by timestamp (most recent first)
-        mergedNotifications.sort((a, b) => {
-            const timeA = new Date(a.timestamp || 0);
-            const timeB = new Date(b.timestamp || 0);
-            return timeB - timeA;
-        });
-        
-        // Save to cache (exclude errors)
-        saveAllNotifications(mergedNotifications.filter(n => !n.error));
-        
-        displayNotifications(mergedNotifications);
-        
-        // Show status and OS notification for new items
-        if (newCount > 0 && !silent && document.getElementById('notificationsContent') && 
-            !document.getElementById('notificationsContent').classList.contains('hidden')) {
-            showStatus(`Found ${newCount} new notification${newCount > 1 ? 's' : ''}!`, 'success');
-        }
-        
-        // Show OS notification for new notifications
-        if (newCount > 0) {
-            const newNotifs = mergedNotifications.filter(n => n.isNew && !n.error);
-            const platformCounts = {};
-            newNotifs.forEach(n => {
-                platformCounts[n.platform] = (platformCounts[n.platform] || 0) + 1;
-            });
-            
-            const platformSummary = Object.entries(platformCounts)
-                .map(([platform, count]) => `${count} from ${platform}`)
-                .join(', ');
-            
-            // Show first notification preview
-            const firstNotif = newNotifs[0];
-            const notifBody = newCount === 1 
-                ? `${firstNotif.author}: ${firstNotif.content.substring(0, 100)}${firstNotif.content.length > 100 ? '...' : ''}`
-                : `${platformSummary}`;
-            
-            if (window.electron && window.electron.showOSNotification) {
-                window.electron.showOSNotification(
-                    `${newCount} New Notification${newCount > 1 ? 's' : ''}`,
-                    notifBody,
-                    'socialsox'
-                );
-            }
+        if (!silent) {
+            showStatus('Notifications loaded!', 'success');
         }
         
     } catch (error) {
         console.error('Error loading notifications:', error);
-        notificationsList.innerHTML = `<div class="text-red-500 dark:text-red-400 text-center py-4">Error: ${error.message}</div>`;
+        if (!silent) {
+            showStatus(`Error loading notifications: ${error.message}`, 'error');
+        }
     } finally {
         if (!silent) {
             btn.disabled = false;
