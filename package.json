@@ -6,10 +6,7 @@
   "scripts": {
     "dev": "npx vite",
     "start": "electron .",
-    "electron:dev": "electron . --enable-logging",
-    "build": "electron-builder",
-    "dist": "electron-builder --publish=never",
-    "server": "node server.js"
+    "build": "electron-builder --publish=never"
   },
   "keywords": [
     "mastodon",

@@ -28,33 +28,25 @@ npm install
 npm start
 ```
 
-For development with logging:
+For development (with hot-reload):
 ```bash
-npm run electron:dev
+# Terminal 1: Start Vite dev server
+npm run dev
+
+# Terminal 2: Launch Electron app
+npm start
 ```
 
 ### Option 2: Build Distributable Packages
 
 ```bash
-npm run dist
+npm run build
 ```
 
 This creates platform-specific packages in the `dist/` folder:
 - **Linux**: `.AppImage` file
 - **macOS**: `.dmg` file  
 - **Windows**: `.exe` installer
-
-### Option 3: Run as Web App
-
-```bash
-# Using Python:
-python3 server.py
-
-# Or using Node.js:
-node server.js
-```
-
-Then open http://localhost:8000/ in your browser.
 
 ## Setup
 
@@ -145,8 +137,6 @@ Check the **History** tab to view your past posts and their status.
 - Make sure you have all 4 credentials entered correctly
 - Old tokens won't work after changing permissions - you must regenerate them
 
-**CORS Errors (Browser mode only)**: Make sure you're using the local server (`python3 server.py` or `node server.js`) and accessing via http://localhost:8000/
-
 **Instance URL Errors**: Use only the domain (e.g., `https://mastodon.social`), not your profile URL (e.g., NOT `https://mastodon.social/@username`)
 
 **Mastodon Errors**: Make sure your instance URL is correct and includes `https://`
@@ -173,20 +163,19 @@ npm install
 ### Development Commands
 
 ```bash
-# Start dev server with hot reload
+# Start the Vite dev server (for hot-reloading the web app)
 npm run dev
 
-# Start Electron app in dev mode
+# Launch the Electron app (loads from Vite dev server in dev mode)
 npm start
 
-# Start Electron with logging
-npm run electron:dev
+# For full development: Run both commands above in separate terminals
+# Terminal 1: npm run dev
+# Terminal 2: npm start
+# This gives you live updates in the Electron window
 
 # Build for production
 npm run build
-
-# Create distributable packages
-npm run dist
 ```
 
 ### Debugging Built App
