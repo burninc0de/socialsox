@@ -176,7 +176,7 @@ function saveCredentials() {
         platforms: { ...platforms },
         pollingIntervals: {
             mastodon: parseInt(document.getElementById('mastodonInterval').value) || 5,
-            twitter: parseInt(document.getElementById('twitterInterval').value) || 15,
+            twitter: parseInt(document.getElementById('twitterInterval').value) || 60,
             bluesky: parseInt(document.getElementById('blueskyInterval').value) || 5
         }
     };
@@ -206,16 +206,16 @@ function loadCredentials() {
         if (creds.pollingIntervals) {
             document.getElementById('mastodonInterval').value = creds.pollingIntervals.mastodon || 5;
             document.getElementById('mastodonIntervalValue').textContent = creds.pollingIntervals.mastodon || 5;
-            document.getElementById('twitterInterval').value = creds.pollingIntervals.twitter || 15;
-            document.getElementById('twitterIntervalValue').textContent = creds.pollingIntervals.twitter || 15;
+            document.getElementById('twitterInterval').value = creds.pollingIntervals.twitter || 60;
+            document.getElementById('twitterIntervalValue').textContent = creds.pollingIntervals.twitter || 60;
             document.getElementById('blueskyInterval').value = creds.pollingIntervals.bluesky || 5;
             document.getElementById('blueskyIntervalValue').textContent = creds.pollingIntervals.bluesky || 5;
         } else {
             // Defaults
             document.getElementById('mastodonInterval').value = 5;
             document.getElementById('mastodonIntervalValue').textContent = 5;
-            document.getElementById('twitterInterval').value = 15;
-            document.getElementById('twitterIntervalValue').textContent = 15;
+            document.getElementById('twitterInterval').value = 60;
+            document.getElementById('twitterIntervalValue').textContent = 60;
             document.getElementById('blueskyInterval').value = 5;
             document.getElementById('blueskyIntervalValue').textContent = 5;
         }
@@ -953,7 +953,7 @@ function startNotificationPolling() {
     
     // Get polling intervals from settings
     const creds = JSON.parse(localStorage.getItem('socialSoxCredentials') || '{}');
-    const intervals = creds.pollingIntervals || { mastodon: 5, twitter: 15, bluesky: 5 };
+    const intervals = creds.pollingIntervals || { mastodon: 5, twitter: 60, bluesky: 5 };
     
     // Start polling for each platform
     ['mastodon', 'twitter', 'bluesky'].forEach(platform => {
