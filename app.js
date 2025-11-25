@@ -34,6 +34,11 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('trayIconToggle').checked = trayEnabled;
     window.electron.setTrayEnabled(trayEnabled);
     
+    // Load external links preference
+    const externalLinksStored = localStorage.getItem('socialSoxExternalLinks');
+    const externalLinks = externalLinksStored !== null ? externalLinksStored === 'true' : false; // Default to false
+    document.getElementById('externalLinksToggle').checked = externalLinks;
+    
     // Display cached notifications from previous session
     const cachedNotifications = getAllCachedNotifications();
     if (cachedNotifications.length > 0) {
@@ -82,6 +87,15 @@ window.addEventListener('DOMContentLoaded', () => {
         const isEnabled = this.checked;
         localStorage.setItem('socialSoxTrayEnabled', isEnabled);
         showToast('Restart the app for tray icon changes to take effect.', 'info');
+    });
+    
+    // External links toggle
+    document.getElementById('externalLinksToggle').addEventListener('change', function() {
+        const isEnabled = this.checked;
+        localStorage.setItem('socialSoxExternalLinks', isEnabled);
+        // Refresh notifications display to apply the new setting
+        const cachedNotifications = getAllCachedNotifications();
+        displayNotifications(cachedNotifications);
     });
     
     // Platform toggles
@@ -1340,7 +1354,7 @@ function displayNotifications(notifications) {
                     ${notif.authorHandle ? `<span class="text-xs text-gray-500 dark:text-gray-400">@${notif.authorHandle}</span>` : ''}
                 </div>
                 ${notif.content ? `<p class="text-sm text-gray-700 dark:text-gray-300 mb-2">${notif.content.substring(0, 200)}${notif.content.length > 200 ? '...' : ''}</p>` : ''}
-                ${notif.url ? `<a href="${notif.url}" target="_blank" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">View on ${notif.platform}</a>` : ''}
+                ${notif.url ? `<a href="${notif.url}" ${localStorage.getItem('socialSoxExternalLinks') === 'true' ? 'onclick="window.electron.openExternalLink(this.href); return false;"' : 'target="_blank"'} class="text-xs text-primary-600 dark:text-primary-400 hover:underline">View on ${notif.platform}</a>` : ''}
             </div>
         `;
     }).join('');

@@ -107,6 +107,11 @@ ipcMain.on('set-tray-enabled', (event, enabled) => {
     }
 });
 
+// Handle opening external links
+ipcMain.on('open-external-link', (event, url) => {
+    require('electron').shell.openExternal(url);
+});
+
 // Handle Twitter posting from renderer
 ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData }) => {
     try {
