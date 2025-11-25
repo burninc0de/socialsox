@@ -197,6 +197,57 @@ ipcMain.handle('read-clipboard-image', () => {
     return image.toDataURL();
 });
 
+// Fetch Open Graph preview (HTML + image) for a URL and return base64 image + metadata
+const https = require('https');
+const http = require('http');
+
+ipcMain.handle('fetch-og-preview', async (event, urlToFetch) => {
+    try {
+        const fetchText = (u) => new Promise((resolve, reject) => {
+            const lib = u.startsWith('https') ? https : http;
+            lib.get(u, { headers: { 'User-Agent': 'SocialSox/1.0' } }, (res) => {
+                let data = '';
+                res.setEncoding('utf8');
+                res.on('data', chunk => data += chunk);
+                res.on('end', () => resolve({ data, finalUrl: res.responseUrl || u, statusCode: res.statusCode }));
+            }).on('error', reject);
+        });
+
+        const { data: html, finalUrl, statusCode } = await fetchText(urlToFetch);
+        if (!html || statusCode < 200 || statusCode >= 400) return { success: false, error: 'Failed to fetch page' };
+
+        const findMeta = (name) => {
+            const re = new RegExp(`<meta[^>]+(?:property|name)=["']${name}["'][^>]*content=["']([^"']+)["']`, 'i');
+            const m = html.match(re);
+            return m ? m[1] : null;
+        };
+
+        const title = findMeta('og:title') || (html.match(/<title>([^<]+)<\/title>/i) ? RegExp.$1 : null);
+        const description = findMeta('og:description') || findMeta('description');
+        let imageUrl = findMeta('og:image');
+
+        if (!imageUrl) return { success: true, title, description };
+        imageUrl = new URL(imageUrl, finalUrl).toString();
+
+        const fetchBinary = (u) => new Promise((resolve, reject) => {
+            const lib = u.startsWith('https') ? https : http;
+            lib.get(u, { headers: { 'User-Agent': 'SocialSox/1.0' } }, (res) => {
+                const chunks = [];
+                res.on('data', c => chunks.push(c));
+                res.on('end', () => {
+                    const buf = Buffer.concat(chunks);
+                    resolve({ buffer: buf, contentType: res.headers['content-type'] || 'application/octet-stream' });
+                });
+            }).on('error', reject);
+        });
+
+        const { buffer, contentType } = await fetchBinary(imageUrl);
+        return { success: true, title, description, image: buffer.toString('base64'), imageType: contentType, imageUrl };
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+});
+
 // Handle credential import
 ipcMain.handle('import-credentials', async (event) => {
     try {

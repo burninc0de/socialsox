@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld(
         minimizeWindow: () => ipcRenderer.send('minimize-window'),
         maximizeWindow: () => ipcRenderer.send('maximize-window'),
         closeWindow: () => ipcRenderer.send('close-window'),
-        readClipboardImage: () => ipcRenderer.invoke('read-clipboard-image')
+        readClipboardImage: () => ipcRenderer.invoke('read-clipboard-image'),
+        fetchOgPreview: (url) => ipcRenderer.invoke('fetch-og-preview', url)
     }
 );

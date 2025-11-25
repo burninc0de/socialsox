@@ -374,7 +374,61 @@ async function postToBluesky(message, handle, password, imageFile = null) {
     // Regex to find URLs
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     let match;
+    let externalEmbed = null;
     while ((match = urlRegex.exec(message)) !== null) {
+        const url = match[0];
+
+        // Try to fetch OG preview via Electron backend (avoids CORS)
+        if (window.electron && window.electron.fetchOgPreview) {
+            try {
+                const og = await window.electron.fetchOgPreview(url);
+                if (og && og.success && og.image) {
+                    // Upload the preview image as a blob to Bluesky
+                    const binary = Uint8Array.from(atob(og.image), c => c.charCodeAt(0));
+                    const uploadResponse2 = await fetch('https://bsky.social/xrpc/com.atproto.repo.uploadBlob', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${session.accessJwt}`,
+                            'Content-Type': og.imageType
+                        },
+                        body: binary
+                    });
+
+                    if (uploadResponse2.ok) {
+                        const uploadData2 = await uploadResponse2.json();
+                        externalEmbed = {
+                            $type: 'app.bsky.embed.external',
+                            external: {
+                                uri: url,
+                                title: og.title || '',
+                                description: og.description || '',
+                                thumb: uploadData2.blob
+                            }
+                        };
+
+                        // Also add a link facet for the URL
+                        facets.push({
+                            index: {
+                                byteStart: new TextEncoder().encode(message.slice(0, match.index)).length,
+                                byteEnd: new TextEncoder().encode(message.slice(0, match.index + match[0].length)).length
+                            },
+                            features: [{
+                                $type: 'app.bsky.richtext.facet#link',
+                                uri: url
+                            }]
+                        });
+
+                        // Use the first previewable link only
+                        break;
+                    }
+                }
+            } catch (e) {
+                // ignore preview errors and fall back to link facet
+                console.error('OG preview error:', e);
+            }
+        }
+
+        // Fallback: add simple link facet
         facets.push({
             index: {
                 byteStart: new TextEncoder().encode(message.slice(0, match.index)).length,
@@ -385,6 +439,17 @@ async function postToBluesky(message, handle, password, imageFile = null) {
                 uri: match[0]
             }]
         });
+    }
+
+    // Create post with facets and optional image
+    const record = {
+        text: message,
+        createdAt: new Date().toISOString()
+    };
+
+    // If we created an external embed from OG data, attach it
+    if (externalEmbed) {
+        record.embed = externalEmbed;
     }
     
     // Hashtag detection: find #tags and add link facets
@@ -405,13 +470,6 @@ async function postToBluesky(message, handle, password, imageFile = null) {
         });
     }
 
-    // Create post with facets and optional image
-    const record = {
-        text: message,
-        createdAt: new Date().toISOString()
-    };
-    
-    // Only add facets if we found any
     if (facets.length > 0) {
         record.facets = facets;
     }
