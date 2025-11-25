@@ -1270,6 +1270,9 @@ function displayNotifications(notifications) {
     // Show all notifications that haven't been explicitly dismissed
     const visibleNotifications = notifications.filter(n => !n.dismissed);
     
+    // Sort by timestamp, newest first
+    visibleNotifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
     if (visibleNotifications.length === 0) {
         notificationsList.innerHTML = '';
         noNotifications.style.display = 'block';
