@@ -22,6 +22,12 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
+    hmr: {
+      overlay: true
+    },
+    watch: {
+      include: ['**/*.{js,ts,html,css}']
+    }
   },
   build: {
     outDir: 'dist-vite',

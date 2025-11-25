@@ -13,6 +13,13 @@ window.addEventListener('DOMContentLoaded', () => {
     loadCredentials();
     loadHistory();
     
+    // Load dark mode preference
+    const darkMode = localStorage.getItem('socialSoxDarkMode') === 'true';
+    document.getElementById('darkModeToggle').checked = darkMode;
+    if (darkMode) {
+        document.documentElement.classList.add('dark');
+    }
+    
     // Display cached notifications from previous session
     const cachedNotifications = getAllCachedNotifications();
     if (cachedNotifications.length > 0) {
@@ -43,6 +50,17 @@ window.addEventListener('DOMContentLoaded', () => {
             const tab = this.dataset.tab;
             switchTab(tab);
         });
+    });
+    
+    // Dark mode toggle
+    document.getElementById('darkModeToggle').addEventListener('change', function() {
+        const isDark = this.checked;
+        localStorage.setItem('socialSoxDarkMode', isDark);
+        if (isDark) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
     });
     
     // Platform toggles

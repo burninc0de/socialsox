@@ -8,7 +8,7 @@
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script>
         tailwind.config = {
-            darkMode: 'media',
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -60,6 +60,14 @@
         }
         ::-webkit-scrollbar-thumb:hover {
             background: #4b5563;
+        }
+        
+        /* Dark Mode Toggle */
+        #darkModeToggle:checked + div {
+            background-color: #4f46e5;
+        }
+        #darkModeToggle:checked + div + .dot {
+            transform: translateX(20px);
         }
     </style>
 </head>
@@ -182,7 +190,19 @@
         
         <!-- Settings Tab Content -->
         <div id="settingsContent" class="tab-content hidden">
-            <p class="text-gray-600 dark:text-gray-400 mb-8 text-sm">Configure your API credentials</p>
+            <p class="text-gray-600 dark:text-gray-400 mb-8 text-sm">Configure your preferences and API credentials</p>
+            
+            <!-- Dark Mode Toggle -->
+            <div class="mb-6">
+                <label class="flex items-center justify-between cursor-pointer">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Dark Mode</span>
+                    <div class="relative">
+                        <input type="checkbox" id="darkModeToggle" class="sr-only">
+                        <div class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors"></div>
+                        <div class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform"></div>
+                    </div>
+                </label>
+            </div>
             
             <!-- Mastodon -->
             <div class="mb-4">
