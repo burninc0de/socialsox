@@ -21,7 +21,8 @@ window.addEventListener('DOMContentLoaded', () => {
     loadHistory();
     
     // Load dark mode preference
-    const darkMode = localStorage.getItem('socialSoxDarkMode') === 'true';
+    const darkModeStored = localStorage.getItem('socialSoxDarkMode');
+    const darkMode = darkModeStored !== null ? darkModeStored === 'true' : true; // Default to true if not set
     document.getElementById('darkModeToggle').checked = darkMode;
     if (darkMode) {
         document.documentElement.classList.add('dark');
