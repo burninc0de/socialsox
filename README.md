@@ -19,16 +19,36 @@ A simple, local Electron app for posting short messages to Mastodon, Twitter, an
 - 🎛️ Dedicated settings tab for API configuration
 - 🌙 Custom dark scrollbars and theme
 
+## Screenshots
+
+### Message Composition
+![Compose a message with platform selection and character counter](screenshots/message-compose.png)
+
+### Posting with Images
+![Compose messages with image uploads](screenshots/message-with-image.png)
+
+### Posting History
+![View your posting history with status tracking](screenshots/history-tab.png)
+
+### Settings & Credentials
+![Configure API credentials and app settings](screenshots/settings-tab.png)
+
+### Notifications
+![Monitor notifications from connected platforms](screenshots/notifications-tab.png)
+
 ## Project Notes
 
-**This is a basic vanilla JavaScript proof of concept** built for a simple need. It may benefit from refactoring to React/TypeScript in the future.
+> [!NOTE]
+> **This is a basic vanilla JavaScript proof of concept** built for a simple need. It may benefit from refactoring to React/TypeScript in the future.
 
-**Minimalist by design** - I have no plans to turn this into a super-app with endless features. For more advanced social media management tools, check out [Postiz](https://github.com/gitroomhq/postiz-app).
+> [!TIP]
+> **Minimalist by design** - I have no plans to turn this into a super-app with endless features. For more advanced social media management tools, check out [Postiz](https://github.com/gitroomhq/postiz-app).
 
-**Current implementation details:**
-- Tailwind CSS and Lucide icons are loaded via CDN for simplicity
-- Tested on Linux (Arch CachyOS) and Windows 11
-- Mac builds need testing
+> [!IMPORTANT]
+> **Current implementation details:**
+> - Tailwind CSS and Lucide icons are loaded via CDN for simplicity
+> - Tested on Linux (Arch CachyOS) and Windows 11
+> - Mac builds need testing
 
 ## Quick Start
 
@@ -119,44 +139,51 @@ Check the **History** tab to view your past posts and their status.
 
 ## Security Notes
 
-- ✅ Everything runs locally on your computer
-- ✅ Credentials are stored in localStorage (Electron app storage)
-- ✅ Twitter OAuth handled securely in Electron backend
-- ✅ No external servers involved (except the social media APIs)
-- ⚠️ Anyone with access to your computer can potentially read localStorage
-- ⚠️ Use app-specific passwords where available (like Bluesky's app passwords)
+> [!NOTE]
+> **Security Features:**
+> - ✅ Everything runs locally on your computer
+> - ✅ Credentials are stored in localStorage (Electron app storage)
+> - ✅ Twitter OAuth handled securely in Electron backend
+> - ✅ No external servers involved (except the social media APIs)
+
+> [!WARNING]
+> **Security Considerations:**
+> - ⚠️ Anyone with access to your computer can potentially read localStorage
+> - ⚠️ Use app-specific passwords where available (like Bluesky's app passwords)
 
 For security-related concerns, please see our [Security Policy](SECURITY.md).
 
 ## Limitations
 
-- No multiple image support (single image only)
-- No thread/reply support
-- Character limits: Twitter 280 chars, Mastodon 500+ (varies by instance), Bluesky 300 chars
-- Image size limit: 5MB
-- Image format support: PNG, JPG, GIF, WebP
+> [!CAUTION]
+> **Current Limitations:**
+> - No multiple image support (single image only)
+> - No thread/reply support
+> - Character limits: Twitter 280 chars, Mastodon 500+ (varies by instance), Bluesky 300 chars
+> - Image size limit: 5MB
+> - Image format support: PNG, JPG, GIF, WebP
 
 ## Troubleshooting
 
 **App won't start or icons don't load**: Try running with debug console: `DEBUG=1 ./SocialSox.exe` (Windows) or `DEBUG=1 ./SocialSox` (Linux/Mac) to see error messages.
 
-**Twitter Errors**: 
-- **"oauth1 app permissions" error**: Your app isn't configured correctly
-  1. Go to your app's **Settings** → "User authentication settings" 
-  2. Enable **OAuth 1.0a** with **"Read and Write"** permissions
-  3. Go to **"Keys and Tokens"** tab
-  4. **Regenerate** your Access Token and Access Token Secret (critical!)
-  5. Use the new tokens in SocialSox
-- Make sure you have all 4 credentials entered correctly
-- Old tokens won't work after changing permissions - you must regenerate them
+> [!IMPORTANT]
+> **Twitter Errors**:
+> - **"oauth1 app permissions" error**: Your app isn't configured correctly
+>   1. Go to your app's **Settings** → "User authentication settings"
+>   2. Enable **OAuth 1.0a** with **"Read and Write"** permissions
+>   3. Go to **"Keys and Tokens"** tab
+>   4. **Regenerate** your Access Token and Access Token Secret (critical!)
+>   5. Use the new tokens in SocialSox
+> - Make sure you have all 4 credentials entered correctly
+> - Old tokens won't work after changing permissions - you must regenerate them
 
-**Instance URL Errors**: Use only the domain (e.g., `https://mastodon.social`), not your profile URL (e.g., NOT `https://mastodon.social/@username`)
-
-**Mastodon Errors**: Make sure your instance URL is correct and includes `https://`
-
-**Bluesky Errors**: Use your full handle including the domain (e.g., `user.bsky.social`)
-
-**Image Upload Issues**: Ensure your image is under 5MB and in a supported format (PNG, JPG, GIF, WebP)
+> [!TIP]
+> **Common Configuration Issues**:
+> - **Instance URL Errors**: Use only the domain (e.g., `https://mastodon.social`), not your profile URL
+> - **Mastodon Errors**: Make sure your instance URL is correct and includes `https://`
+> - **Bluesky Errors**: Use your full handle including the domain (e.g., `user.bsky.social`)
+> - **Image Upload Issues**: Ensure your image is under 5MB and in a supported format (PNG, JPG, GIF, WebP)
 
 ## Development
 
