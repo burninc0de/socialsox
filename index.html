@@ -282,42 +282,68 @@
                 </div>
             </div>
             
-            <!-- Mastodon -->
-            <div class="mb-4">
-                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Mastodon Instance URL:</label>
-                <input type="text" id="mastodon-instance" placeholder="https://mastodon.social" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
-            </div>
-            <div class="mb-4">
-                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Mastodon Access Token:</label>
-                <input type="password" id="mastodon-token" placeholder="Your access token" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
-            </div>
-            
-            <!-- Twitter -->
-            <div class="mb-4 mt-5">
-                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Twitter API Key:</label>
-                <input type="password" id="twitter-key" placeholder="Your API key" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
-            </div>
-            <div class="mb-4">
-                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Twitter API Secret:</label>
-                <input type="password" id="twitter-secret" placeholder="Your API secret" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
-            </div>
-            <div class="mb-4">
-                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Twitter Access Token:</label>
-                <input type="password" id="twitter-token" placeholder="Your access token" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
-            </div>
-            <div class="mb-4">
-                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Twitter Access Token Secret:</label>
-                <input type="password" id="twitter-token-secret" placeholder="Your token secret" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
-            </div>
-            
-            <!-- Bluesky -->
-            <div class="mb-4 mt-5">
-                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Bluesky Handle:</label>
-                <input type="text" id="bluesky-handle" placeholder="username.bsky.social" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
-            </div>
-            <div class="mb-4">
-                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Bluesky App Password:</label>
-                <input type="password" id="bluesky-password" placeholder="Your app password" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+            <!-- API Credentials -->
+            <div class="mb-6">
+                <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">API Credentials</h3>
+                
+                <!-- Mastodon Section -->
+                <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <h4 class="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
+                        <img src="assets/masto.svg" alt="Mastodon" class="w-4 h-4"> Mastodon
+                    </h4>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Instance URL:</label>
+                            <input type="text" id="mastodon-instance" placeholder="https://mastodon.social" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Access Token:</label>
+                            <input type="password" id="mastodon-token" placeholder="Your access token" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Twitter Section -->
+                <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <h4 class="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
+                        <img src="assets/twit.svg" alt="Twitter" class="w-4 h-4"> Twitter
+                    </h4>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">API Key:</label>
+                            <input type="password" id="twitter-key" placeholder="Your API key" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">API Secret:</label>
+                            <input type="password" id="twitter-secret" placeholder="Your API secret" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Access Token:</label>
+                            <input type="password" id="twitter-token" placeholder="Your access token" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Access Token Secret:</label>
+                            <input type="password" id="twitter-token-secret" placeholder="Your token secret" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bluesky Section -->
+                <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <h4 class="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
+                        <img src="assets/bsky.svg" alt="Bluesky" class="w-4 h-4"> Bluesky
+                    </h4>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Handle:</label>
+                            <input type="text" id="bluesky-handle" placeholder="username.bsky.social" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">App Password:</label>
+                            <input type="password" id="bluesky-password" placeholder="Your app password" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- Import/Export Buttons -->
