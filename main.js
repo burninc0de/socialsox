@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, clipboard, Tray, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, clipboard, Tray, Menu, Notification } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
 
@@ -322,6 +322,39 @@ ipcMain.handle('import-credentials', async (event) => {
         }
         return { success: false, canceled: true };
     } catch (error) {
+        return { success: false, error: error.message };
+    }
+});
+
+// Handle showing OS notifications
+ipcMain.handle('show-os-notification', (event, { title, body, platform }) => {
+    try {
+        if (Notification.isSupported()) {
+            const notification = new Notification({
+                title: title,
+                body: body,
+                icon: path.join(__dirname, 'tray.png'),
+                silent: false
+            });
+            
+            notification.on('click', () => {
+                const win = BrowserWindow.getAllWindows()[0];
+                if (win) {
+                    if (win.isMinimized()) win.restore();
+                    win.show();
+                    win.focus();
+                    // Switch to notifications tab
+                    win.webContents.send('switch-to-notifications-tab');
+                }
+            });
+            
+            notification.show();
+            return { success: true };
+        } else {
+            return { success: false, error: 'Notifications not supported' };
+        }
+    } catch (error) {
+        console.error('Notification error:', error);
         return { success: false, error: error.message };
     }
 });

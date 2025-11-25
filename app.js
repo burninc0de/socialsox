@@ -16,6 +16,13 @@ window.addEventListener('DOMContentLoaded', () => {
     // Start automatic notification checking
     startNotificationPolling();
     
+    // Listen for switch to notifications tab from OS notification click
+    if (window.electron && window.electron.onSwitchToNotificationsTab) {
+        window.electron.onSwitchToNotificationsTab(() => {
+            switchTab('notifications');
+        });
+    }
+    
     // Initialize Lucide icons
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
@@ -965,6 +972,33 @@ async function loadNotifications(silent = false) {
         const unseenCount = allNotifications.filter(n => !n.isSeen && !n.error).length;
         if (unseenCount > 0 && !silent) {
             showStatus(`Found ${unseenCount} new notification${unseenCount > 1 ? 's' : ''}!`, 'success');
+        }
+        
+        // Show OS notification for new notifications
+        if (unseenCount > 0) {
+            const unseenNotifs = allNotifications.filter(n => !n.isSeen && !n.error);
+            const platformCounts = {};
+            unseenNotifs.forEach(n => {
+                platformCounts[n.platform] = (platformCounts[n.platform] || 0) + 1;
+            });
+            
+            const platformSummary = Object.entries(platformCounts)
+                .map(([platform, count]) => `${count} from ${platform}`)
+                .join(', ');
+            
+            // Show first notification preview
+            const firstNotif = unseenNotifs[0];
+            const notifBody = unseenCount === 1 
+                ? `${firstNotif.author}: ${firstNotif.content.substring(0, 100)}${firstNotif.content.length > 100 ? '...' : ''}`
+                : `${platformSummary}`;
+            
+            if (window.electron && window.electron.showOSNotification) {
+                window.electron.showOSNotification(
+                    `${unseenCount} New Notification${unseenCount > 1 ? 's' : ''}`,
+                    notifBody,
+                    'socialsox'
+                );
+            }
         }
         
     } catch (error) {

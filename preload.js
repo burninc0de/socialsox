@@ -17,6 +17,10 @@ contextBridge.exposeInMainWorld(
         maximizeWindow: () => ipcRenderer.send('maximize-window'),
         closeWindow: () => ipcRenderer.send('close-window'),
         readClipboardImage: () => ipcRenderer.invoke('read-clipboard-image'),
-        fetchOgPreview: (url) => ipcRenderer.invoke('fetch-og-preview', url)
+        fetchOgPreview: (url) => ipcRenderer.invoke('fetch-og-preview', url),
+        showOSNotification: (title, body, platform) => 
+            ipcRenderer.invoke('show-os-notification', { title, body, platform }),
+        onSwitchToNotificationsTab: (callback) => 
+            ipcRenderer.on('switch-to-notifications-tab', callback)
     }
 );
