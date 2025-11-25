@@ -19,6 +19,17 @@ A simple, local Electron app for posting short messages to Mastodon, Twitter, an
 - 🎛️ Dedicated settings tab for API configuration
 - 🌙 Custom dark scrollbars and theme
 
+## Project Notes
+
+**This is a basic vanilla JavaScript proof of concept** built for a simple need. It may benefit from refactoring to React/TypeScript in the future.
+
+**Minimalist by design** - I have no plans to turn this into a super-app with endless features. For more advanced social media management tools, check out [Postiz](https://github.com/gitroomhq/postiz-app).
+
+**Current implementation details:**
+- Tailwind CSS and Lucide icons are loaded via CDN for simplicity
+- Tested on Linux (Arch CachyOS) and Windows 11
+- Mac builds need testing
+
 ## Quick Start
 
 ### Option 1: Run as Electron App (Recommended)
