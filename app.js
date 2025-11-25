@@ -803,10 +803,24 @@ function displayHistory(history) {
 }
 
 // Notification functionality
+let notificationsCache = {
+    data: [],
+    timestamp: 0,
+    ttl: 60000 // Cache for 1 minute
+};
+
 async function loadNotifications() {
     const btn = document.getElementById('loadNotificationsBtn');
     const notificationsList = document.getElementById('notificationsList');
     const noNotifications = document.getElementById('noNotifications');
+    
+    // Check if we have recent cached data
+    const now = Date.now();
+    if (notificationsCache.data.length > 0 && (now - notificationsCache.timestamp) < notificationsCache.ttl) {
+        displayNotifications(notificationsCache.data);
+        showStatus('Loaded from cache (refreshes every minute)', 'info');
+        return;
+    }
     
     btn.disabled = true;
     btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Loading...';
@@ -881,6 +895,10 @@ async function loadNotifications() {
             return timeB - timeA;
         });
         
+        // Cache the results
+        notificationsCache.data = allNotifications;
+        notificationsCache.timestamp = Date.now();
+        
         displayNotifications(allNotifications);
         
     } catch (error) {
@@ -936,6 +954,10 @@ async function fetchTwitterNotifications(apiKey, apiSecret, accessToken, accessT
     const result = await window.electron.fetchTwitterNotifications(apiKey, apiSecret, accessToken, accessTokenSecret);
     
     if (!result.success) {
+        // Better error message for rate limiting
+        if (result.error && result.error.includes('Too Many Requests')) {
+            throw new Error('Twitter rate limit reached. Wait 15 minutes before retrying.');
+        }
         throw new Error(result.error);
     }
     return result.data;
@@ -972,15 +994,29 @@ async function fetchBlueskyNotifications(handle, password) {
     }
     
     const data = await response.json();
-    return data.notifications.map(n => ({
-        id: n.uri,
-        type: n.reason,
-        timestamp: n.indexedAt,
-        author: n.author?.displayName || n.author?.handle || 'Unknown',
-        authorHandle: n.author?.handle || '',
-        content: n.record?.text || '',
-        isRead: n.isRead
-    }));
+    return data.notifications.map(n => {
+        // Extract post ID from URI (format: at://did:plc:xxx/app.bsky.feed.post/xxxxx)
+        let url = null;
+        if (n.uri) {
+            const uriParts = n.uri.split('/');
+            const postId = uriParts[uriParts.length - 1];
+            const authorHandle = n.author?.handle;
+            if (authorHandle && postId) {
+                url = `https://bsky.app/profile/${authorHandle}/post/${postId}`;
+            }
+        }
+        
+        return {
+            id: n.uri,
+            type: n.reason,
+            timestamp: n.indexedAt,
+            author: n.author?.displayName || n.author?.handle || 'Unknown',
+            authorHandle: n.author?.handle || '',
+            content: n.record?.text || '',
+            isRead: n.isRead,
+            url: url
+        };
+    });
 }
 
 function displayNotifications(notifications) {
