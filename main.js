@@ -1,6 +1,10 @@
-const { app, BrowserWindow, ipcMain, dialog, clipboard } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, clipboard, Tray, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
+
+let tray = null;
+let isQuiting = false;
+
 const { TwitterApi } = require('twitter-api-v2');
 const sharp = require('sharp');
 
@@ -33,7 +37,7 @@ async function createWindow() {
             enableRemoteModule: false,
             preload: path.join(__dirname, 'preload.js')
         },
-        icon: path.join(__dirname, 'appicon.png'),
+        icon: path.join(__dirname, 'tray.png'),
         title: 'SocialSox',
         autoHideMenuBar: true,
         frame: false,
@@ -57,6 +61,30 @@ async function createWindow() {
         const bounds = win.getBounds();
         saveWindowBounds(bounds);
     });
+
+    // Minimize to tray: hide window instead of minimizing, and create tray
+    win.on('minimize', (event) => {
+        event.preventDefault();
+        win.hide();
+    });
+
+    if (!tray) {
+        tray = new Tray(path.join(__dirname, 'tray.png'));
+        const contextMenu = Menu.buildFromTemplate([
+            { label: 'Show App', click: () => { win.show(); } },
+            { label: 'Quit', click: () => { isQuiting = true; app.quit(); } }
+        ]);
+        tray.setToolTip('SocialSox');
+        tray.setContextMenu(contextMenu);
+        tray.on('click', () => { 
+            try {
+                if (win.isMinimized && win.isMinimized()) win.restore();
+            } catch (e) { /* ignore */ }
+            if (!win.isVisible || !win.isVisible()) win.show();
+            try { win.focus(); } catch (e) { /* ignore */ }
+        });
+        tray.on('right-click', () => { tray.popUpContextMenu(contextMenu); });
+    }
 
     // Open DevTools in development or when DEBUG env var is set
     if (!app.isPackaged || process.env.DEBUG) {
