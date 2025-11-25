@@ -13,12 +13,10 @@ window.addEventListener('DOMContentLoaded', () => {
     loadCredentials();
     loadHistory();
     
-    // Load notifications cache from previous session
-    loadNotificationsCache();
-    
-    // Display cached notifications if available
-    if (notificationsCache.data.length > 0) {
-        displayNotifications(notificationsCache.data);
+    // Display cached notifications from previous session
+    const cachedNotifications = getAllCachedNotifications();
+    if (cachedNotifications.length > 0) {
+        displayNotifications(cachedNotifications);
     }
     
     // Start automatic notification checking
@@ -821,63 +819,28 @@ function displayHistory(history) {
 }
 
 // Notification functionality
-let notificationsCache = {
-    data: [],
-    timestamp: 0,
-    ttl: 60000 // Cache for 1 minute
-};
-
 let notificationCheckInterval = null;
 
-// Load notifications cache from localStorage
-function loadNotificationsCache() {
-    const cached = localStorage.getItem('notificationsCache');
-    if (cached) {
-        try {
-            const parsed = JSON.parse(cached);
-            // Check if cache is still valid (within TTL)
-            const now = Date.now();
-            if (parsed.timestamp && (now - parsed.timestamp) < parsed.ttl) {
-                notificationsCache = parsed;
-                console.log('Loaded notifications cache from localStorage');
-            }
-        } catch (e) {
-            console.error('Failed to parse notifications cache:', e);
-        }
-    }
+// Get all cached notifications from localStorage
+function getAllCachedNotifications() {
+    const cached = localStorage.getItem('allNotifications');
+    return cached ? JSON.parse(cached) : [];
 }
 
-// Save notifications cache to localStorage
-function saveNotificationsCache() {
-    try {
-        localStorage.setItem('notificationsCache', JSON.stringify(notificationsCache));
-    } catch (e) {
-        console.error('Failed to save notifications cache:', e);
-    }
+// Save all notifications to localStorage
+function saveAllNotifications(notifications) {
+    localStorage.setItem('allNotifications', JSON.stringify(notifications));
 }
 
-// Load seen notifications from localStorage
-function getSeenNotifications() {
-    const seen = localStorage.getItem('seenNotifications');
-    return seen ? JSON.parse(seen) : [];
-}
-
-// Save seen notifications to localStorage
-function saveSeenNotifications(notificationIds) {
-    localStorage.setItem('seenNotifications', JSON.stringify(notificationIds));
-}
-
-// Clear seen notifications cache
+// Clear notification cache
 function clearNotificationsCache() {
-    localStorage.removeItem('seenNotifications');
-    localStorage.removeItem('notificationsCache');
-    notificationsCache = {
-        data: [],
-        timestamp: 0,
-        ttl: 60000
-    };
+    localStorage.removeItem('allNotifications');
+    const notificationsList = document.getElementById('notificationsList');
+    const noNotifications = document.getElementById('noNotifications');
+    notificationsList.innerHTML = '';
+    noNotifications.style.display = 'block';
+    noNotifications.textContent = 'Click "Load Notifications" to check for replies, likes, and mentions across your platforms.';
     showStatus('Notification cache cleared!', 'success');
-    loadNotifications();
 }
 
 // Start automatic notification checking
@@ -907,28 +870,15 @@ async function loadNotifications(silent = false) {
     const notificationsList = document.getElementById('notificationsList');
     const noNotifications = document.getElementById('noNotifications');
     
-    // Check if we have recent cached data
-    const now = Date.now();
-    if (notificationsCache.data.length > 0 && (now - notificationsCache.timestamp) < notificationsCache.ttl) {
-        displayNotifications(notificationsCache.data);
-        // Only show status message if we're on the notifications tab
-        if (!silent && document.getElementById('notificationsContent').classList.contains('tab-content') && 
-            !document.getElementById('notificationsContent').classList.contains('hidden')) {
-            showStatus('Loaded from cache (refreshes every minute)', 'info');
-        }
-        return;
-    }
-    
     if (!silent) {
         btn.disabled = true;
         btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Loading...';
         lucide.createIcons();
     }
     
-    notificationsList.innerHTML = '';
     noNotifications.style.display = 'none';
     
-    const allNotifications = [];
+    const newNotifications = [];
     
     try {
         // Load Mastodon notifications (check credentials, not platform toggle)
@@ -938,10 +888,10 @@ async function loadNotifications(silent = false) {
         if (mastodonInstance && mastodonToken) {
             try {
                 const mastodonNotifs = await fetchMastodonNotifications(mastodonInstance, mastodonToken);
-                allNotifications.push(...mastodonNotifs.map(n => ({ ...n, platform: 'mastodon' })));
+                newNotifications.push(...mastodonNotifs.map(n => ({ ...n, platform: 'mastodon' })));
             } catch (error) {
                 console.error('Mastodon notifications error:', error);
-                allNotifications.push({
+                newNotifications.push({
                     platform: 'mastodon',
                     error: true,
                     message: 'Failed to load Mastodon notifications: ' + error.message
@@ -958,10 +908,10 @@ async function loadNotifications(silent = false) {
         if (twitterKey && twitterSecret && twitterToken && twitterTokenSecret) {
             try {
                 const twitterNotifs = await fetchTwitterNotifications(twitterKey, twitterSecret, twitterToken, twitterTokenSecret);
-                allNotifications.push(...twitterNotifs.map(n => ({ ...n, platform: 'twitter' })));
+                newNotifications.push(...twitterNotifs.map(n => ({ ...n, platform: 'twitter' })));
             } catch (error) {
                 console.error('Twitter notifications error:', error);
-                allNotifications.push({
+                newNotifications.push({
                     platform: 'twitter',
                     error: true,
                     message: 'Failed to load Twitter notifications: ' + error.message
@@ -976,10 +926,10 @@ async function loadNotifications(silent = false) {
         if (blueskyHandle && blueskyPassword) {
             try {
                 const blueskyNotifs = await fetchBlueskyNotifications(blueskyHandle, blueskyPassword);
-                allNotifications.push(...blueskyNotifs.map(n => ({ ...n, platform: 'bluesky' })));
+                newNotifications.push(...blueskyNotifs.map(n => ({ ...n, platform: 'bluesky' })));
             } catch (error) {
                 console.error('Bluesky notifications error:', error);
-                allNotifications.push({
+                newNotifications.push({
                     platform: 'bluesky',
                     error: true,
                     message: 'Failed to load Bluesky notifications: ' + error.message
@@ -987,38 +937,48 @@ async function loadNotifications(silent = false) {
             }
         }
         
+        // Get existing cached notifications
+        const cachedNotifications = getAllCachedNotifications();
+        const cachedIds = new Set(cachedNotifications.map(n => n.id));
+        
+        // Merge: add new notifications to the cache
+        const mergedNotifications = [...cachedNotifications];
+        let newCount = 0;
+        
+        newNotifications.forEach(notif => {
+            if (!notif.error && !cachedIds.has(notif.id)) {
+                notif.isNew = true; // Mark as new
+                mergedNotifications.push(notif);
+                newCount++;
+            } else if (notif.error) {
+                // Always show errors
+                mergedNotifications.push(notif);
+            }
+        });
+        
         // Sort by timestamp (most recent first)
-        allNotifications.sort((a, b) => {
+        mergedNotifications.sort((a, b) => {
             const timeA = new Date(a.timestamp || 0);
             const timeB = new Date(b.timestamp || 0);
             return timeB - timeA;
         });
         
-        // Mark notifications as seen/unseen
-        const seenIds = getSeenNotifications();
-        allNotifications.forEach(notif => {
-            notif.isSeen = seenIds.includes(notif.id);
-        });
+        // Save to cache
+        saveAllNotifications(mergedNotifications);
         
-        // Cache the results
-        notificationsCache.data = allNotifications;
-        notificationsCache.timestamp = Date.now();
-        saveNotificationsCache(); // Persist to localStorage
+        displayNotifications(mergedNotifications);
         
-        displayNotifications(allNotifications);
-        
-        // Count unseen notifications
-        const unseenCount = allNotifications.filter(n => !n.isSeen && !n.error).length;
-        if (unseenCount > 0 && !silent && document.getElementById('notificationsContent') && 
+        // Show status and OS notification for new items
+        if (newCount > 0 && !silent && document.getElementById('notificationsContent') && 
             !document.getElementById('notificationsContent').classList.contains('hidden')) {
-            showStatus(`Found ${unseenCount} new notification${unseenCount > 1 ? 's' : ''}!`, 'success');
+            showStatus(`Found ${newCount} new notification${newCount > 1 ? 's' : ''}!`, 'success');
         }
         
         // Show OS notification for new notifications
-        if (unseenCount > 0) {
-            const unseenNotifs = allNotifications.filter(n => !n.isSeen && !n.error);
+        if (newCount > 0) {
+            const newNotifs = mergedNotifications.filter(n => n.isNew && !n.error);
             const platformCounts = {};
-            unseenNotifs.forEach(n => {
+            newNotifs.forEach(n => {
                 platformCounts[n.platform] = (platformCounts[n.platform] || 0) + 1;
             });
             
@@ -1027,14 +987,14 @@ async function loadNotifications(silent = false) {
                 .join(', ');
             
             // Show first notification preview
-            const firstNotif = unseenNotifs[0];
-            const notifBody = unseenCount === 1 
+            const firstNotif = newNotifs[0];
+            const notifBody = newCount === 1 
                 ? `${firstNotif.author}: ${firstNotif.content.substring(0, 100)}${firstNotif.content.length > 100 ? '...' : ''}`
                 : `${platformSummary}`;
             
             if (window.electron && window.electron.showOSNotification) {
                 window.electron.showOSNotification(
-                    `${unseenCount} New Notification${unseenCount > 1 ? 's' : ''}`,
+                    `${newCount} New Notification${newCount > 1 ? 's' : ''}`,
                     notifBody,
                     'socialsox'
                 );
@@ -1053,21 +1013,14 @@ async function loadNotifications(silent = false) {
     }
 }
 
-// Mark notification as seen
+// Mark notification as seen (remove "New" badge)
 function markAsSeen(notificationId) {
-    const seenIds = getSeenNotifications();
-    if (!seenIds.includes(notificationId)) {
-        seenIds.push(notificationId);
-        saveSeenNotifications(seenIds);
-        
-        // Update cache
-        if (notificationsCache.data.length > 0) {
-            const notif = notificationsCache.data.find(n => n.id === notificationId);
-            if (notif) {
-                notif.isSeen = true;
-                displayNotifications(notificationsCache.data);
-            }
-        }
+    const allNotifs = getAllCachedNotifications();
+    const notif = allNotifs.find(n => n.id === notificationId);
+    if (notif && notif.isNew) {
+        notif.isNew = false;
+        saveAllNotifications(allNotifs);
+        displayNotifications(allNotifs);
     }
 }
 
@@ -1226,9 +1179,9 @@ function displayNotifications(notifications) {
         const timeString = date.toLocaleString();
         const typeLabel = typeLabels[notif.type] || notif.type;
         
-        // Unseen notifications get a special highlight
-        const unseenClass = !notif.isSeen ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : '';
-        const unseenBadge = !notif.isSeen ? '<span class="text-xs bg-primary-600 text-white px-2 py-0.5 rounded-full">New</span>' : '';
+        // New notifications get a special highlight
+        const unseenClass = notif.isNew ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : '';
+        const unseenBadge = notif.isNew ? '<span class="text-xs bg-primary-600 text-white px-2 py-0.5 rounded-full">New</span>' : '';
         
         return `
             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 ${unseenClass}" onclick="markAsSeen('${notif.id}')">
