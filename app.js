@@ -936,7 +936,7 @@ function clearNotificationsCache() {
     // Also clear last seen IDs so we refetch all notifications on next load
     localStorage.removeItem('mastodonLastNotificationId');
     localStorage.removeItem('twitterLastMentionId');
-    localStorage.removeItem('blueskyLastNotificationId');
+    localStorage.removeItem('blueskyLastNotificationTimestamp');
     
     const notificationsList = document.getElementById('notificationsList');
     const noNotifications = document.getElementById('noNotifications');
@@ -1023,6 +1023,14 @@ async function loadPlatformNotifications(platform, silent = true) {
             if (blueskyHandle && blueskyPassword) {
                 const blueskyNotifs = await fetchBlueskyNotifications(blueskyHandle, blueskyPassword);
                 newNotifications.push(...blueskyNotifs.map(n => ({ ...n, platform: 'bluesky' })));
+                
+                // Save the latest notification timestamp
+                if (blueskyNotifs.length > 0) {
+                    const latestTimestamp = blueskyNotifs.reduce((latest, n) => {
+                        return new Date(n.timestamp) > new Date(latest) ? n.timestamp : latest;
+                    }, blueskyNotifs[0].timestamp);
+                    localStorage.setItem('blueskyLastNotificationTimestamp', latestTimestamp);
+                }
             }
         }
         
@@ -1107,11 +1115,12 @@ async function loadNotifications(silent = false) {
     }
 }
 
-// Mark notification as seen (remove "New" badge)
+// Dismiss notification (hide it completely)
 function markAsSeen(notificationId) {
     const allNotifs = getAllCachedNotifications();
     const notif = allNotifs.find(n => n.id === notificationId);
-    if (notif && notif.isNew) {
+    if (notif) {
+        notif.dismissed = true;
         notif.isNew = false;
         saveAllNotifications(allNotifs);
         displayNotifications(allNotifs);
@@ -1244,13 +1253,13 @@ function displayNotifications(notifications) {
     const notificationsList = document.getElementById('notificationsList');
     const noNotifications = document.getElementById('noNotifications');
     
-    // Filter to show only new notifications (and errors)
-    const newNotifications = notifications.filter(n => n.isNew || n.error);
+    // Show all notifications that haven't been explicitly dismissed
+    const visibleNotifications = notifications.filter(n => !n.dismissed);
     
-    if (newNotifications.length === 0) {
+    if (visibleNotifications.length === 0) {
         notificationsList.innerHTML = '';
         noNotifications.style.display = 'block';
-        noNotifications.textContent = 'No new notifications!';
+        noNotifications.textContent = 'No notifications!';
         return;
     }
     
@@ -1273,7 +1282,7 @@ function displayNotifications(notifications) {
         quote: 'Quoted you'
     };
     
-    notificationsList.innerHTML = newNotifications.map(notif => {
+    notificationsList.innerHTML = visibleNotifications.map(notif => {
         if (notif.error) {
             return `
                 <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border border-red-200 dark:border-red-800">
@@ -1306,7 +1315,7 @@ function displayNotifications(notifications) {
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="text-xs text-gray-500 dark:text-gray-400">${timeString}</span>
-                        ${notif.isNew ? `<button onclick="markAsSeen('${notif.id}'); event.stopPropagation();" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm leading-none w-4 h-4 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Mark as read">×</button>` : ''}
+                        <button onclick="markAsSeen('${notif.id}'); event.stopPropagation();" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm leading-none w-4 h-4 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Dismiss">×</button>
                     </div>
                 </div>
                 <div class="mb-2">
