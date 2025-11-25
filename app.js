@@ -887,8 +887,15 @@ async function loadNotifications(silent = false) {
         
         if (mastodonInstance && mastodonToken) {
             try {
-                const mastodonNotifs = await fetchMastodonNotifications(mastodonInstance, mastodonToken);
+                const lastSeenId = localStorage.getItem('mastodonLastNotificationId');
+                const mastodonNotifs = await fetchMastodonNotifications(mastodonInstance, mastodonToken, lastSeenId);
                 newNotifications.push(...mastodonNotifs.map(n => ({ ...n, platform: 'mastodon' })));
+                
+                // Save the latest notification ID
+                if (mastodonNotifs.length > 0) {
+                    const latestId = Math.max(...mastodonNotifs.map(n => parseInt(n.id)));
+                    localStorage.setItem('mastodonLastNotificationId', latestId.toString());
+                }
             } catch (error) {
                 console.error('Mastodon notifications error:', error);
                 newNotifications.push({
@@ -963,8 +970,8 @@ async function loadNotifications(silent = false) {
             return timeB - timeA;
         });
         
-        // Save to cache
-        saveAllNotifications(mergedNotifications);
+        // Save to cache (exclude errors)
+        saveAllNotifications(mergedNotifications.filter(n => !n.error));
         
         displayNotifications(mergedNotifications);
         
@@ -1024,7 +1031,7 @@ function markAsSeen(notificationId) {
     }
 }
 
-async function fetchMastodonNotifications(instance, token) {
+async function fetchMastodonNotifications(instance, token, sinceId = null) {
     let cleanInstance = instance.trim();
     if (cleanInstance.endsWith('/')) {
         cleanInstance = cleanInstance.slice(0, -1);
@@ -1032,7 +1039,12 @@ async function fetchMastodonNotifications(instance, token) {
     const url = new URL(cleanInstance);
     cleanInstance = `${url.protocol}//${url.host}`;
     
-    const response = await fetch(`${cleanInstance}/api/v1/notifications?limit=20`, {
+    let apiUrl = `${cleanInstance}/api/v1/notifications?limit=20`;
+    if (sinceId) {
+        apiUrl += `&since_id=${sinceId}`;
+    }
+    
+    const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`
@@ -1064,7 +1076,10 @@ async function fetchTwitterNotifications(apiKey, apiSecret, accessToken, accessT
         throw new Error('Twitter notifications require Electron app. Restart with: npm start');
     }
     
-    const result = await window.electron.fetchTwitterNotifications(apiKey, apiSecret, accessToken, accessTokenSecret);
+    // Get last seen mention ID to avoid fetching old notifications
+    const lastSeenId = localStorage.getItem('twitterLastMentionId');
+    
+    const result = await window.electron.fetchTwitterNotifications(apiKey, apiSecret, accessToken, accessTokenSecret, lastSeenId);
     
     if (!result.success) {
         // Better error message for rate limiting
@@ -1073,6 +1088,12 @@ async function fetchTwitterNotifications(apiKey, apiSecret, accessToken, accessT
         }
         throw new Error(result.error);
     }
+    
+    // Save the latest mention ID to avoid fetching old notifications next time
+    if (result.latestId) {
+        localStorage.setItem('twitterLastMentionId', result.latestId);
+    }
+    
     return result.data;
 }
 

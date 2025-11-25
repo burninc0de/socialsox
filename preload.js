@@ -7,8 +7,8 @@ contextBridge.exposeInMainWorld(
     {
         postToTwitter: (message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData) => 
             ipcRenderer.invoke('post-to-twitter', { message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData }),
-        fetchTwitterNotifications: (apiKey, apiSecret, accessToken, accessTokenSecret) => 
-            ipcRenderer.invoke('fetch-twitter-notifications', { apiKey, apiSecret, accessToken, accessTokenSecret }),
+        fetchTwitterNotifications: (apiKey, apiSecret, accessToken, accessTokenSecret, lastSeenId) => 
+            ipcRenderer.invoke('fetch-twitter-notifications', { apiKey, apiSecret, accessToken, accessTokenSecret, lastSeenId }),
         exportCredentials: (credentials) => 
             ipcRenderer.invoke('export-credentials', credentials),
         importCredentials: () => 

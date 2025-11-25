@@ -145,7 +145,7 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
 });
 
 // Handle Twitter notifications fetch
-ipcMain.handle('fetch-twitter-notifications', async (event, { apiKey, apiSecret, accessToken, accessTokenSecret }) => {
+ipcMain.handle('fetch-twitter-notifications', async (event, { apiKey, apiSecret, accessToken, accessTokenSecret, lastSeenId }) => {
     try {
         console.log('Twitter: Fetching notifications...');
         
@@ -160,15 +160,22 @@ ipcMain.handle('fetch-twitter-notifications', async (event, { apiKey, apiSecret,
         const me = await client.v2.me();
         const userId = me.data.id;
         
-        // Fetch mentions
-        const mentions = await client.v2.userMentionTimeline(userId, {
+        // Fetch mentions - only newer than last seen to avoid old notifications
+        const options = {
             max_results: 20,
             'tweet.fields': ['created_at', 'author_id'],
             'user.fields': ['username', 'name'],
             expansions: ['author_id']
-        });
+        };
+        
+        if (lastSeenId) {
+            options.since_id = lastSeenId;
+        }
+        
+        const mentions = await client.v2.userMentionTimeline(userId, options);
         
         const notifications = [];
+        let latestId = lastSeenId;
         
         for await (const tweet of mentions) {
             const author = mentions.includes?.users?.find(u => u.id === tweet.author_id);
@@ -181,10 +188,15 @@ ipcMain.handle('fetch-twitter-notifications', async (event, { apiKey, apiSecret,
                 content: tweet.text,
                 url: `https://twitter.com/${author?.username}/status/${tweet.id}`
             });
+            
+            // Track the latest (newest) mention ID
+            if (!latestId || BigInt(tweet.id) > BigInt(latestId)) {
+                latestId = tweet.id;
+            }
         }
         
         console.log('Twitter: Found', notifications.length, 'notifications');
-        return { success: true, data: notifications };
+        return { success: true, data: notifications, latestId };
     } catch (error) {
         console.error('Twitter Notifications Error:', error);
         
