@@ -14,7 +14,7 @@ If you discover a security vulnerability in SocialSox, please help us by reporti
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-Instead, please report security vulnerabilities by emailing the maintainer directly at [your-email@example.com] or through private channels.
+Instead, please report security vulnerabilities by emailing the maintainer directly at andre@learnoutlive.com or through private channels.
 
 ### What to Include
 
