@@ -141,6 +141,14 @@
                 opacity: 0;
             }
         }
+        
+        /* Prevent text selection on buttons and tabs */
+        button, .tab-button {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
     </style>
 </head>
 <body class="bg-gradient-purple dark:bg-gradient-dark min-h-screen flex items-start justify-center pt-16 px-5 pb-5">
