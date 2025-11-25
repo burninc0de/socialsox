@@ -1066,7 +1066,22 @@ async function loadPlatformNotifications(platform, silent = true) {
         
     } catch (error) {
         console.error(`${platform} notifications error:`, error);
-        if (!silent) {
+        if (error.message.toLowerCase().includes('rate limit')) {
+            const errorNotif = {
+                id: `error-${platform}-${Date.now()}`,
+                platform,
+                error: true,
+                message: error.message,
+                timestamp: new Date().toISOString()
+            };
+            const allNotifs = getAllCachedNotifications();
+            allNotifs.push(errorNotif);
+            saveAllNotifications(allNotifs);
+            displayNotifications(allNotifs);
+            setTimeout(() => {
+                markAsSeen(errorNotif.id);
+            }, 10000);
+        } else if (!silent) {
             showStatus(`Failed to load ${platform} notifications: ${error.message}`, 'error');
         }
     }
