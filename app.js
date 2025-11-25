@@ -919,6 +919,11 @@ function saveAllNotifications(notifications) {
 // Clear notification cache
 function clearNotificationsCache() {
     localStorage.removeItem('allNotifications');
+    // Also clear last seen IDs so we refetch all notifications on next load
+    localStorage.removeItem('mastodonLastNotificationId');
+    localStorage.removeItem('twitterLastMentionId');
+    localStorage.removeItem('blueskyLastNotificationId');
+    
     const notificationsList = document.getElementById('notificationsList');
     const noNotifications = document.getElementById('noNotifications');
     notificationsList.innerHTML = '';
@@ -1011,19 +1016,21 @@ async function loadPlatformNotifications(platform, silent = true) {
         const cachedNotifications = getAllCachedNotifications();
         const cachedIds = new Set(cachedNotifications.map(n => n.id));
         
-        // Filter out duplicates
-        const uniqueNewNotifications = newNotifications.filter(n => !cachedIds.has(n.id));
+        // Filter out duplicates and mark as new
+        const uniqueNewNotifications = newNotifications
+            .filter(n => !cachedIds.has(n.id))
+            .map(n => ({ ...n, isNew: true }));
         
         if (uniqueNewNotifications.length > 0) {
             // Add to cache
             const updatedCache = [...cachedNotifications, ...uniqueNewNotifications];
             localStorage.setItem('allNotifications', JSON.stringify(updatedCache));
             
-            // Update UI if not silent
-            if (!silent) {
-                displayNotifications(updatedCache);
-            } else {
-                // Show notification for new items
+            // Always update UI when there are new notifications
+            displayNotifications(updatedCache);
+            
+            // Show OS notification for new items (only for auto-polling)
+            if (silent) {
                 if (window.electron && window.electron.showNotification) {
                     const count = uniqueNewNotifications.length;
                     const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
@@ -1274,7 +1281,7 @@ function displayNotifications(notifications) {
         const unseenBadge = notif.isNew ? '<span class="text-xs bg-primary-600 text-white px-2 py-0.5 rounded-full">New</span>' : '';
         
         return `
-            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 ${unseenClass}" onclick="markAsSeen('${notif.id}')">
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 ${unseenClass}">
                 <div class="flex justify-between items-start mb-2">
                     <div class="flex items-center gap-2">
                         ${platformIcons[notif.platform] || ''}
@@ -1283,14 +1290,17 @@ function displayNotifications(notifications) {
                         <span class="text-xs text-primary-600 dark:text-primary-400">${typeLabel}</span>
                         ${unseenBadge}
                     </div>
-                    <span class="text-xs text-gray-500 dark:text-gray-400">${timeString}</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-500 dark:text-gray-400">${timeString}</span>
+                        ${notif.isNew ? `<button onclick="markAsSeen('${notif.id}'); event.stopPropagation();" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm leading-none w-4 h-4 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Mark as read">×</button>` : ''}
+                    </div>
                 </div>
                 <div class="mb-2">
                     <span class="text-sm font-medium text-gray-800 dark:text-gray-200">${notif.author}</span>
                     ${notif.authorHandle ? `<span class="text-xs text-gray-500 dark:text-gray-400">@${notif.authorHandle}</span>` : ''}
                 </div>
                 ${notif.content ? `<p class="text-sm text-gray-700 dark:text-gray-300 mb-2">${notif.content.substring(0, 200)}${notif.content.length > 200 ? '...' : ''}</p>` : ''}
-                ${notif.url ? `<a href="${notif.url}" target="_blank" class="text-xs text-primary-600 dark:text-primary-400 hover:underline" onclick="event.stopPropagation()">View on ${notif.platform}</a>` : ''}
+                ${notif.url ? `<a href="${notif.url}" target="_blank" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">View on ${notif.platform}</a>` : ''}
             </div>
         `;
     }).join('');

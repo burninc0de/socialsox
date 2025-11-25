@@ -52,14 +52,23 @@
             width: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #2d3748;
+            background: #f3f4f6; /* Light mode */
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: #2d3748; /* Dark mode */
         }
         ::-webkit-scrollbar-thumb {
-            background: #374151;
+            background: #d1d5db; /* Light mode */
             border-radius: 4px;
         }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #374151; /* Dark mode */
+        }
         ::-webkit-scrollbar-thumb:hover {
-            background: #4b5563;
+            background: #9ca3af; /* Light mode hover */
+        }
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563; /* Dark mode hover */
         }
         
         /* Dark Mode Toggle */
@@ -234,7 +243,7 @@
                 </button>
             </div>
             
-            <div id="notificationsList" class="space-y-4 max-h-[500px] overflow-y-auto">
+            <div id="notificationsList" class="space-y-4 max-h-[500px] overflow-y-auto p-1">
                 <!-- Notifications will be inserted here -->
             </div>
             <div id="noNotifications" class="text-center text-gray-500 dark:text-gray-400 py-8">
