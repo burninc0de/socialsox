@@ -387,6 +387,24 @@ async function postToBluesky(message, handle, password, imageFile = null) {
         });
     }
     
+    // Hashtag detection: find #tags and add link facets
+    const hashtagRegex = /(^|\s)(#[A-Za-z0-9_]+)/g;
+    while ((match = hashtagRegex.exec(message)) !== null) {
+        const tag = match[2];
+        const start = match.index + (match[1] ? match[1].length : 0);
+        const end = start + tag.length;
+        facets.push({
+            index: {
+                byteStart: new TextEncoder().encode(message.slice(0, start)).length,
+                byteEnd: new TextEncoder().encode(message.slice(0, end)).length
+            },
+            features: [{
+                $type: 'app.bsky.richtext.facet#link',
+                uri: 'https://bsky.social/search?q=' + encodeURIComponent(tag)
+            }]
+        });
+    }
+
     // Create post with facets and optional image
     const record = {
         text: message,
