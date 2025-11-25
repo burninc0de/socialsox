@@ -1136,10 +1136,13 @@ function displayNotifications(notifications) {
     const notificationsList = document.getElementById('notificationsList');
     const noNotifications = document.getElementById('noNotifications');
     
-    if (notifications.length === 0) {
+    // Filter to show only new notifications (and errors)
+    const newNotifications = notifications.filter(n => n.isNew || n.error);
+    
+    if (newNotifications.length === 0) {
         notificationsList.innerHTML = '';
         noNotifications.style.display = 'block';
-        noNotifications.textContent = 'No notifications found!';
+        noNotifications.textContent = 'No new notifications!';
         return;
     }
     
@@ -1162,7 +1165,7 @@ function displayNotifications(notifications) {
         quote: 'Quoted you'
     };
     
-    notificationsList.innerHTML = notifications.map(notif => {
+    notificationsList.innerHTML = newNotifications.map(notif => {
         if (notif.error) {
             return `
                 <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border border-red-200 dark:border-red-800">
