@@ -4,6 +4,7 @@ const fs = require('fs').promises;
 
 let tray = null;
 let isQuiting = false;
+let trayEnabled = false; // Default to disabled
 
 const { TwitterApi } = require('twitter-api-v2');
 const sharp = require('sharp');
@@ -25,6 +26,25 @@ async function saveWindowBounds(bounds) {
     } catch (error) {
         console.error('Failed to save window bounds:', error);
     }
+}
+
+function createTray(win) {
+    if (tray) return; // Already exists
+    tray = new Tray(path.join(__dirname, 'tray.png'));
+    const contextMenu = Menu.buildFromTemplate([
+        { label: 'Show App', click: () => { win.show(); } },
+        { label: 'Quit', click: () => { isQuiting = true; app.quit(); } }
+    ]);
+    tray.setToolTip('SocialSox');
+    tray.setContextMenu(contextMenu);
+    tray.on('click', () => { 
+        try {
+            if (win.isMinimized && win.isMinimized()) win.restore();
+        } catch (e) { /* ignore */ }
+        if (!win.isVisible || !win.isVisible()) win.show();
+        try { win.focus(); } catch (e) { /* ignore */ }
+    });
+    tray.on('right-click', () => { tray.popUpContextMenu(contextMenu); });
 }
 
 async function createWindow() {
@@ -68,22 +88,8 @@ async function createWindow() {
         win.hide();
     });
 
-    if (!tray) {
-        tray = new Tray(path.join(__dirname, 'tray.png'));
-        const contextMenu = Menu.buildFromTemplate([
-            { label: 'Show App', click: () => { win.show(); } },
-            { label: 'Quit', click: () => { isQuiting = true; app.quit(); } }
-        ]);
-        tray.setToolTip('SocialSox');
-        tray.setContextMenu(contextMenu);
-        tray.on('click', () => { 
-            try {
-                if (win.isMinimized && win.isMinimized()) win.restore();
-            } catch (e) { /* ignore */ }
-            if (!win.isVisible || !win.isVisible()) win.show();
-            try { win.focus(); } catch (e) { /* ignore */ }
-        });
-        tray.on('right-click', () => { tray.popUpContextMenu(contextMenu); });
+    if (trayEnabled) {
+        createTray(win);
     }
 
     // Open DevTools in development or when DEBUG env var is set
@@ -91,6 +97,15 @@ async function createWindow() {
         win.webContents.openDevTools();
     }
 }
+
+// Handle tray enabled setting
+ipcMain.on('set-tray-enabled', (event, enabled) => {
+    trayEnabled = enabled;
+    const win = BrowserWindow.getAllWindows()[0];
+    if (enabled && !tray) {
+        createTray(win);
+    }
+});
 
 // Handle Twitter posting from renderer
 ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData }) => {

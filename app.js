@@ -28,6 +28,12 @@ window.addEventListener('DOMContentLoaded', () => {
         document.documentElement.classList.add('dark');
     }
     
+    // Load tray icon preference
+    const trayEnabledStored = localStorage.getItem('socialSoxTrayEnabled');
+    const trayEnabled = trayEnabledStored !== null ? trayEnabledStored === 'true' : false; // Default to false
+    document.getElementById('trayIconToggle').checked = trayEnabled;
+    window.electron.setTrayEnabled(trayEnabled);
+    
     // Display cached notifications from previous session
     const cachedNotifications = getAllCachedNotifications();
     if (cachedNotifications.length > 0) {
@@ -69,6 +75,13 @@ window.addEventListener('DOMContentLoaded', () => {
         } else {
             document.documentElement.classList.remove('dark');
         }
+    });
+    
+    // Tray icon toggle
+    document.getElementById('trayIconToggle').addEventListener('change', function() {
+        const isEnabled = this.checked;
+        localStorage.setItem('socialSoxTrayEnabled', isEnabled);
+        showToast('Restart the app for tray icon changes to take effect.', 'info');
     });
     
     // Platform toggles

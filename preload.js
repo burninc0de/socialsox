@@ -21,6 +21,7 @@ contextBridge.exposeInMainWorld(
         showOSNotification: (title, body, platform) => 
             ipcRenderer.invoke('show-os-notification', { title, body, platform }),
         onSwitchToNotificationsTab: (callback) => 
-            ipcRenderer.on('switch-to-notifications-tab', callback)
+            ipcRenderer.on('switch-to-notifications-tab', callback),
+        setTrayEnabled: (enabled) => ipcRenderer.send('set-tray-enabled', enabled)
     }
 );
