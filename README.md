@@ -79,8 +79,8 @@ This creates platform-specific packages in the `dist/` folder:
    - Click **"Set up"** or **"Edit"**
    - Enable **OAuth 1.0a**
    - Set **App permissions** to **"Read and Write"** (not just "Read")
-   - For **Callback URL**: Enter `http://127.0.0.1` (not actually used, but required by Twitter)
-   - For **Website URL**: Enter any valid URL like `https://github.com/yourusername/socialsox` or just `http://localhost:8000`
+   - For **Callback URL**: Enter your GitHub repository URL (e.g., `https://github.com/yourusername/socialsox`) or any valid URL - it's not actually used but required by Twitter
+   - For **Website URL**: Enter the same GitHub repository URL or any valid URL like `https://github.com/yourusername/socialsox`
    - Click **Save**
    
    > **Note**: We're using OAuth 1.0a with your own Access Tokens (not the 3-legged OAuth flow), so the callback URL won't actually be used. Twitter just requires these fields to be filled in.
