@@ -187,4 +187,4 @@ To run the built app with developer console:
 
 ## License
 
-Free to use and modify as needed!
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

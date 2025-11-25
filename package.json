@@ -15,8 +15,8 @@
     "social media",
     "cross-posting"
   ],
-  "author": "",
-  "license": "ISC",
+  "author": "André Klein (https://github.com/burninc0de/socialsox)",
+  "license": "MIT",
   "devDependencies": {
     "autoprefixer": "^10.4.22",
     "electron": "^39.2.3",
