@@ -115,6 +115,8 @@ Check the **History** tab to view your past posts and their status.
 - ⚠️ Anyone with access to your computer can potentially read localStorage
 - ⚠️ Use app-specific passwords where available (like Bluesky's app passwords)
 
+For security-related concerns, please see our [Security Policy](SECURITY.md).
+
 ## Limitations
 
 - No multiple image support (single image only)
@@ -188,3 +190,11 @@ To run the built app with developer console:
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contributing
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+## Code of Conduct
+
+This project adheres to a code of conduct. Please read [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for details.
