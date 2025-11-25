@@ -465,7 +465,7 @@ async function postToBluesky(message, handle, password, imageFile = null) {
             },
             features: [{
                 $type: 'app.bsky.richtext.facet#link',
-                uri: 'https://bsky.social/search?q=' + encodeURIComponent(tag)
+                uri: 'https://bsky.app/hashtag/' + encodeURIComponent(tag.replace(/^#/, ''))
             }]
         });
     }
