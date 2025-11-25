@@ -144,6 +144,61 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
     }
 });
 
+// Handle Twitter notifications fetch
+ipcMain.handle('fetch-twitter-notifications', async (event, { apiKey, apiSecret, accessToken, accessTokenSecret }) => {
+    try {
+        console.log('Twitter: Fetching notifications...');
+        
+        const client = new TwitterApi({
+            appKey: apiKey,
+            appSecret: apiSecret,
+            accessToken: accessToken,
+            accessSecret: accessTokenSecret,
+        });
+
+        // Get authenticated user ID
+        const me = await client.v2.me();
+        const userId = me.data.id;
+        
+        // Fetch mentions
+        const mentions = await client.v2.userMentionTimeline(userId, {
+            max_results: 20,
+            'tweet.fields': ['created_at', 'author_id'],
+            'user.fields': ['username', 'name'],
+            expansions: ['author_id']
+        });
+        
+        const notifications = [];
+        
+        for await (const tweet of mentions) {
+            const author = mentions.includes?.users?.find(u => u.id === tweet.author_id);
+            notifications.push({
+                id: tweet.id,
+                type: 'mention',
+                timestamp: tweet.created_at,
+                author: author?.name || 'Unknown',
+                authorHandle: author?.username || '',
+                content: tweet.text,
+                url: `https://twitter.com/${author?.username}/status/${tweet.id}`
+            });
+        }
+        
+        console.log('Twitter: Found', notifications.length, 'notifications');
+        return { success: true, data: notifications };
+    } catch (error) {
+        console.error('Twitter Notifications Error:', error);
+        
+        let errorMessage = error.message;
+        if (error.data && error.data.detail) {
+            errorMessage = error.data.detail;
+        } else if (error.data && error.data.title) {
+            errorMessage = error.data.title;
+        }
+        
+        return { success: false, error: errorMessage, code: error.code, details: error.data };
+    }
+});
+
 // Handle credential export
 ipcMain.handle('export-credentials', async (event, credentials) => {
     try {

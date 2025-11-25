@@ -801,3 +801,254 @@ function displayHistory(history) {
         `;
     }).join('');
 }
+
+// Notification functionality
+async function loadNotifications() {
+    const btn = document.getElementById('loadNotificationsBtn');
+    const notificationsList = document.getElementById('notificationsList');
+    const noNotifications = document.getElementById('noNotifications');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Loading...';
+    lucide.createIcons();
+    
+    notificationsList.innerHTML = '';
+    noNotifications.style.display = 'none';
+    
+    const allNotifications = [];
+    
+    try {
+        // Load Mastodon notifications (check credentials, not platform toggle)
+        const mastodonInstance = document.getElementById('mastodon-instance').value;
+        const mastodonToken = document.getElementById('mastodon-token').value;
+        
+        if (mastodonInstance && mastodonToken) {
+            try {
+                const mastodonNotifs = await fetchMastodonNotifications(mastodonInstance, mastodonToken);
+                allNotifications.push(...mastodonNotifs.map(n => ({ ...n, platform: 'mastodon' })));
+            } catch (error) {
+                console.error('Mastodon notifications error:', error);
+                allNotifications.push({
+                    platform: 'mastodon',
+                    error: true,
+                    message: 'Failed to load Mastodon notifications: ' + error.message
+                });
+            }
+        }
+        
+        // Load Twitter notifications (check credentials, not platform toggle)
+        const twitterKey = document.getElementById('twitter-key').value;
+        const twitterSecret = document.getElementById('twitter-secret').value;
+        const twitterToken = document.getElementById('twitter-token').value;
+        const twitterTokenSecret = document.getElementById('twitter-token-secret').value;
+        
+        if (twitterKey && twitterSecret && twitterToken && twitterTokenSecret) {
+            try {
+                const twitterNotifs = await fetchTwitterNotifications(twitterKey, twitterSecret, twitterToken, twitterTokenSecret);
+                allNotifications.push(...twitterNotifs.map(n => ({ ...n, platform: 'twitter' })));
+            } catch (error) {
+                console.error('Twitter notifications error:', error);
+                allNotifications.push({
+                    platform: 'twitter',
+                    error: true,
+                    message: 'Failed to load Twitter notifications: ' + error.message
+                });
+            }
+        }
+        
+        // Load Bluesky notifications (check credentials, not platform toggle)
+        const blueskyHandle = document.getElementById('bluesky-handle').value;
+        const blueskyPassword = document.getElementById('bluesky-password').value;
+        
+        if (blueskyHandle && blueskyPassword) {
+            try {
+                const blueskyNotifs = await fetchBlueskyNotifications(blueskyHandle, blueskyPassword);
+                allNotifications.push(...blueskyNotifs.map(n => ({ ...n, platform: 'bluesky' })));
+            } catch (error) {
+                console.error('Bluesky notifications error:', error);
+                allNotifications.push({
+                    platform: 'bluesky',
+                    error: true,
+                    message: 'Failed to load Bluesky notifications: ' + error.message
+                });
+            }
+        }
+        
+        // Sort by timestamp (most recent first)
+        allNotifications.sort((a, b) => {
+            const timeA = new Date(a.timestamp || 0);
+            const timeB = new Date(b.timestamp || 0);
+            return timeB - timeA;
+        });
+        
+        displayNotifications(allNotifications);
+        
+    } catch (error) {
+        console.error('Error loading notifications:', error);
+        notificationsList.innerHTML = `<div class="text-red-500 dark:text-red-400 text-center py-4">Error: ${error.message}</div>`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i> Load Notifications';
+        lucide.createIcons();
+    }
+}
+
+async function fetchMastodonNotifications(instance, token) {
+    let cleanInstance = instance.trim();
+    if (cleanInstance.endsWith('/')) {
+        cleanInstance = cleanInstance.slice(0, -1);
+    }
+    const url = new URL(cleanInstance);
+    cleanInstance = `${url.protocol}//${url.host}`;
+    
+    const response = await fetch(`${cleanInstance}/api/v1/notifications?limit=20`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+    
+    if (!response.ok) {
+        if (response.status === 403) {
+            throw new Error('Access denied. Check your Mastodon access token is valid and has read:notifications scope.');
+        }
+        throw new Error(`${response.status} ${response.statusText}`);
+    }
+    
+    const notifications = await response.json();
+    return notifications.map(n => ({
+        id: n.id,
+        type: n.type,
+        timestamp: n.created_at,
+        author: n.account?.display_name || n.account?.username || 'Unknown',
+        authorHandle: n.account?.acct || '',
+        content: n.status?.content?.replace(/<[^>]*>/g, '') || '',
+        url: n.status?.url || n.account?.url
+    }));
+}
+
+async function fetchTwitterNotifications(apiKey, apiSecret, accessToken, accessTokenSecret) {
+    if (typeof window.electron === 'undefined' || !window.electron.fetchTwitterNotifications) {
+        console.log('window.electron:', window.electron);
+        throw new Error('Twitter notifications require Electron app. Restart with: npm start');
+    }
+    
+    const result = await window.electron.fetchTwitterNotifications(apiKey, apiSecret, accessToken, accessTokenSecret);
+    
+    if (!result.success) {
+        throw new Error(result.error);
+    }
+    return result.data;
+}
+
+async function fetchBlueskyNotifications(handle, password) {
+    // Create session
+    const sessionResponse = await fetch('https://bsky.social/xrpc/com.atproto.server.createSession', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            identifier: handle,
+            password: password
+        })
+    });
+    
+    if (!sessionResponse.ok) {
+        throw new Error('Auth failed');
+    }
+    
+    const session = await sessionResponse.json();
+    
+    const response = await fetch('https://bsky.social/xrpc/app.bsky.notification.listNotifications?limit=25', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${session.accessJwt}`
+        }
+    });
+    
+    if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.notifications.map(n => ({
+        id: n.uri,
+        type: n.reason,
+        timestamp: n.indexedAt,
+        author: n.author?.displayName || n.author?.handle || 'Unknown',
+        authorHandle: n.author?.handle || '',
+        content: n.record?.text || '',
+        isRead: n.isRead
+    }));
+}
+
+function displayNotifications(notifications) {
+    const notificationsList = document.getElementById('notificationsList');
+    const noNotifications = document.getElementById('noNotifications');
+    
+    if (notifications.length === 0) {
+        notificationsList.innerHTML = '';
+        noNotifications.style.display = 'block';
+        noNotifications.textContent = 'No notifications found!';
+        return;
+    }
+    
+    noNotifications.style.display = 'none';
+    
+    const platformIcons = {
+        mastodon: '<img src="assets/masto.svg" alt="M" class="w-4 h-4 inline-block brightness-0 invert">',
+        twitter: '<img src="assets/twit.svg" alt="X" class="w-4 h-4 inline-block brightness-0 invert">',
+        bluesky: '<img src="assets/bsky.svg" alt="B" class="w-4 h-4 inline-block brightness-0 invert">'
+    };
+    
+    const typeLabels = {
+        mention: 'Mentioned you',
+        reply: 'Replied to you',
+        reblog: 'Reposted',
+        favourite: 'Liked',
+        like: 'Liked',
+        repost: 'Reposted',
+        follow: 'Followed you',
+        quote: 'Quoted you'
+    };
+    
+    notificationsList.innerHTML = notifications.map(notif => {
+        if (notif.error) {
+            return `
+                <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border border-red-200 dark:border-red-800">
+                    <div class="flex items-center gap-2 mb-2">
+                        ${platformIcons[notif.platform] || ''}
+                        <span class="text-xs font-semibold text-red-700 dark:text-red-300">${notif.platform.toUpperCase()}</span>
+                    </div>
+                    <p class="text-sm text-red-800 dark:text-red-200">${notif.message}</p>
+                </div>
+            `;
+        }
+        
+        const date = new Date(notif.timestamp);
+        const timeString = date.toLocaleString();
+        const typeLabel = typeLabels[notif.type] || notif.type;
+        const readClass = notif.isRead === false ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : '';
+        
+        return `
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 ${readClass}">
+                <div class="flex justify-between items-start mb-2">
+                    <div class="flex items-center gap-2">
+                        ${platformIcons[notif.platform] || ''}
+                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">${notif.platform.toUpperCase()}</span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">•</span>
+                        <span class="text-xs text-primary-600 dark:text-primary-400">${typeLabel}</span>
+                    </div>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">${timeString}</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-sm font-medium text-gray-800 dark:text-gray-200">${notif.author}</span>
+                    ${notif.authorHandle ? `<span class="text-xs text-gray-500 dark:text-gray-400">@${notif.authorHandle}</span>` : ''}
+                </div>
+                ${notif.content ? `<p class="text-sm text-gray-700 dark:text-gray-300 mb-2">${notif.content.substring(0, 200)}${notif.content.length > 200 ? '...' : ''}</p>` : ''}
+                ${notif.url ? `<a href="${notif.url}" target="_blank" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">View on ${notif.platform}</a>` : ''}
+            </div>
+        `;
+    }).join('');
+}

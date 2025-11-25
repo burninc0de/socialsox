@@ -89,6 +89,10 @@
                     <i data-lucide="history" class="w-4 h-4"></i>
                     History
                 </button>
+                <button id="notificationsTab" class="tab-button px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 border-b-2 border-transparent bg-transparent cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center gap-2" data-tab="notifications">
+                    <i data-lucide="bell" class="w-4 h-4"></i>
+                    Notifications
+                </button>
             </div>
             <button id="settingsTab" class="tab-button px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 border-b-2 border-transparent bg-transparent cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center gap-2" data-tab="settings">
                 <i data-lucide="settings" class="w-4 h-4"></i>
@@ -150,6 +154,23 @@
             </div>
             <div id="noHistory" class="text-center text-gray-500 dark:text-gray-400 py-8">
                 No posts yet. Start posting to see your history here!
+            </div>
+        </div>
+        
+        <!-- Notifications Tab Content -->
+        <div id="notificationsContent" class="tab-content hidden">
+            <p class="text-gray-600 dark:text-gray-400 mb-8 text-sm">Check your social media notifications</p>
+            
+            <button id="loadNotificationsBtn" onclick="loadNotifications()" class="w-full py-3.5 px-4 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-lg text-base font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 mb-6">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                Load Notifications
+            </button>
+            
+            <div id="notificationsList" class="space-y-4 max-h-[500px] overflow-y-auto">
+                <!-- Notifications will be inserted here -->
+            </div>
+            <div id="noNotifications" class="text-center text-gray-500 dark:text-gray-400 py-8">
+                Click "Load Notifications" to check for replies, likes, and mentions across your platforms.
             </div>
         </div>
         
