@@ -195,7 +195,7 @@ For security-related concerns, please see our [Security Policy](SECURITY.md).
 ### Setup
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/burninc0de/socialsox-devel.git
 cd socialsox
 npm install
 ```
