@@ -159,12 +159,18 @@
         
         <!-- Notifications Tab Content -->
         <div id="notificationsContent" class="tab-content hidden">
-            <p class="text-gray-600 dark:text-gray-400 mb-8 text-sm">Check your social media notifications</p>
+            <p class="text-gray-600 dark:text-gray-400 mb-8 text-sm">Check your social media notifications (auto-checks every 15 minutes)</p>
             
-            <button id="loadNotificationsBtn" onclick="loadNotifications()" class="w-full py-3.5 px-4 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-lg text-base font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 mb-6">
-                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                Load Notifications
-            </button>
+            <div class="flex gap-2 mb-6">
+                <button id="loadNotificationsBtn" onclick="loadNotifications()" class="flex-1 py-3.5 px-4 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-lg text-base font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    Load Notifications
+                </button>
+                <button onclick="clearNotificationsCache()" class="py-3.5 px-4 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 border-0 rounded-lg text-base font-medium cursor-pointer transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    Clear Cache
+                </button>
+            </div>
             
             <div id="notificationsList" class="space-y-4 max-h-[500px] overflow-y-auto">
                 <!-- Notifications will be inserted here -->

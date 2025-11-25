@@ -13,6 +13,9 @@ window.addEventListener('DOMContentLoaded', () => {
     loadCredentials();
     loadHistory();
     
+    // Start automatic notification checking
+    startNotificationPolling();
+    
     // Initialize Lucide icons
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
@@ -809,7 +812,54 @@ let notificationsCache = {
     ttl: 60000 // Cache for 1 minute
 };
 
-async function loadNotifications() {
+let notificationCheckInterval = null;
+
+// Load seen notifications from localStorage
+function getSeenNotifications() {
+    const seen = localStorage.getItem('seenNotifications');
+    return seen ? JSON.parse(seen) : [];
+}
+
+// Save seen notifications to localStorage
+function saveSeenNotifications(notificationIds) {
+    localStorage.setItem('seenNotifications', JSON.stringify(notificationIds));
+}
+
+// Clear seen notifications cache
+function clearNotificationsCache() {
+    localStorage.removeItem('seenNotifications');
+    notificationsCache = {
+        data: [],
+        timestamp: 0,
+        ttl: 60000
+    };
+    showStatus('Notification cache cleared!', 'success');
+    loadNotifications();
+}
+
+// Start automatic notification checking
+function startNotificationPolling() {
+    // Clear any existing interval
+    if (notificationCheckInterval) {
+        clearInterval(notificationCheckInterval);
+    }
+    
+    // Check every 15 minutes (900000 ms)
+    notificationCheckInterval = setInterval(() => {
+        console.log('Auto-checking notifications...');
+        loadNotifications(true); // Pass true for silent mode
+    }, 900000);
+}
+
+// Stop automatic notification checking
+function stopNotificationPolling() {
+    if (notificationCheckInterval) {
+        clearInterval(notificationCheckInterval);
+        notificationCheckInterval = null;
+    }
+}
+
+async function loadNotifications(silent = false) {
     const btn = document.getElementById('loadNotificationsBtn');
     const notificationsList = document.getElementById('notificationsList');
     const noNotifications = document.getElementById('noNotifications');
@@ -818,13 +868,17 @@ async function loadNotifications() {
     const now = Date.now();
     if (notificationsCache.data.length > 0 && (now - notificationsCache.timestamp) < notificationsCache.ttl) {
         displayNotifications(notificationsCache.data);
-        showStatus('Loaded from cache (refreshes every minute)', 'info');
+        if (!silent) {
+            showStatus('Loaded from cache (refreshes every minute)', 'info');
+        }
         return;
     }
     
-    btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Loading...';
-    lucide.createIcons();
+    if (!silent) {
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Loading...';
+        lucide.createIcons();
+    }
     
     notificationsList.innerHTML = '';
     noNotifications.style.display = 'none';
@@ -895,19 +949,51 @@ async function loadNotifications() {
             return timeB - timeA;
         });
         
+        // Mark notifications as seen/unseen
+        const seenIds = getSeenNotifications();
+        allNotifications.forEach(notif => {
+            notif.isSeen = seenIds.includes(notif.id);
+        });
+        
         // Cache the results
         notificationsCache.data = allNotifications;
         notificationsCache.timestamp = Date.now();
         
         displayNotifications(allNotifications);
         
+        // Count unseen notifications
+        const unseenCount = allNotifications.filter(n => !n.isSeen && !n.error).length;
+        if (unseenCount > 0 && !silent) {
+            showStatus(`Found ${unseenCount} new notification${unseenCount > 1 ? 's' : ''}!`, 'success');
+        }
+        
     } catch (error) {
         console.error('Error loading notifications:', error);
         notificationsList.innerHTML = `<div class="text-red-500 dark:text-red-400 text-center py-4">Error: ${error.message}</div>`;
     } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i> Load Notifications';
-        lucide.createIcons();
+        if (!silent) {
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i> Load Notifications';
+            lucide.createIcons();
+        }
+    }
+}
+
+// Mark notification as seen
+function markAsSeen(notificationId) {
+    const seenIds = getSeenNotifications();
+    if (!seenIds.includes(notificationId)) {
+        seenIds.push(notificationId);
+        saveSeenNotifications(seenIds);
+        
+        // Update cache
+        if (notificationsCache.data.length > 0) {
+            const notif = notificationsCache.data.find(n => n.id === notificationId);
+            if (notif) {
+                notif.isSeen = true;
+                displayNotifications(notificationsCache.data);
+            }
+        }
     }
 }
 
@@ -1065,16 +1151,20 @@ function displayNotifications(notifications) {
         const date = new Date(notif.timestamp);
         const timeString = date.toLocaleString();
         const typeLabel = typeLabels[notif.type] || notif.type;
-        const readClass = notif.isRead === false ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : '';
+        
+        // Unseen notifications get a special highlight
+        const unseenClass = !notif.isSeen ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : '';
+        const unseenBadge = !notif.isSeen ? '<span class="text-xs bg-primary-600 text-white px-2 py-0.5 rounded-full">New</span>' : '';
         
         return `
-            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 ${readClass}">
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 ${unseenClass}" onclick="markAsSeen('${notif.id}')">
                 <div class="flex justify-between items-start mb-2">
                     <div class="flex items-center gap-2">
                         ${platformIcons[notif.platform] || ''}
                         <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">${notif.platform.toUpperCase()}</span>
                         <span class="text-xs text-gray-500 dark:text-gray-400">•</span>
                         <span class="text-xs text-primary-600 dark:text-primary-400">${typeLabel}</span>
+                        ${unseenBadge}
                     </div>
                     <span class="text-xs text-gray-500 dark:text-gray-400">${timeString}</span>
                 </div>
@@ -1083,7 +1173,7 @@ function displayNotifications(notifications) {
                     ${notif.authorHandle ? `<span class="text-xs text-gray-500 dark:text-gray-400">@${notif.authorHandle}</span>` : ''}
                 </div>
                 ${notif.content ? `<p class="text-sm text-gray-700 dark:text-gray-300 mb-2">${notif.content.substring(0, 200)}${notif.content.length > 200 ? '...' : ''}</p>` : ''}
-                ${notif.url ? `<a href="${notif.url}" target="_blank" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">View on ${notif.platform}</a>` : ''}
+                ${notif.url ? `<a href="${notif.url}" target="_blank" class="text-xs text-primary-600 dark:text-primary-400 hover:underline" onclick="event.stopPropagation()">View on ${notif.platform}</a>` : ''}
             </div>
         `;
     }).join('');
