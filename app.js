@@ -1243,9 +1243,9 @@ function displayNotifications(notifications) {
     noNotifications.style.display = 'none';
     
     const platformIcons = {
-        mastodon: '<img src="assets/masto.svg" alt="M" class="w-4 h-4 inline-block brightness-0 invert">',
-        twitter: '<img src="assets/twit.svg" alt="X" class="w-4 h-4 inline-block brightness-0 invert">',
-        bluesky: '<img src="assets/bsky.svg" alt="B" class="w-4 h-4 inline-block brightness-0 invert">'
+        mastodon: '<img src="assets/masto.svg" alt="M" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">',
+        twitter: '<img src="assets/twit.svg" alt="X" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">',
+        bluesky: '<img src="assets/bsky.svg" alt="B" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">'
     };
     
     const typeLabels = {
