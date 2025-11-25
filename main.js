@@ -92,8 +92,8 @@ async function createWindow() {
         createTray(win);
     }
 
-    // Open DevTools in development or when DEBUG env var is set
-    if (!app.isPackaged || process.env.DEBUG) {
+    // Open DevTools only when DEBUG env var is explicitly set
+    if (process.env.DEBUG) {
         win.webContents.openDevTools();
     }
 }
