@@ -1051,16 +1051,15 @@ async function loadPlatformNotifications(platform, silent = true) {
             // Always update UI when there are new notifications
             displayNotifications(updatedCache);
             
-            // Show OS notification for new items (only for auto-polling)
-            if (silent) {
-                if (window.electron && window.electron.showNotification) {
-                    const count = uniqueNewNotifications.length;
-                    const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
-                    window.electron.showNotification(
-                        `New ${platformName} notifications`,
-                        `You have ${count} new notification${count > 1 ? 's' : ''} on ${platformName}`
-                    );
-                }
+            // Show OS notification for new items
+            if (window.electron && window.electron.showOSNotification) {
+                const count = uniqueNewNotifications.length;
+                const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
+                window.electron.showOSNotification(
+                    `New ${platformName} notifications`,
+                    `You have ${count} new notification${count > 1 ? 's' : ''} on ${platformName}`,
+                    platform
+                );
             }
         }
         
@@ -1342,4 +1341,18 @@ function displayNotifications(notifications) {
             </div>
         `;
     }).join('');
+}
+
+// Test notification function
+function testNotification() {
+    if (window.electron && window.electron.showOSNotification) {
+        window.electron.showOSNotification(
+            'Test Notification',
+            'This is a test notification from SocialSox!',
+            'test'
+        );
+        showToast('Test notification sent!', 'success');
+    } else {
+        showToast('Notifications not supported', 'error');
+    }
 }
