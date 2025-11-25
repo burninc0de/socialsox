@@ -875,7 +875,9 @@ async function loadNotifications(silent = false) {
     const now = Date.now();
     if (notificationsCache.data.length > 0 && (now - notificationsCache.timestamp) < notificationsCache.ttl) {
         displayNotifications(notificationsCache.data);
-        if (!silent) {
+        // Only show status message if we're on the notifications tab
+        if (!silent && document.getElementById('notificationsContent').classList.contains('tab-content') && 
+            !document.getElementById('notificationsContent').classList.contains('hidden')) {
             showStatus('Loaded from cache (refreshes every minute)', 'info');
         }
         return;
@@ -970,7 +972,8 @@ async function loadNotifications(silent = false) {
         
         // Count unseen notifications
         const unseenCount = allNotifications.filter(n => !n.isSeen && !n.error).length;
-        if (unseenCount > 0 && !silent) {
+        if (unseenCount > 0 && !silent && document.getElementById('notificationsContent') && 
+            !document.getElementById('notificationsContent').classList.contains('hidden')) {
             showStatus(`Found ${unseenCount} new notification${unseenCount > 1 ? 's' : ''}!`, 'success');
         }
         
