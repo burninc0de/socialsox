@@ -10,6 +10,11 @@ let trayIconPath = app.isPackaged
     ? path.join(process.resourcesPath, 'tray.png')
     : path.join(__dirname, 'tray.png');
 
+// Handle both development and production paths for app icon
+let appIconPath = app.isPackaged 
+    ? path.join(process.resourcesPath, 'appicon.png')
+    : path.join(__dirname, 'appicon.png');
+
 const { TwitterApi } = require('twitter-api-v2');
 const sharp = require('sharp');
 
@@ -429,7 +434,7 @@ ipcMain.handle('show-os-notification', (event, { title, body, platform }) => {
             const notification = new Notification({
                 title: title,
                 body: body,
-                icon: trayIconPath,
+                icon: appIconPath,
                 silent: false
             });
             
