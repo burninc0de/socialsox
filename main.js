@@ -38,11 +38,12 @@ function createTray(win) {
     tray.setToolTip('SocialSox');
     tray.setContextMenu(contextMenu);
     tray.on('click', () => { 
-        try {
-            if (win.isMinimized && win.isMinimized()) win.restore();
-        } catch (e) { /* ignore */ }
-        if (!win.isVisible || !win.isVisible()) win.show();
-        try { win.focus(); } catch (e) { /* ignore */ }
+        if (win.isVisible()) {
+            win.hide();
+        } else {
+            win.show();
+            win.focus();
+        }
     });
     tray.on('right-click', () => { tray.popUpContextMenu(contextMenu); });
 }
