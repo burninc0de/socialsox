@@ -86,8 +86,10 @@ async function createWindow() {
 
     // Minimize to tray: hide window instead of minimizing, and create tray
     win.on('minimize', (event) => {
-        event.preventDefault();
-        win.hide();
+        if (trayEnabled) {
+            event.preventDefault();
+            win.hide();
+        }
     });
 
     if (trayEnabled) {
@@ -106,6 +108,9 @@ ipcMain.on('set-tray-enabled', (event, enabled) => {
     const win = BrowserWindow.getAllWindows()[0];
     if (enabled && !tray) {
         createTray(win);
+    } else if (!enabled && tray) {
+        tray.destroy();
+        tray = null;
     }
 });
 
@@ -258,7 +263,13 @@ ipcMain.handle('export-credentials', async (event, credentials) => {
 // Handle window controls
 ipcMain.on('minimize-window', () => {
     const win = BrowserWindow.getFocusedWindow();
-    if (win) win.hide();
+    if (win) {
+        if (trayEnabled) {
+            win.hide();
+        } else {
+            win.minimize();
+        }
+    }
 });
 
 ipcMain.on('maximize-window', () => {
