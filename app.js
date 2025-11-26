@@ -1232,6 +1232,28 @@ function markAsSeen(notificationId) {
     }
 }
 
+// Mark all notifications as read
+function markAllAsRead() {
+    const allNotifs = getAllCachedNotifications();
+    let hasChanges = false;
+    
+    allNotifs.forEach(notif => {
+        if (!notif.dismissed || notif.isNew) {
+            notif.dismissed = true;
+            notif.isNew = false;
+            hasChanges = true;
+        }
+    });
+    
+    if (hasChanges) {
+        saveAllNotifications(allNotifs);
+        displayNotifications(allNotifs);
+        showToast('All notifications marked as read', 'success');
+    } else {
+        showToast('No unread notifications to mark', 'info');
+    }
+}
+
 async function fetchMastodonNotifications(instance, token, sinceId = null) {
     let cleanInstance = instance.trim();
     if (cleanInstance.endsWith('/')) {
