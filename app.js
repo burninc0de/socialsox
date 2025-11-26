@@ -1272,9 +1272,9 @@ async function fetchBlueskyNotifications(handle, password) {
         if (n.uri) {
             const uriParts = n.uri.split('/');
             const postId = uriParts[uriParts.length - 1];
-            const authorHandle = n.author?.handle;
-            if (authorHandle && postId) {
-                url = `https://bsky.app/profile/${authorHandle}/post/${postId}`;
+            const authorDid = n.author?.did;
+            if (authorDid && postId) {
+                url = `https://bsky.app/profile/${authorDid}/post/${postId}`;
             }
         }
         
