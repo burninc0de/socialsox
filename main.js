@@ -32,7 +32,7 @@ function createTray(win) {
     if (tray) return; // Already exists
     tray = new Tray(path.join(__dirname, 'tray.png'));
     const contextMenu = Menu.buildFromTemplate([
-        { label: 'Show App', click: () => { win.show(); } },
+        { label: 'Show App', click: () => { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } },
         { label: 'Quit', click: () => { isQuiting = true; app.quit(); } }
     ]);
     tray.setToolTip('SocialSox');
@@ -41,6 +41,7 @@ function createTray(win) {
         if (win.isVisible()) {
             win.hide();
         } else {
+            if (win.isMinimized()) win.restore();
             win.show();
             win.focus();
         }
@@ -257,7 +258,7 @@ ipcMain.handle('export-credentials', async (event, credentials) => {
 // Handle window controls
 ipcMain.on('minimize-window', () => {
     const win = BrowserWindow.getFocusedWindow();
-    if (win) win.minimize();
+    if (win) win.hide();
 });
 
 ipcMain.on('maximize-window', () => {
