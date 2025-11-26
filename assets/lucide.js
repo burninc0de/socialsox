@@ -1,0 +1,1 @@
+Redirecting to /lucide@0.554.0/dist/umd/lucide.js

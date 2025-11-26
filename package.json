@@ -1,0 +1,69 @@
+{
+  "name": "socialsox",
+  "version": "0.1.0",
+  "description": "A simple, local-only web application for posting short messages to Mastodon, Twitter, and Bluesky simultaneously.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "npx vite",
+    "start": "electron .",
+    "build": "electron-builder --publish=never"
+  },
+  "keywords": [
+    "mastodon",
+    "twitter",
+    "bluesky",
+    "social media",
+    "cross-posting"
+  ],
+  "author": "André Klein (https://github.com/burninc0de/socialsox)",
+  "license": "MIT",
+  "devDependencies": {
+    "autoprefixer": "^10.4.22",
+    "electron": "^39.2.3",
+    "electron-builder": "^26.0.12",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.17",
+    "vite": "^7.2.4",
+    "vite-plugin-electron": "^0.29.0",
+    "vite-plugin-electron-renderer": "^0.14.6"
+  },
+  "dependencies": {
+    "copilot": "^0.0.2",
+    "lucide": "^0.554.0",
+    "sharp": "^0.34.5",
+    "twitter-api-v2": "^1.28.0"
+  },
+  "build": {
+    "appId": "com.socialsox.app",
+    "productName": "SocialSox",
+    "icon": "tray.png",
+    "asarUnpack": [
+      "**/node_modules/sharp/**",
+      "**/node_modules/@img/**"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!dist/**/*",
+      "!dist-vite/**/*",
+      "!dist-electron/**/*",
+      "!build/**/*",
+      "!*.md",
+      "!package-lock.json",
+      "!vite.config.js",
+      "!electron-mock.js"
+    ],
+    "mac": {
+      "category": "public.app-category.social-networking",
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}
