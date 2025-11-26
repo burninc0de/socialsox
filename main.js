@@ -292,7 +292,7 @@ ipcMain.handle('fetch-og-preview', async (event, urlToFetch) => {
     try {
         const fetchText = (u) => new Promise((resolve, reject) => {
             const lib = u.startsWith('https') ? https : http;
-            lib.get(u, { headers: { 'User-Agent': 'SocialSox/1.0' } }, (res) => {
+            lib.get(u, { headers: { 'User-Agent': 'SocialSox/0.1' } }, (res) => {
                 let data = '';
                 res.setEncoding('utf8');
                 res.on('data', chunk => data += chunk);
@@ -318,7 +318,7 @@ ipcMain.handle('fetch-og-preview', async (event, urlToFetch) => {
 
         const fetchBinary = (u) => new Promise((resolve, reject) => {
             const lib = u.startsWith('https') ? https : http;
-            lib.get(u, { headers: { 'User-Agent': 'SocialSox/1.0' } }, (res) => {
+            lib.get(u, { headers: { 'User-Agent': 'SocialSox/0.1' } }, (res) => {
                 const chunks = [];
                 res.on('data', c => chunks.push(c));
                 res.on('end', () => {
