@@ -39,7 +39,8 @@
     "icon": "appicon.png",
     "asarUnpack": [
       "**/node_modules/sharp/**",
-      "**/node_modules/@img/**"
+      "**/node_modules/@img/**",
+      "**/node_modules/@emnapi/**"
     ],
     "directories": {
       "output": "dist"
