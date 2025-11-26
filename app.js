@@ -951,6 +951,14 @@ function saveHistory(history) {
     localStorage.setItem('postingHistory', JSON.stringify(history));
 }
 
+function clearHistory() {
+    if (confirm('Are you sure you want to clear all posting history? This action cannot be undone.')) {
+        localStorage.removeItem('postingHistory');
+        displayHistory([]);
+        showToast('Posting history cleared', 'success');
+    }
+}
+
 function addHistoryEntry(message, selectedPlatforms, results) {
     const history = JSON.parse(localStorage.getItem('postingHistory') || '[]');
     const entry = {
