@@ -2,15 +2,6 @@
 
 Thank you for your interest in contributing to SocialSox! This document provides guidelines and information for contributors.
 
-## Code of Conduct
-
-This project follows a code of conduct to ensure a welcoming environment for all contributors. By participating, you agree to:
-
-- Be respectful and inclusive
-- Focus on constructive feedback
-- Accept responsibility for mistakes
-- Show empathy towards other contributors
-
 ## How to Contribute
 
 ### Reporting Bugs
