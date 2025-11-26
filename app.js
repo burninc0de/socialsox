@@ -1275,8 +1275,19 @@ async function fetchBlueskyNotifications(handle, password) {
             if (authorDid) {
                 url = `https://bsky.app/profile/${authorDid}`;
             }
+        } else if (n.reason === 'like' || n.reason === 'repost') {
+            // For likes and reposts, link to the subject post
+            const subjectUri = n.record?.subject?.uri;
+            if (subjectUri) {
+                const uriParts = subjectUri.split('/');
+                const subjectDid = uriParts[2]; // at://did/app.bsky.feed.post/postId
+                const postId = uriParts[uriParts.length - 1];
+                if (subjectDid && postId) {
+                    url = `https://bsky.app/profile/${subjectDid}/post/${postId}`;
+                }
+            }
         } else if (n.uri) {
-            // For other notifications (like, repost, mention, etc.), link to the post
+            // For mentions, replies, quotes, etc., link to the post
             const uriParts = n.uri.split('/');
             const postId = uriParts[uriParts.length - 1];
             if (authorDid && postId) {
