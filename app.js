@@ -1267,14 +1267,31 @@ async function fetchBlueskyNotifications(handle, password) {
     
     const data = await response.json();
     return data.notifications.map(n => {
-        // Extract post ID from URI (format: at://did:plc:xxx/app.bsky.feed.post/xxxxx)
         let url = null;
-        if (n.uri) {
+        const authorDid = n.author?.did;
+        
+        if (n.reason === 'follow') {
+            // For follows, link to the author's profile
+            if (authorDid) {
+                url = `https://bsky.app/profile/${authorDid}`;
+            }
+        } else if (n.reason === 'like' || n.reason === 'repost') {
+            // For likes and reposts, link to the subject post
+            const subjectUri = n.record?.subject?.uri;
+            if (subjectUri) {
+                const uriParts = subjectUri.split('/');
+                const subjectDid = uriParts[2]; // at://did/app.bsky.feed.post/postId
+                const postId = uriParts[uriParts.length - 1];
+                if (subjectDid && postId) {
+                    url = `https://bsky.app/profile/${subjectDid}/post/${postId}`;
+                }
+            }
+        } else if (n.uri) {
+            // For mentions, replies, quotes, etc., link to the post
             const uriParts = n.uri.split('/');
             const postId = uriParts[uriParts.length - 1];
-            const authorHandle = n.author?.handle;
-            if (authorHandle && postId) {
-                url = `https://bsky.app/profile/${authorHandle}/post/${postId}`;
+            if (authorDid && postId) {
+                url = `https://bsky.app/profile/${authorDid}/post/${postId}`;
             }
         }
         
