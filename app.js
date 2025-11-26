@@ -1183,15 +1183,29 @@ async function fetchMastodonNotifications(instance, token, sinceId = null) {
     }
     
     const notifications = await response.json();
-    return notifications.map(n => ({
-        id: n.id,
-        type: n.type,
-        timestamp: n.created_at,
-        author: n.account?.display_name || n.account?.username || 'Unknown',
-        authorHandle: n.account?.acct || '',
-        content: n.status?.content?.replace(/<[^>]*>/g, '') || '',
-        url: n.status?.url || n.account?.url
-    }));
+    return notifications.map(n => {
+        // Always construct URL using user's instance for federation
+        let url = '';
+        if (n.account?.acct && cleanInstance) {
+            url = `${cleanInstance}/@${n.account.acct}`;
+            if (n.status?.id) {
+                url += `/${n.status.id}`;
+            }
+        } else {
+            // Fallback to original URLs
+            url = n.status?.url || n.account?.url || '';
+        }
+        
+        return {
+            id: n.id,
+            type: n.type,
+            timestamp: n.created_at,
+            author: n.account?.display_name || n.account?.username || 'Unknown',
+            authorHandle: n.account?.acct || '',
+            content: n.status?.content?.replace(/<[^>]*>/g, '') || '',
+            url: url
+        };
+    });
 }
 
 async function fetchTwitterNotifications(apiKey, apiSecret, accessToken, accessTokenSecret) {
