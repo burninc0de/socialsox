@@ -5,6 +5,7 @@ const fs = require('fs').promises;
 let tray = null;
 let isQuiting = false;
 let trayEnabled = false; // Default to disabled
+let trayIconPath = path.join(__dirname, 'tray.png');
 
 const { TwitterApi } = require('twitter-api-v2');
 const sharp = require('sharp');
@@ -30,7 +31,7 @@ async function saveWindowBounds(bounds) {
 
 function createTray(win) {
     if (tray) return; // Already exists
-    tray = new Tray(path.join(__dirname, 'tray.png'));
+    tray = new Tray(trayIconPath);
     const contextMenu = Menu.buildFromTemplate([
         { label: 'Show App', click: () => { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } },
         { label: 'Quit', click: () => { isQuiting = true; app.quit(); } }
@@ -112,6 +113,23 @@ ipcMain.on('set-tray-enabled', (event, enabled) => {
         tray.destroy();
         tray = null;
     }
+});
+
+// Handle tray icon setting
+ipcMain.on('set-tray-icon', (event, iconPath) => {
+    trayIconPath = path.resolve(iconPath);
+    if (tray) {
+        tray.setImage(trayIconPath);
+    }
+});
+
+// Handle file dialog for tray icon
+ipcMain.handle('open-file-dialog', async () => {
+    const result = await dialog.showOpenDialog({
+        properties: ['openFile'],
+        filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'ico', 'svg'] }]
+    });
+    return result.filePaths[0] || null;
 });
 
 // Handle opening external links

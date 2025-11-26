@@ -34,6 +34,13 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('trayIconToggle').checked = trayEnabled;
     window.electron.setTrayEnabled(trayEnabled);
     
+    // Load tray icon path preference
+    const trayIconPathStored = localStorage.getItem('socialSoxTrayIconPath') || 'tray.png';
+    if (trayIconPathStored !== 'tray.png') {
+        document.getElementById('trayIconPath').value = trayIconPathStored;
+    }
+    window.electron.setTrayIcon(trayIconPathStored);
+    
     // Load external links preference
     const externalLinksStored = localStorage.getItem('socialSoxExternalLinks');
     const externalLinks = externalLinksStored !== null ? externalLinksStored === 'true' : false; // Default to false
@@ -89,6 +96,9 @@ window.addEventListener('DOMContentLoaded', () => {
         window.electron.setTrayEnabled(isEnabled);
     });
     
+    // Tray icon path
+    // Removed change listener, now using button
+    
     // External links toggle
     document.getElementById('externalLinksToggle').addEventListener('change', function() {
         const isEnabled = this.checked;
@@ -143,6 +153,17 @@ window.addEventListener('DOMContentLoaded', () => {
     
     // Image upload handlers
     setupImageUpload();
+    
+    // Tray icon chooser
+    window.chooseTrayIcon = function() {
+        window.electron.openFileDialog().then(path => {
+            if (path) {
+                document.getElementById('trayIconPath').value = path;
+                localStorage.setItem('socialSoxTrayIconPath', path);
+                window.electron.setTrayIcon(path);
+            }
+        });
+    };
 });
 
 function toggleCollapsible() {
