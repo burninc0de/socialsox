@@ -470,6 +470,8 @@ app.whenReady().then(() => {
     });
 });
 
+ipcMain.handle('get-version', () => app.getVersion());
+
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit();

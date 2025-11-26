@@ -20,6 +20,11 @@ window.addEventListener('DOMContentLoaded', () => {
     loadCredentials();
     loadHistory();
     
+    // Load version
+    window.electron.getVersion().then(version => {
+        document.getElementById('version').textContent = `v${version}`;
+    });
+    
     // Load dark mode preference
     const darkModeStored = localStorage.getItem('socialSoxDarkMode');
     const darkMode = darkModeStored !== null ? darkModeStored === 'true' : true; // Default to true if not set
