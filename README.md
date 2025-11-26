@@ -88,7 +88,7 @@ This creates platform-specific packages in the `dist/` folder:
 1. Log in to your Mastodon instance (e.g., mastodon.social)
 2. Go to Settings → Development → New Application
 3. Give it a name (e.g., "SocialSox")
-4. Select permissions: `write:statuses`
+4. Select permissions: `read:notifications`, `write:media`, `write:statuses`
 5. Click "Submit"
 6. Copy your **instance URL** (just the domain like `https://mastodon.social`, NOT your profile URL)
 7. Copy your **access token** from the application page
