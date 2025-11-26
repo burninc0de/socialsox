@@ -5,6 +5,15 @@ const fs = require('fs').promises;
 let tray = null;
 let isQuiting = false;
 let trayEnabled = false; // Default to disabled
+// Handle both development and production paths for tray icon
+let trayIconPath = app.isPackaged 
+    ? path.join(process.resourcesPath, 'tray.png')
+    : path.join(__dirname, 'tray.png');
+
+// Handle both development and production paths for app icon
+let appIconPath = app.isPackaged 
+    ? path.join(process.resourcesPath, 'appicon.png')
+    : path.join(__dirname, 'appicon.png');
 
 const { TwitterApi } = require('twitter-api-v2');
 const sharp = require('sharp');
@@ -30,7 +39,7 @@ async function saveWindowBounds(bounds) {
 
 function createTray(win) {
     if (tray) return; // Already exists
-    tray = new Tray(path.join(__dirname, 'tray.png'));
+    tray = new Tray(trayIconPath);
     const contextMenu = Menu.buildFromTemplate([
         { label: 'Show App', click: () => { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } },
         { label: 'Quit', click: () => { isQuiting = true; app.quit(); } }
@@ -59,7 +68,7 @@ async function createWindow() {
             enableRemoteModule: false,
             preload: path.join(__dirname, 'preload.js')
         },
-        icon: path.join(__dirname, 'tray.png'),
+        icon: trayIconPath,
         title: 'SocialSox',
         autoHideMenuBar: true,
         frame: false,
@@ -111,6 +120,53 @@ ipcMain.on('set-tray-enabled', (event, enabled) => {
     } else if (!enabled && tray) {
         tray.destroy();
         tray = null;
+    }
+});
+
+// Handle tray icon setting
+ipcMain.on('set-tray-icon', (event, iconPath) => {
+    // If it's the default tray.png, use the correct path for packaged/dev mode
+    if (iconPath === 'tray.png') {
+        trayIconPath = app.isPackaged 
+            ? path.join(process.resourcesPath, 'tray.png')
+            : path.join(__dirname, 'tray.png');
+    } else {
+        trayIconPath = path.resolve(iconPath);
+    }
+    if (tray) {
+        tray.setImage(trayIconPath);
+    }
+});
+
+// Handle getting the default tray icon path
+ipcMain.handle('get-default-tray-icon-path', () => {
+    return app.isPackaged 
+        ? path.join(process.resourcesPath, 'tray.png')
+        : path.join(__dirname, 'tray.png');
+});
+
+// Handle file dialog for tray icon
+ipcMain.handle('open-file-dialog', async () => {
+    const result = await dialog.showOpenDialog({
+        properties: ['openFile'],
+        filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'ico', 'svg'] }]
+    });
+    return result.filePaths[0] || null;
+});
+
+// Handle reading file as data URL for preview
+ipcMain.handle('read-file-as-data-url', async (event, filePath) => {
+    try {
+        const buffer = await fs.readFile(filePath);
+        const ext = path.extname(filePath).toLowerCase();
+        let mime = 'image/png';
+        if (ext === '.jpg' || ext === '.jpeg') mime = 'image/jpeg';
+        else if (ext === '.ico') mime = 'image/x-icon';
+        else if (ext === '.svg') mime = 'image/svg+xml';
+        return `data:${mime};base64,${buffer.toString('base64')}`;
+    } catch (error) {
+        console.error('Error reading file:', error);
+        return null;
     }
 });
 
@@ -378,7 +434,7 @@ ipcMain.handle('show-os-notification', (event, { title, body, platform }) => {
             const notification = new Notification({
                 title: title,
                 body: body,
-                icon: path.join(__dirname, 'tray.png'),
+                icon: appIconPath,
                 silent: false
             });
             

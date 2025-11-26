@@ -82,12 +82,18 @@
         /* Dark Mode Toggle */
         #darkModeToggle:checked + div,
         #trayIconToggle:checked + div,
-        #externalLinksToggle:checked + div {
+        #externalLinksToggle:checked + div,
+        #excludeMastodonNotifications:checked + div,
+        #excludeTwitterNotifications:checked + div,
+        #excludeBlueskyNotifications:checked + div {
             background-color: #4f46e5;
         }
         #darkModeToggle:checked + div + .dot,
         #trayIconToggle:checked + div + .dot,
-        #externalLinksToggle:checked + div + .dot {
+        #externalLinksToggle:checked + div + .dot,
+        #excludeMastodonNotifications:checked + div + .dot,
+        #excludeTwitterNotifications:checked + div + .dot,
+        #excludeBlueskyNotifications:checked + div + .dot {
             transform: translateX(20px);
         }
         
@@ -155,7 +161,7 @@
     <!-- Title Bar -->
     <div class="title-bar fixed top-0 left-0 right-0 h-10 bg-white dark:bg-gray-800 flex items-center justify-between px-5 z-50">
         <h1 class="text-base text-gray-800 dark:text-gray-200 m-0 flex items-center gap-2">
-            <img src="tray.png" alt="SocialSox" class="w-5 h-5">
+            <img src="appicon.png" alt="SocialSox" class="w-5 h-5">
             SocialSox
         </h1>
         <div class="window-controls flex gap-2.5">
@@ -239,7 +245,13 @@
         
         <!-- History Tab Content -->
         <div id="historyContent" class="tab-content hidden">
-            <p class="text-gray-600 dark:text-gray-400 mb-8 text-sm">View your posting history</p>
+            <div class="flex items-center justify-between mb-8">
+                <p class="text-gray-600 dark:text-gray-400 text-sm">View your posting history</p>
+                <button onclick="clearHistory()" class="px-2 py-1 text-xs bg-gray-200 hover:bg-red-600 dark:bg-gray-600 dark:hover:bg-red-600 text-gray-600 hover:text-white dark:text-gray-400 dark:hover:text-white border-0 rounded cursor-pointer transition-colors flex items-center gap-1">
+                    <i data-lucide="trash-2" class="w-3 h-3"></i>
+                    Clear History
+                </button>
+            </div>
             <div id="historyList" class="space-y-4 max-h-[550px] overflow-y-auto pr-3">
                 <!-- History items will be inserted here -->
             </div>
@@ -256,6 +268,10 @@
                 <button id="loadNotificationsBtn" onclick="loadNotifications()" class="flex-1 py-3.5 px-4 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-lg text-base font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2">
                     <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                     Load Notifications
+                </button>
+                <button onclick="markAllAsRead()" class="py-3.5 px-4 bg-green-600 hover:bg-green-700 text-white border-0 rounded-lg text-base font-medium cursor-pointer transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                    Mark All as Read
                 </button>
                 <button onclick="clearNotificationsCache()" class="py-3.5 px-4 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 border-0 rounded-lg text-base font-medium cursor-pointer transition-colors flex items-center justify-center gap-2">
                     <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -275,77 +291,144 @@
         <div id="settingsContent" class="tab-content hidden">
             <p class="text-gray-600 dark:text-gray-400 mb-8 text-sm">Configure your preferences and API credentials</p>
             
-            <!-- Dark Mode Toggle -->
-            <div class="mb-6">
-                <label class="flex items-center justify-between cursor-pointer">
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Dark Mode</span>
-                    <div class="relative">
-                        <input type="checkbox" id="darkModeToggle" class="sr-only" checked>
-                        <div class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors"></div>
-                        <div class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform"></div>
-                    </div>
-                </label>
-            </div>
-            
-            <!-- Tray Icon Toggle -->
-            <div class="mb-6">
-                <label class="flex items-center justify-between cursor-pointer">
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Show Tray Icon</span>
-                    <div class="relative">
-                        <input type="checkbox" id="trayIconToggle" class="sr-only">
-                        <div class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors"></div>
-                        <div class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform"></div>
-                    </div>
-                </label>
-            </div>
-            
-            <!-- Open Links Externally Toggle -->
-            <div class="mb-6">
-                <label class="flex items-center justify-between cursor-pointer">
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Open Links in External Browser</span>
-                    <div class="relative">
-                        <input type="checkbox" id="externalLinksToggle" class="sr-only">
-                        <div class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors"></div>
-                        <div class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform"></div>
-                    </div>
-                </label>
-            </div>
-            
-            <!-- Test Notification Button -->
-            <div class="mb-6">
-                <button type="button" onclick="testNotification()" class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                    <i data-lucide="bell" class="w-4 h-4"></i>
-                    Test Notification
-                </button>
-            </div>
-            
-            <!-- Polling Intervals -->
-            <div class="mb-6">
-                <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Auto-Polling Intervals (minutes)</h3>
+            <!-- General Settings -->
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">General Settings</h2>
                 
-                <!-- Mastodon Polling -->
-                <div class="mb-4">
-                    <label class="block text-xs text-gray-600 dark:text-gray-400 mb-2">Mastodon: <span id="mastodonIntervalValue">5</span> minutes</label>
-                    <input type="range" id="mastodonInterval" min="1" max="60" value="5" step="1" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                <!-- Dark Mode Toggle -->
+                <div class="mb-6">
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Dark Mode</span>
+                        <div class="relative">
+                            <input type="checkbox" id="darkModeToggle" class="sr-only" checked>
+                            <div class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors"></div>
+                            <div class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform"></div>
+                        </div>
+                    </label>
                 </div>
                 
-                <!-- Twitter Polling -->
-                <div class="mb-4">
-                    <label class="block text-xs text-gray-600 dark:text-gray-400 mb-2">Twitter: <span id="twitterIntervalValue">60</span> minutes</label>
-                    <input type="range" id="twitterInterval" min="1" max="60" value="60" step="1" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
-                    <p class="text-xs text-red-600 dark:text-red-400 mt-1">⚠️ Default 60min to avoid Twitter's daily limits (25/day). Free: ≥15min. Paid: shorter OK. <a href="https://docs.x.com/x-api/fundamentals/rate-limits" target="_blank" class="underline hover:no-underline">More info</a></p>
+                <!-- Tray Icon Toggle -->
+                <div class="mb-6">
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Show Tray Icon</span>
+                        <div class="relative">
+                            <input type="checkbox" id="trayIconToggle" class="sr-only">
+                            <div class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors"></div>
+                            <div class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform"></div>
+                        </div>
+                    </label>
                 </div>
                 
-                <!-- Bluesky Polling -->
-                <div class="mb-4">
-                    <label class="block text-xs text-gray-600 dark:text-gray-400 mb-2">Bluesky: <span id="blueskyIntervalValue">5</span> minutes</label>
-                    <input type="range" id="blueskyInterval" min="1" max="60" value="5" step="1" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                <!-- Tray Icon Customization -->
+                <div id="trayIconSection" class="mb-6" style="display: none;">
+                    <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Tray Icon:</label>
+                    <div class="flex items-center gap-2">
+                        <img id="trayIconPreview" src="tray.png" alt="Tray Icon" style="width: 22px; height: 22px;" class="rounded">
+                        <button onclick="chooseTrayIcon()" class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors">Choose</button>
+                    </div>
+                </div>
+                
+                <!-- Open Links Externally Toggle -->
+                <div class="mb-6">
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Open Links in External Browser</span>
+                        <div class="relative">
+                            <input type="checkbox" id="externalLinksToggle" class="sr-only">
+                            <div class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors"></div>
+                            <div class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform"></div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Notifications -->
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">Notifications</h2>
+                
+                <!-- Polling Intervals -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Auto-Polling Intervals (minutes)</h3>
+                    
+                    <!-- Mastodon Polling -->
+                    <div class="mb-4">
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-2">Mastodon: <span id="mastodonIntervalValue">5</span> minutes</label>
+                        <input type="range" id="mastodonInterval" min="1" max="60" value="5" step="1" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    
+                    <!-- Twitter Polling -->
+                    <div class="mb-4">
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-2">Twitter: <span id="twitterIntervalValue">60</span> minutes</label>
+                        <input type="range" id="twitterInterval" min="1" max="60" value="60" step="1" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                        <p class="text-xs text-red-600 dark:text-red-400 mt-1">⚠️ Default 60min to avoid Twitter's daily limits (25/day). Free: ≥15min. Paid: shorter OK. <a href="https://docs.x.com/x-api/fundamentals/rate-limits" target="_blank" class="underline hover:no-underline">More info</a></p>
+                    </div>
+                    
+                    <!-- Bluesky Polling -->
+                    <div class="mb-4">
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-2">Bluesky: <span id="blueskyIntervalValue">5</span> minutes</label>
+                        <input type="range" id="blueskyInterval" min="1" max="60" value="5" step="1" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+                
+                <!-- Notification Exclusions -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Exclude Notifications</h3>
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-4">When enabled, no notifications will be checked for the selected platform (manual or auto-poll).</p>
+                    
+                    <!-- Mastodon Exclusion -->
+                    <div class="mb-4">
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                                <img src="assets/masto.svg" alt="Mastodon" class="w-4 h-4"> Mastodon
+                            </span>
+                            <div class="relative">
+                                <input type="checkbox" id="excludeMastodonNotifications" class="sr-only">
+                                <div class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors"></div>
+                                <div class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform"></div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- Twitter Exclusion -->
+                    <div class="mb-4">
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                                <img src="assets/twit.svg" alt="Twitter" class="w-4 h-4"> Twitter
+                            </span>
+                            <div class="relative">
+                                <input type="checkbox" id="excludeTwitterNotifications" class="sr-only">
+                                <div class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors"></div>
+                                <div class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform"></div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- Bluesky Exclusion -->
+                    <div class="mb-4">
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                                <img src="assets/bsky.svg" alt="Bluesky" class="w-4 h-4"> Bluesky
+                            </span>
+                            <div class="relative">
+                                <input type="checkbox" id="excludeBlueskyNotifications" class="sr-only">
+                                <div class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors"></div>
+                                <div class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform"></div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Test Notification Button -->
+                <div class="mb-6">
+                    <button type="button" onclick="testNotification()" class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="bell" class="w-4 h-4"></i>
+                        Test Notification
+                    </button>
                 </div>
             </div>
             
             <!-- API Credentials -->
-            <div class="mb-6">
-                <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">API Credentials</h3>
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">API Credentials</h2>
                 
                 <!-- Mastodon Section -->
                 <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">

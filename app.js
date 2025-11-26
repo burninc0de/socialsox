@@ -32,7 +32,31 @@ window.addEventListener('DOMContentLoaded', () => {
     const trayEnabledStored = localStorage.getItem('socialSoxTrayEnabled');
     const trayEnabled = trayEnabledStored !== null ? trayEnabledStored === 'true' : false; // Default to false
     document.getElementById('trayIconToggle').checked = trayEnabled;
+    document.getElementById('trayIconSection').style.display = trayEnabled ? 'block' : 'none';
     window.electron.setTrayEnabled(trayEnabled);
+    
+    // Load tray icon path preference
+    const trayIconPathStored = localStorage.getItem('socialSoxTrayIconPath') || 'tray.png';
+    
+    // Load the tray icon preview
+    if (trayIconPathStored === 'tray.png') {
+        // For default icon, get the correct path from main process
+        window.electron.getDefaultTrayIconPath().then(defaultPath => {
+            window.electron.readFileAsDataURL(defaultPath).then(dataURL => {
+                if (dataURL) {
+                    document.getElementById('trayIconPreview').src = dataURL;
+                }
+            });
+        });
+    } else {
+        // For custom icons, load from the stored path
+        window.electron.readFileAsDataURL(trayIconPathStored).then(dataURL => {
+            if (dataURL) {
+                document.getElementById('trayIconPreview').src = dataURL;
+            }
+        });
+    }
+    window.electron.setTrayIcon(trayIconPathStored);
     
     // Load external links preference
     const externalLinksStored = localStorage.getItem('socialSoxExternalLinks');
@@ -86,8 +110,12 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('trayIconToggle').addEventListener('change', function() {
         const isEnabled = this.checked;
         localStorage.setItem('socialSoxTrayEnabled', isEnabled);
+        document.getElementById('trayIconSection').style.display = isEnabled ? 'block' : 'none';
         window.electron.setTrayEnabled(isEnabled);
     });
+    
+    // Tray icon path
+    // Removed change listener, now using button
     
     // External links toggle
     document.getElementById('externalLinksToggle').addEventListener('change', function() {
@@ -141,8 +169,39 @@ window.addEventListener('DOMContentLoaded', () => {
         restartNotificationPolling();
     });
     
+    // Notification exclusion toggles
+    document.getElementById('excludeMastodonNotifications').addEventListener('change', function() {
+        saveCredentials();
+        restartNotificationPolling();
+    });
+    document.getElementById('excludeTwitterNotifications').addEventListener('change', function() {
+        saveCredentials();
+        restartNotificationPolling();
+    });
+    document.getElementById('excludeBlueskyNotifications').addEventListener('change', function() {
+        saveCredentials();
+        restartNotificationPolling();
+    });
+    
     // Image upload handlers
     setupImageUpload();
+    
+    // Tray icon chooser
+    window.chooseTrayIcon = function() {
+        window.electron.openFileDialog().then(path => {
+            if (path) {
+                window.electron.readFileAsDataURL(path).then(dataURL => {
+                    if (dataURL) {
+                        document.getElementById('trayIconPreview').src = dataURL;
+                        localStorage.setItem('socialSoxTrayIconPath', path);
+                        window.electron.setTrayIcon(path);
+                    } else {
+                        showStatus('Failed to load image', 'error');
+                    }
+                });
+            }
+        });
+    };
 });
 
 function toggleCollapsible() {
@@ -192,6 +251,11 @@ function saveCredentials() {
             mastodon: parseInt(document.getElementById('mastodonInterval').value) || 5,
             twitter: parseInt(document.getElementById('twitterInterval').value) || 60,
             bluesky: parseInt(document.getElementById('blueskyInterval').value) || 5
+        },
+        notificationExclusions: {
+            mastodon: document.getElementById('excludeMastodonNotifications').checked,
+            twitter: document.getElementById('excludeTwitterNotifications').checked,
+            bluesky: document.getElementById('excludeBlueskyNotifications').checked
         }
     };
     
@@ -232,6 +296,13 @@ function loadCredentials() {
             document.getElementById('twitterIntervalValue').textContent = 60;
             document.getElementById('blueskyInterval').value = 5;
             document.getElementById('blueskyIntervalValue').textContent = 5;
+        }
+        
+        // Load notification exclusions
+        if (creds.notificationExclusions) {
+            document.getElementById('excludeMastodonNotifications').checked = creds.notificationExclusions.mastodon || false;
+            document.getElementById('excludeTwitterNotifications').checked = creds.notificationExclusions.twitter || false;
+            document.getElementById('excludeBlueskyNotifications').checked = creds.notificationExclusions.bluesky || false;
         }
         
         // Apply platforms to buttons
@@ -880,6 +951,14 @@ function saveHistory(history) {
     localStorage.setItem('postingHistory', JSON.stringify(history));
 }
 
+function clearHistory() {
+    if (confirm('Are you sure you want to clear all posting history? This action cannot be undone.')) {
+        localStorage.removeItem('postingHistory');
+        displayHistory([]);
+        showToast('Posting history cleared', 'success');
+    }
+}
+
 function addHistoryEntry(message, selectedPlatforms, results) {
     const history = JSON.parse(localStorage.getItem('postingHistory') || '[]');
     const entry = {
@@ -965,12 +1044,13 @@ function startNotificationPolling() {
     // Clear any existing intervals
     stopNotificationPolling();
     
-    // Get polling intervals from settings
+    // Get polling intervals and exclusions from settings
     const creds = JSON.parse(localStorage.getItem('socialSoxCredentials') || '{}');
     const intervals = creds.pollingIntervals || { mastodon: 5, twitter: 60, bluesky: 5 };
+    const exclusions = creds.notificationExclusions || {};
     
-    // Start polling for each platform
-    ['mastodon', 'twitter', 'bluesky'].forEach(platform => {
+    // Start polling for each non-excluded platform
+    ['mastodon', 'twitter', 'bluesky'].filter(platform => !exclusions[platform]).forEach(platform => {
         const intervalMinutes = intervals[platform];
         const intervalMs = intervalMinutes * 60 * 1000;
         
@@ -1114,8 +1194,13 @@ async function loadNotifications(silent = false) {
     noNotifications.style.display = 'none';
     
     try {
-        // Load notifications from all platforms in parallel
-        const loadPromises = ['mastodon', 'twitter', 'bluesky'].map(platform => 
+        // Get notification exclusions
+        const creds = JSON.parse(localStorage.getItem('socialSoxCredentials') || '{}');
+        const exclusions = creds.notificationExclusions || {};
+        
+        // Load notifications from all non-excluded platforms in parallel
+        const platformsToCheck = ['mastodon', 'twitter', 'bluesky'].filter(platform => !exclusions[platform]);
+        const loadPromises = platformsToCheck.map(platform => 
             loadPlatformNotifications(platform, silent) // Pass the silent flag
         );
         
@@ -1152,6 +1237,28 @@ function markAsSeen(notificationId) {
         notif.isNew = false;
         saveAllNotifications(allNotifs);
         displayNotifications(allNotifs);
+    }
+}
+
+// Mark all notifications as read
+function markAllAsRead() {
+    const allNotifs = getAllCachedNotifications();
+    let hasChanges = false;
+    
+    allNotifs.forEach(notif => {
+        if (!notif.dismissed || notif.isNew) {
+            notif.dismissed = true;
+            notif.isNew = false;
+            hasChanges = true;
+        }
+    });
+    
+    if (hasChanges) {
+        saveAllNotifications(allNotifs);
+        displayNotifications(allNotifs);
+        showToast('All notifications marked as read', 'success');
+    } else {
+        showToast('No unread notifications to mark', 'info');
     }
 }
 

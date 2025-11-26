@@ -1,6 +1,6 @@
 {
   "name": "socialsox",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A simple, local-only web application for posting short messages to Mastodon, Twitter, and Bluesky simultaneously.",
   "main": "main.js",
   "scripts": {
@@ -36,7 +36,7 @@
   "build": {
     "appId": "com.socialsox.app",
     "productName": "SocialSox",
-    "icon": "tray.png",
+    "icon": "appicon.png",
     "asarUnpack": [
       "**/node_modules/sharp/**",
       "**/node_modules/@img/**"
@@ -46,6 +46,8 @@
     },
     "files": [
       "**/*",
+      "tray.png",
+      "appicon.png",
       "!dist/**/*",
       "!dist-vite/**/*",
       "!dist-electron/**/*",
@@ -54,6 +56,12 @@
       "!package-lock.json",
       "!vite.config.js",
       "!electron-mock.js"
+    ],
+    "extraResources": [
+      {
+        "from": "tray.png",
+        "to": "tray.png"
+      }
     ],
     "mac": {
       "category": "public.app-category.social-networking",
