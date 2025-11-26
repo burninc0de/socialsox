@@ -169,6 +169,20 @@ window.addEventListener('DOMContentLoaded', () => {
         restartNotificationPolling();
     });
     
+    // Notification exclusion toggles
+    document.getElementById('excludeMastodonNotifications').addEventListener('change', function() {
+        saveCredentials();
+        restartNotificationPolling();
+    });
+    document.getElementById('excludeTwitterNotifications').addEventListener('change', function() {
+        saveCredentials();
+        restartNotificationPolling();
+    });
+    document.getElementById('excludeBlueskyNotifications').addEventListener('change', function() {
+        saveCredentials();
+        restartNotificationPolling();
+    });
+    
     // Image upload handlers
     setupImageUpload();
     
@@ -237,6 +251,11 @@ function saveCredentials() {
             mastodon: parseInt(document.getElementById('mastodonInterval').value) || 5,
             twitter: parseInt(document.getElementById('twitterInterval').value) || 60,
             bluesky: parseInt(document.getElementById('blueskyInterval').value) || 5
+        },
+        notificationExclusions: {
+            mastodon: document.getElementById('excludeMastodonNotifications').checked,
+            twitter: document.getElementById('excludeTwitterNotifications').checked,
+            bluesky: document.getElementById('excludeBlueskyNotifications').checked
         }
     };
     
@@ -277,6 +296,13 @@ function loadCredentials() {
             document.getElementById('twitterIntervalValue').textContent = 60;
             document.getElementById('blueskyInterval').value = 5;
             document.getElementById('blueskyIntervalValue').textContent = 5;
+        }
+        
+        // Load notification exclusions
+        if (creds.notificationExclusions) {
+            document.getElementById('excludeMastodonNotifications').checked = creds.notificationExclusions.mastodon || false;
+            document.getElementById('excludeTwitterNotifications').checked = creds.notificationExclusions.twitter || false;
+            document.getElementById('excludeBlueskyNotifications').checked = creds.notificationExclusions.bluesky || false;
         }
         
         // Apply platforms to buttons
@@ -1010,12 +1036,13 @@ function startNotificationPolling() {
     // Clear any existing intervals
     stopNotificationPolling();
     
-    // Get polling intervals from settings
+    // Get polling intervals and exclusions from settings
     const creds = JSON.parse(localStorage.getItem('socialSoxCredentials') || '{}');
     const intervals = creds.pollingIntervals || { mastodon: 5, twitter: 60, bluesky: 5 };
+    const exclusions = creds.notificationExclusions || {};
     
-    // Start polling for each platform
-    ['mastodon', 'twitter', 'bluesky'].forEach(platform => {
+    // Start polling for each non-excluded platform
+    ['mastodon', 'twitter', 'bluesky'].filter(platform => !exclusions[platform]).forEach(platform => {
         const intervalMinutes = intervals[platform];
         const intervalMs = intervalMinutes * 60 * 1000;
         
@@ -1159,8 +1186,13 @@ async function loadNotifications(silent = false) {
     noNotifications.style.display = 'none';
     
     try {
-        // Load notifications from all platforms in parallel
-        const loadPromises = ['mastodon', 'twitter', 'bluesky'].map(platform => 
+        // Get notification exclusions
+        const creds = JSON.parse(localStorage.getItem('socialSoxCredentials') || '{}');
+        const exclusions = creds.notificationExclusions || {};
+        
+        // Load notifications from all non-excluded platforms in parallel
+        const platformsToCheck = ['mastodon', 'twitter', 'bluesky'].filter(platform => !exclusions[platform]);
+        const loadPromises = platformsToCheck.map(platform => 
             loadPlatformNotifications(platform, silent) // Pass the silent flag
         );
         

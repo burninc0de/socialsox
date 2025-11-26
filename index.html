@@ -82,12 +82,18 @@
         /* Dark Mode Toggle */
         #darkModeToggle:checked + div,
         #trayIconToggle:checked + div,
-        #externalLinksToggle:checked + div {
+        #externalLinksToggle:checked + div,
+        #excludeMastodonNotifications:checked + div,
+        #excludeTwitterNotifications:checked + div,
+        #excludeBlueskyNotifications:checked + div {
             background-color: #4f46e5;
         }
         #darkModeToggle:checked + div + .dot,
         #trayIconToggle:checked + div + .dot,
-        #externalLinksToggle:checked + div + .dot {
+        #externalLinksToggle:checked + div + .dot,
+        #excludeMastodonNotifications:checked + div + .dot,
+        #excludeTwitterNotifications:checked + div + .dot,
+        #excludeBlueskyNotifications:checked + div + .dot {
             transform: translateX(20px);
         }
         
@@ -349,6 +355,54 @@
                 <div class="mb-4">
                     <label class="block text-xs text-gray-600 dark:text-gray-400 mb-2">Bluesky: <span id="blueskyIntervalValue">5</span> minutes</label>
                     <input type="range" id="blueskyInterval" min="1" max="60" value="5" step="1" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                </div>
+            </div>
+            
+            <!-- Notification Exclusions -->
+            <div class="mb-6">
+                <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Exclude Notifications</h3>
+                <p class="text-xs text-gray-600 dark:text-gray-400 mb-4">When enabled, no notifications will be checked for the selected platform (manual or auto-poll).</p>
+                
+                <!-- Mastodon Exclusion -->
+                <div class="mb-4">
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                            <img src="assets/masto.svg" alt="Mastodon" class="w-4 h-4"> Mastodon
+                        </span>
+                        <div class="relative">
+                            <input type="checkbox" id="excludeMastodonNotifications" class="sr-only">
+                            <div class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors"></div>
+                            <div class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform"></div>
+                        </div>
+                    </label>
+                </div>
+                
+                <!-- Twitter Exclusion -->
+                <div class="mb-4">
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                            <img src="assets/twit.svg" alt="Twitter" class="w-4 h-4"> Twitter
+                        </span>
+                        <div class="relative">
+                            <input type="checkbox" id="excludeTwitterNotifications" class="sr-only">
+                            <div class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors"></div>
+                            <div class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform"></div>
+                        </div>
+                    </label>
+                </div>
+                
+                <!-- Bluesky Exclusion -->
+                <div class="mb-4">
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                            <img src="assets/bsky.svg" alt="Bluesky" class="w-4 h-4"> Bluesky
+                        </span>
+                        <div class="relative">
+                            <input type="checkbox" id="excludeBlueskyNotifications" class="sr-only">
+                            <div class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors"></div>
+                            <div class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform"></div>
+                        </div>
+                    </label>
                 </div>
             </div>
             
