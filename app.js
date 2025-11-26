@@ -32,6 +32,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const trayEnabledStored = localStorage.getItem('socialSoxTrayEnabled');
     const trayEnabled = trayEnabledStored !== null ? trayEnabledStored === 'true' : false; // Default to false
     document.getElementById('trayIconToggle').checked = trayEnabled;
+    document.getElementById('trayIconSection').style.display = trayEnabled ? 'block' : 'none';
     window.electron.setTrayEnabled(trayEnabled);
     
     // Load tray icon path preference
@@ -97,6 +98,7 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('trayIconToggle').addEventListener('change', function() {
         const isEnabled = this.checked;
         localStorage.setItem('socialSoxTrayEnabled', isEnabled);
+        document.getElementById('trayIconSection').style.display = isEnabled ? 'block' : 'none';
         window.electron.setTrayEnabled(isEnabled);
     });
     
