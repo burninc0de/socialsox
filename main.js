@@ -32,7 +32,7 @@ function createTray(win) {
     if (tray) return; // Already exists
     tray = new Tray(path.join(__dirname, 'tray.png'));
     const contextMenu = Menu.buildFromTemplate([
-        { label: 'Show App', click: () => { win.show(); } },
+        { label: 'Show App', click: () => { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } },
         { label: 'Quit', click: () => { isQuiting = true; app.quit(); } }
     ]);
     tray.setToolTip('SocialSox');
@@ -41,6 +41,7 @@ function createTray(win) {
         if (win.isVisible()) {
             win.hide();
         } else {
+            if (win.isMinimized()) win.restore();
             win.show();
             win.focus();
         }
@@ -85,8 +86,10 @@ async function createWindow() {
 
     // Minimize to tray: hide window instead of minimizing, and create tray
     win.on('minimize', (event) => {
-        event.preventDefault();
-        win.hide();
+        if (trayEnabled) {
+            event.preventDefault();
+            win.hide();
+        }
     });
 
     if (trayEnabled) {
@@ -105,6 +108,9 @@ ipcMain.on('set-tray-enabled', (event, enabled) => {
     const win = BrowserWindow.getAllWindows()[0];
     if (enabled && !tray) {
         createTray(win);
+    } else if (!enabled && tray) {
+        tray.destroy();
+        tray = null;
     }
 });
 
@@ -257,7 +263,13 @@ ipcMain.handle('export-credentials', async (event, credentials) => {
 // Handle window controls
 ipcMain.on('minimize-window', () => {
     const win = BrowserWindow.getFocusedWindow();
-    if (win) win.minimize();
+    if (win) {
+        if (trayEnabled) {
+            win.hide();
+        } else {
+            win.minimize();
+        }
+    }
 });
 
 ipcMain.on('maximize-window', () => {

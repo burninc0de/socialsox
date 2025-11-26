@@ -86,7 +86,7 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('trayIconToggle').addEventListener('change', function() {
         const isEnabled = this.checked;
         localStorage.setItem('socialSoxTrayEnabled', isEnabled);
-        showToast('Restart the app for tray icon changes to take effect.', 'info');
+        window.electron.setTrayEnabled(isEnabled);
     });
     
     // External links toggle
