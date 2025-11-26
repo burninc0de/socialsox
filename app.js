@@ -1267,12 +1267,18 @@ async function fetchBlueskyNotifications(handle, password) {
     
     const data = await response.json();
     return data.notifications.map(n => {
-        // Extract post ID from URI (format: at://did:plc:xxx/app.bsky.feed.post/xxxxx)
         let url = null;
-        if (n.uri) {
+        const authorDid = n.author?.did;
+        
+        if (n.reason === 'follow') {
+            // For follows, link to the author's profile
+            if (authorDid) {
+                url = `https://bsky.app/profile/${authorDid}`;
+            }
+        } else if (n.uri) {
+            // For other notifications (like, repost, mention, etc.), link to the post
             const uriParts = n.uri.split('/');
             const postId = uriParts[uriParts.length - 1];
-            const authorDid = n.author?.did;
             if (authorDid && postId) {
                 url = `https://bsky.app/profile/${authorDid}/post/${postId}`;
             }
