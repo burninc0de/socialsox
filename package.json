@@ -36,7 +36,7 @@
   "build": {
     "appId": "com.socialsox.app",
     "productName": "SocialSox",
-    "icon": "tray.png",
+    "icon": "appicon.png",
     "asarUnpack": [
       "**/node_modules/sharp/**",
       "**/node_modules/@img/**"
