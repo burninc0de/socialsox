@@ -37,7 +37,11 @@ window.addEventListener('DOMContentLoaded', () => {
     // Load tray icon path preference
     const trayIconPathStored = localStorage.getItem('socialSoxTrayIconPath') || 'tray.png';
     if (trayIconPathStored !== 'tray.png') {
-        document.getElementById('trayIconPath').value = trayIconPathStored;
+        window.electron.readFileAsDataURL(trayIconPathStored).then(dataURL => {
+            if (dataURL) {
+                document.getElementById('trayIconPreview').src = dataURL;
+            }
+        });
     }
     window.electron.setTrayIcon(trayIconPathStored);
     
@@ -158,9 +162,15 @@ window.addEventListener('DOMContentLoaded', () => {
     window.chooseTrayIcon = function() {
         window.electron.openFileDialog().then(path => {
             if (path) {
-                document.getElementById('trayIconPath').value = path;
-                localStorage.setItem('socialSoxTrayIconPath', path);
-                window.electron.setTrayIcon(path);
+                window.electron.readFileAsDataURL(path).then(dataURL => {
+                    if (dataURL) {
+                        document.getElementById('trayIconPreview').src = dataURL;
+                        localStorage.setItem('socialSoxTrayIconPath', path);
+                        window.electron.setTrayIcon(path);
+                    } else {
+                        showStatus('Failed to load image', 'error');
+                    }
+                });
             }
         });
     };

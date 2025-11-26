@@ -132,6 +132,22 @@ ipcMain.handle('open-file-dialog', async () => {
     return result.filePaths[0] || null;
 });
 
+// Handle reading file as data URL for preview
+ipcMain.handle('read-file-as-data-url', async (event, filePath) => {
+    try {
+        const buffer = await fs.readFile(filePath);
+        const ext = path.extname(filePath).toLowerCase();
+        let mime = 'image/png';
+        if (ext === '.jpg' || ext === '.jpeg') mime = 'image/jpeg';
+        else if (ext === '.ico') mime = 'image/x-icon';
+        else if (ext === '.svg') mime = 'image/svg+xml';
+        return `data:${mime};base64,${buffer.toString('base64')}`;
+    } catch (error) {
+        console.error('Error reading file:', error);
+        return null;
+    }
+});
+
 // Handle opening external links
 ipcMain.on('open-external-link', (event, url) => {
     require('electron').shell.openExternal(url);
