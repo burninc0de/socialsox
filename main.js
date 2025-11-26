@@ -5,7 +5,10 @@ const fs = require('fs').promises;
 let tray = null;
 let isQuiting = false;
 let trayEnabled = false; // Default to disabled
-let trayIconPath = path.join(__dirname, 'tray.png');
+// Handle both development and production paths for tray icon
+let trayIconPath = app.isPackaged 
+    ? path.join(process.resourcesPath, 'tray.png')
+    : path.join(__dirname, 'tray.png');
 
 const { TwitterApi } = require('twitter-api-v2');
 const sharp = require('sharp');
@@ -60,7 +63,7 @@ async function createWindow() {
             enableRemoteModule: false,
             preload: path.join(__dirname, 'preload.js')
         },
-        icon: path.join(__dirname, 'tray.png'),
+        icon: trayIconPath,
         title: 'SocialSox',
         autoHideMenuBar: true,
         frame: false,
@@ -117,10 +120,24 @@ ipcMain.on('set-tray-enabled', (event, enabled) => {
 
 // Handle tray icon setting
 ipcMain.on('set-tray-icon', (event, iconPath) => {
-    trayIconPath = path.resolve(iconPath);
+    // If it's the default tray.png, use the correct path for packaged/dev mode
+    if (iconPath === 'tray.png') {
+        trayIconPath = app.isPackaged 
+            ? path.join(process.resourcesPath, 'tray.png')
+            : path.join(__dirname, 'tray.png');
+    } else {
+        trayIconPath = path.resolve(iconPath);
+    }
     if (tray) {
         tray.setImage(trayIconPath);
     }
+});
+
+// Handle getting the default tray icon path
+ipcMain.handle('get-default-tray-icon-path', () => {
+    return app.isPackaged 
+        ? path.join(process.resourcesPath, 'tray.png')
+        : path.join(__dirname, 'tray.png');
 });
 
 // Handle file dialog for tray icon
@@ -412,7 +429,7 @@ ipcMain.handle('show-os-notification', (event, { title, body, platform }) => {
             const notification = new Notification({
                 title: title,
                 body: body,
-                icon: path.join(__dirname, 'tray.png'),
+                icon: trayIconPath,
                 silent: false
             });
             

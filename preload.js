@@ -26,6 +26,7 @@ contextBridge.exposeInMainWorld(
         setTrayIcon: (iconPath) => ipcRenderer.send('set-tray-icon', iconPath),
         openFileDialog: () => ipcRenderer.invoke('open-file-dialog'),
         readFileAsDataURL: (filePath) => ipcRenderer.invoke('read-file-as-data-url', filePath),
+        getDefaultTrayIconPath: () => ipcRenderer.invoke('get-default-tray-icon-path'),
         openExternalLink: (url) => ipcRenderer.send('open-external-link', url)
     }
 );

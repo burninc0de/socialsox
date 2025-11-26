@@ -46,6 +46,8 @@
     },
     "files": [
       "**/*",
+      "tray.png",
+      "appicon.png",
       "!dist/**/*",
       "!dist-vite/**/*",
       "!dist-electron/**/*",
@@ -54,6 +56,12 @@
       "!package-lock.json",
       "!vite.config.js",
       "!electron-mock.js"
+    ],
+    "extraResources": [
+      {
+        "from": "tray.png",
+        "to": "tray.png"
+      }
     ],
     "mac": {
       "category": "public.app-category.social-networking",

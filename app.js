@@ -37,7 +37,19 @@ window.addEventListener('DOMContentLoaded', () => {
     
     // Load tray icon path preference
     const trayIconPathStored = localStorage.getItem('socialSoxTrayIconPath') || 'tray.png';
-    if (trayIconPathStored !== 'tray.png') {
+    
+    // Load the tray icon preview
+    if (trayIconPathStored === 'tray.png') {
+        // For default icon, get the correct path from main process
+        window.electron.getDefaultTrayIconPath().then(defaultPath => {
+            window.electron.readFileAsDataURL(defaultPath).then(dataURL => {
+                if (dataURL) {
+                    document.getElementById('trayIconPreview').src = dataURL;
+                }
+            });
+        });
+    } else {
+        // For custom icons, load from the stored path
         window.electron.readFileAsDataURL(trayIconPathStored).then(dataURL => {
             if (dataURL) {
                 document.getElementById('trayIconPreview').src = dataURL;
