@@ -36,7 +36,7 @@ When reporting a security vulnerability, please include:
 
 SocialSox stores API credentials locally on the user's device. While we take precautions to secure this data:
 
-- Credentials are stored in Electron's localStorage
+- Credentials are stored using Electron's safeStorage
 - No data is transmitted to external servers (except the social media APIs themselves)
 - Users should use app-specific passwords where available
 - Anyone with physical access to the device can potentially access stored credentials
