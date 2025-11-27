@@ -108,7 +108,7 @@ This creates platform-specific packages in the `dist/` folder:
    - Click on your app → **Settings** tab
    - Scroll to "User authentication settings"
    - Click **"Set up"** or **"Edit"**
-   - Enable **OAuth 1.0a**
+   - Enable **OAuth 1.0a** by choosing "Web App, Automated App or Bot"
    - Set **App permissions** to **"Read and Write"** (not just "Read")
    - For **Callback URL**: Enter your GitHub repository URL (e.g., `https://github.com/yourusername/socialsox`) or any valid URL - it's not actually used but required by Twitter
    - For **Website URL**: Enter the same GitHub repository URL or any valid URL like `https://github.com/yourusername/socialsox`
