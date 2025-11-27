@@ -88,6 +88,27 @@ async function createWindow() {
         console.log(`[Renderer]: ${message}`);
     });
 
+    // Handle new windows (target="_blank") to open in new Electron window
+    win.webContents.setWindowOpenHandler((details) => {
+        const newWin = new BrowserWindow({
+            width: 800,
+            height: 600,
+            webPreferences: {
+                nodeIntegration: false,
+                contextIsolation: true,
+                enableRemoteModule: false,
+                preload: path.join(__dirname, 'preload.js')
+            },
+            icon: trayIconPath,
+            title: 'SocialSox - Link',
+            autoHideMenuBar: true,
+            frame: false,
+            backgroundColor: '#1a1a1a'
+        });
+        newWin.loadURL(details.url);
+        return { action: 'deny' }; // Prevent default behavior
+    });
+
     // Save window bounds on move and resize
     win.on('move', () => {
         const bounds = win.getBounds();

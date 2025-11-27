@@ -55,7 +55,7 @@ export function displayHistory(history) {
         // Build results display with links
         const resultsDisplay = entry.results.map(result => {
             if (result.success) {
-                return `<a href="${result.url}" target="_blank" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline">✓ ${result.platform}</a>`;
+                return `<a href="${result.url}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline">✓ ${result.platform}</a>`;
             } else {
                 return `<span class="text-red-600 dark:text-red-400">✗ ${result.platform}: ${result.error}</span>`;
             }

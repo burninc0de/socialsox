@@ -133,10 +133,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('externalLinksToggle').addEventListener('change', function() {
         const isEnabled = this.checked;
         localStorage.setItem('socialSoxExternalLinks', isEnabled);
-        const cachedNotifications = getAllCachedNotifications();
-        import('./src/modules/notifications.js').then(module => {
-            // Notifications will refresh automatically
-        });
     });
     
     document.getElementById('windowControlsStyle').addEventListener('change', function() {
@@ -198,6 +194,19 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
     
     setupImageUpload();
+    
+    // Global link handler to respect external links setting
+    document.addEventListener('click', function(e) {
+        if (e.target.tagName === 'A' && e.target.href) {
+            e.preventDefault();
+            const external = localStorage.getItem('socialSoxExternalLinks') === 'true';
+            if (external) {
+                window.electron.openExternalLink(e.target.href);
+            } else {
+                window.open(e.target.href, '_blank');
+            }
+        }
+    });
     
     window.chooseTrayIcon = function() {
         window.electron.openFileDialog().then(path => {

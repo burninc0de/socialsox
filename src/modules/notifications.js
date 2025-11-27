@@ -607,7 +607,7 @@ function displayNotifications(notifications) {
                 })()}
                 ${notif.replyingTo ? `<div class="mb-2 p-2 bg-gray-100 dark:bg-gray-600 rounded text-xs text-gray-600 dark:text-gray-400"><strong>Replying to:</strong> ${notif.replyingTo.substring(0, 150)}${notif.replyingTo.length > 150 ? '...' : ''}</div>` : ''}
                 ${notif.quotingTo ? `<div class="mb-2 p-2 bg-gray-100 dark:bg-gray-600 rounded text-xs text-gray-600 dark:text-gray-400"><strong>Quoting:</strong> ${notif.quotingTo.substring(0, 150)}${notif.quotingTo.length > 150 ? '...' : ''}</div>` : ''}
-                ${notif.url ? `<a href="${notif.url}" ${localStorage.getItem('socialSoxExternalLinks') === 'true' ? 'onclick="window.electron.openExternalLink(this.href); return false;"' : 'target="_blank"'} class="text-xs text-primary-600 dark:text-primary-400 hover:underline">View on ${notif.platform}</a>` : ''}
+                ${notif.url ? `<a href="${notif.url}" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">View on ${notif.platform}</a>` : ''}
             </div>
         `;
     }).join('');
