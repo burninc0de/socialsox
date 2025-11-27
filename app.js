@@ -1201,9 +1201,9 @@ function startNotificationPolling() {
     stopNotificationPolling();
     
     // Get polling intervals and exclusions from settings
-    const creds = JSON.parse(localStorage.getItem('socialSoxCredentials') || '{}');
-    const intervals = creds.pollingIntervals || { mastodon: 5, twitter: 60, bluesky: 5 };
-    const exclusions = creds.notificationExclusions || {};
+    const settings = JSON.parse(localStorage.getItem('socialSoxSettings') || '{}');
+    const intervals = settings.pollingIntervals || { mastodon: 5, twitter: 60, bluesky: 5 };
+    const exclusions = settings.notificationExclusions || {};
     
     // Start polling for each non-excluded platform
     ['mastodon', 'twitter', 'bluesky'].filter(platform => !exclusions[platform]).forEach(platform => {
@@ -1351,8 +1351,8 @@ async function loadNotifications(silent = false) {
     
     try {
         // Get notification exclusions
-        const creds = JSON.parse(localStorage.getItem('socialSoxCredentials') || '{}');
-        const exclusions = creds.notificationExclusions || {};
+        const settings = JSON.parse(localStorage.getItem('socialSoxSettings') || '{}');
+        const exclusions = settings.notificationExclusions || {};
         
         // Load notifications from all non-excluded platforms in parallel
         const platformsToCheck = ['mastodon', 'twitter', 'bluesky'].filter(platform => !exclusions[platform]);
