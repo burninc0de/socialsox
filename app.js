@@ -1391,6 +1391,8 @@ async function fetchMastodonNotifications(instance, token, sinceId = null) {
         }
         
         let replyingTo = null;
+        let quotingTo = null;
+        
         if (n.type === 'mention' && n.status?.in_reply_to_id) {
             // Fetch the parent status for context
             try {
@@ -1406,6 +1408,42 @@ async function fetchMastodonNotifications(instance, token, sinceId = null) {
             } catch (error) {
                 console.warn('Failed to fetch parent status:', error);
             }
+        } else if (n.type === 'mention' && n.status?.content) {
+            // For mentions that are not replies, check if they contain a status URL (quote)
+            const content = n.status.content;
+            const urlRegex = /https?:\/\/([^\/]+)\/@[^\/]+\/(\d+)/g;
+            let match;
+            const foundUrls = [];
+            while ((match = urlRegex.exec(content)) !== null) {
+                foundUrls.push({
+                    instance: match[1],
+                    statusId: match[2],
+                    fullUrl: match[0]
+                });
+            }
+            if (foundUrls.length > 0) {
+                // Take the first status URL found
+                const { instance, statusId } = foundUrls[0];
+                try {
+                    const quotedResponse = await fetch(`https://${instance}/api/v1/statuses/${statusId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (quotedResponse.ok) {
+                        const quotedStatus = await quotedResponse.json();
+                        quotingTo = quotedStatus.content?.replace(/<[^>]*>/g, '') || '';
+                    }
+                } catch (error) {
+                    console.warn('Failed to fetch quoted status:', error);
+                }
+            }
+        }
+        
+        let subjectContent = null;
+        if ((n.type === 'favourite' || n.type === 'reblog') && n.status?.content) {
+            // For favourites and reblogs, extract the subject status content
+            subjectContent = n.status.content.replace(/<[^>]*>/g, '') || '';
         }
         
         return {
@@ -1415,7 +1453,9 @@ async function fetchMastodonNotifications(instance, token, sinceId = null) {
             author: n.account?.display_name || n.account?.username || 'Unknown',
             authorHandle: n.account?.acct || '',
             content: n.status?.content?.replace(/<[^>]*>/g, '') || '',
+            subjectContent: subjectContent,
             replyingTo: replyingTo,
+            quotingTo: quotingTo,
             url: url
         };
     }));
@@ -1681,10 +1721,14 @@ function displayNotifications(notifications) {
                     let displayContent = notif.content;
                     let contentLabel = '';
                     
-                    // For Bluesky likes/reposts, show the subject content
-                    if ((notif.type === 'like' || notif.type === 'repost') && notif.subjectContent) {
+                    // For likes/reposts/favourites/reblogs and mentions, show the content in a styled box
+                    if ((notif.type === 'like' || notif.type === 'repost' || notif.type === 'favourite' || notif.type === 'reblog') && notif.subjectContent) {
                         displayContent = notif.subjectContent;
-                        contentLabel = notif.type === 'like' ? 'Liked: ' : 'Reposted: ';
+                        // Use styled box like replying to section
+                        return `<div class="mb-2 p-2 bg-gray-100 dark:bg-gray-600 rounded text-xs text-gray-600 dark:text-gray-400">${displayContent.substring(0, 150)}${displayContent.length > 150 ? '...' : ''}</div>`;
+                    } else if (notif.type === 'mention') {
+                        // For mentions, show the mention content in a styled box
+                        return `<div class="mb-2 p-2 bg-gray-100 dark:bg-gray-600 rounded text-xs text-gray-600 dark:text-gray-400">${displayContent.substring(0, 150)}${displayContent.length > 150 ? '...' : ''}</div>`;
                     }
                     
                     return displayContent ? `<p class="text-sm text-gray-700 dark:text-gray-300 mb-2">${contentLabel}${displayContent.substring(0, 200)}${displayContent.length > 200 ? '...' : ''}</p>` : '';
