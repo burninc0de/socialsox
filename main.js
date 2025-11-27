@@ -4,14 +4,15 @@ const fs = require('fs').promises;
 
 let tray = null;
 let isQuiting = false;
-let trayEnabled = false; // Default to disabled
+let trayEnabled = false;
+
 // Handle both development and production paths for tray icon
-let trayIconPath = app.isPackaged 
+let trayIconPath = (app && app.isPackaged)
     ? path.join(process.resourcesPath, 'tray.png')
     : path.join(__dirname, 'tray.png');
 
 // Handle both development and production paths for app icon
-let appIconPath = app.isPackaged 
+let appIconPath = (app && app.isPackaged)
     ? path.join(process.resourcesPath, 'appicon.png')
     : path.join(__dirname, 'appicon.png');
 
@@ -214,7 +215,8 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
         
         const result = await client.v2.tweet(tweetData);
         console.log('Twitter: Success!', result);
-        return { success: true, data: result };
+        const tweetUrl = `https://twitter.com/i/status/${result.data.id}`;
+        return { success: true, data: result, url: tweetUrl };
     } catch (error) {
         console.error('Twitter Error:', error);
         console.error('Twitter Error Code:', error.code);

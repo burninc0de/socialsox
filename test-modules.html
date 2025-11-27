@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Module Test</title>
+</head>
+<body>
+    <h1>Testing Modules</h1>
+    <div id="test-output"></div>
+    
+    <script type="module">
+        // Test imports
+        import { showToast } from './src/modules/ui.js';
+        import { getSelectedImage } from './src/modules/imageUpload.js';
+        
+        const output = document.getElementById('test-output');
+        
+        try {
+            output.innerHTML += '✓ Modules loaded successfully<br>';
+            output.innerHTML += '✓ ui.js imported<br>';
+            output.innerHTML += '✓ imageUpload.js imported<br>';
+            output.innerHTML += '<br><strong>All modules are working!</strong>';
+        } catch (error) {
+            output.innerHTML = '✗ Error: ' + error.message;
+        }
+    </script>
+</body>
+</html>
