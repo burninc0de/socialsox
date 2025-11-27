@@ -23,7 +23,8 @@ export async function saveCredentials() {
             mastodon: document.getElementById('excludeMastodonNotifications').checked,
             twitter: document.getElementById('excludeTwitterNotifications').checked,
             bluesky: document.getElementById('excludeBlueskyNotifications').checked
-        }
+        },
+        windowControlsStyle: document.getElementById('windowControlsStyle').value || 'macos-circles'
     };
 
     try {
@@ -128,6 +129,15 @@ export async function loadCredentials() {
             document.getElementById('excludeTwitterNotifications').checked = settings.notificationExclusions.twitter || false;
             document.getElementById('excludeBlueskyNotifications').checked = settings.notificationExclusions.bluesky || false;
         }
+        
+        if (settings.windowControlsStyle) {
+            document.getElementById('windowControlsStyle').value = settings.windowControlsStyle;
+        } else {
+            document.getElementById('windowControlsStyle').value = 'macos-circles';
+        }
+        
+        // Apply window controls style
+        updateWindowControlsStyle(settings.windowControlsStyle || 'macos-circles');
         
         document.querySelectorAll('.platform-toggle').forEach(btn => {
             const platform = btn.dataset.platform;
@@ -236,5 +246,56 @@ export async function importCredentials() {
         }
     } catch (error) {
         window.showStatus('Import failed: ' + error.message, 'error');
+    }
+}
+
+export function updateWindowControlsStyle(style) {
+    const controlsContainer = document.querySelector('.window-controls');
+    if (!controlsContainer) return;
+    
+    controlsContainer.innerHTML = '';
+    
+    if (style === 'lucide-icons') {
+        // Create icon buttons
+        const minimizeBtn = document.createElement('button');
+        minimizeBtn.className = 'w-6 h-6 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-800 dark:text-gray-200';
+        minimizeBtn.onclick = () => window.electron.minimizeWindow();
+        minimizeBtn.innerHTML = '<i data-lucide="minus" class="w-3 h-3"></i>';
+        
+        const maximizeBtn = document.createElement('button');
+        maximizeBtn.className = 'w-6 h-6 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-800 dark:text-gray-200';
+        maximizeBtn.onclick = () => window.electron.maximizeWindow();
+        maximizeBtn.innerHTML = '<i data-lucide="maximize" class="w-3 h-3"></i>';
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'w-6 h-6 flex items-center justify-center hover:bg-red-200 dark:hover:bg-red-800 rounded transition-colors text-gray-800 dark:text-gray-200';
+        closeBtn.onclick = () => window.electron.closeWindow();
+        closeBtn.innerHTML = '<i data-lucide="x" class="w-3 h-3"></i>';
+        
+        controlsContainer.appendChild(minimizeBtn);
+        controlsContainer.appendChild(maximizeBtn);
+        controlsContainer.appendChild(closeBtn);
+    } else {
+        // Default macOS circles
+        const minimizeBtn = document.createElement('button');
+        minimizeBtn.className = 'w-3 h-3 rounded-full bg-yellow-400 hover:opacity-70 transition-opacity';
+        minimizeBtn.onclick = () => window.electron.minimizeWindow();
+        
+        const maximizeBtn = document.createElement('button');
+        maximizeBtn.className = 'w-3 h-3 rounded-full bg-green-500 hover:opacity-70 transition-opacity';
+        maximizeBtn.onclick = () => window.electron.maximizeWindow();
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'w-3 h-3 rounded-full bg-red-500 hover:opacity-70 transition-opacity';
+        closeBtn.onclick = () => window.electron.closeWindow();
+        
+        controlsContainer.appendChild(minimizeBtn);
+        controlsContainer.appendChild(maximizeBtn);
+        controlsContainer.appendChild(closeBtn);
+    }
+    
+    // Re-create Lucide icons if available
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
     }
 }

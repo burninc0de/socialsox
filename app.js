@@ -139,6 +139,13 @@ window.addEventListener('DOMContentLoaded', async () => {
         });
     });
     
+    document.getElementById('windowControlsStyle').addEventListener('change', function() {
+        const style = this.value;
+        import('./src/modules/storage.js').then(module => {
+            module.updateWindowControlsStyle(style);
+        });
+    });
+    
     document.querySelectorAll('.platform-toggle').forEach(btn => {
         btn.addEventListener('click', async function() {
             const platform = this.dataset.platform;
@@ -372,6 +379,11 @@ function resetAllData() {
     }
     
     document.getElementById('externalLinksToggle').checked = false;
+    
+    document.getElementById('windowControlsStyle').value = 'macos-circles';
+    import('./src/modules/storage.js').then(module => {
+        module.updateWindowControlsStyle('macos-circles');
+    });
     
     const historyList = document.getElementById('historyList');
     const noHistory = document.getElementById('noHistory');
