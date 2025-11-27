@@ -278,13 +278,15 @@ async function fetchMastodonNotifications(instance, token, sinceId = null) {
     
     const processedNotifications = await Promise.all(notifications.map(async n => {
         let url = '';
-        if (n.account?.acct && cleanInstance) {
-            url = `${cleanInstance}/@${n.account.acct}`;
+        if (n.status?.url) {
+            url = n.status.url;
+        } else if (n.status?.account?.acct && cleanInstance) {
+            url = `${cleanInstance}/@${n.status.account.acct}`;
             if (n.status?.id) {
                 url += `/${n.status.id}`;
             }
         } else {
-            url = n.status?.url || n.account?.url || '';
+            url = n.account?.url || '';
         }
         
         let replyingTo = null;
