@@ -292,39 +292,54 @@ async function loadCredentials() {
                 const decrypted = await window.electron.decryptCredentials(encrypted);
                 sensitiveCreds = JSON.parse(decrypted);
             } catch (error) {
-                console.error('Failed to decrypt credentials:', error);
+                console.error('Failed to parse old credentials:', error);
+                // Clear corrupted encrypted data
+                localStorage.removeItem('socialSoxEncryptedCredentials');
+                showStatus('Corrupted encrypted credentials cleared. Please re-enter your credentials.', 'info');
             }
         }
 
         // Load settings
         const settingsSaved = localStorage.getItem('socialSoxSettings');
         if (settingsSaved) {
-            settings = JSON.parse(settingsSaved);
+            try {
+                settings = JSON.parse(settingsSaved);
+            } catch (error) {
+                console.error('Failed to parse settings:', error);
+                localStorage.removeItem('socialSoxSettings');
+            }
         }
 
         // Fallback to old storage format if new ones don't exist
         if (!encrypted && !settingsSaved) {
             const saved = localStorage.getItem('socialSoxCredentials');
             if (saved) {
-                const creds = JSON.parse(saved);
-                // Migrate to new format
-                sensitiveCreds = {
-                    mastodonToken: creds.mastodonToken || '',
-                    twitterKey: creds.twitterKey || '',
-                    twitterSecret: creds.twitterSecret || '',
-                    twitterToken: creds.twitterToken || '',
-                    twitterTokenSecret: creds.twitterTokenSecret || '',
-                    blueskyPassword: creds.blueskyPassword || ''
-                };
-                settings = {
-                    mastodonInstance: creds.mastodonInstance || '',
-                    blueskyHandle: creds.blueskyHandle || '',
-                    platforms: creds.platforms || {},
-                    pollingIntervals: creds.pollingIntervals || {},
-                    notificationExclusions: creds.notificationExclusions || {}
-                };
-                // Save in new format
-                await saveCredentials();
+                try {
+                    const creds = JSON.parse(saved);
+                    // Migrate to new format
+                    sensitiveCreds = {
+                        mastodonToken: creds.mastodonToken || '',
+                        twitterKey: creds.twitterKey || '',
+                        twitterSecret: creds.twitterSecret || '',
+                        twitterToken: creds.twitterToken || '',
+                        twitterTokenSecret: creds.twitterTokenSecret || '',
+                        blueskyPassword: creds.blueskyPassword || ''
+                    };
+                    settings = {
+                        mastodonInstance: creds.mastodonInstance || '',
+                        blueskyHandle: creds.blueskyHandle || '',
+                        platforms: creds.platforms || {},
+                        pollingIntervals: creds.pollingIntervals || {},
+                        notificationExclusions: creds.notificationExclusions || {}
+                    };
+                    // Save in new format
+                    await saveCredentials();
+                } catch (error) {
+                    console.error('Failed to parse old credentials:', error);
+                    // Clear corrupted old credentials
+                    localStorage.removeItem('socialSoxCredentials');
+                    showStatus('Corrupted credentials cleared. Please re-enter your credentials.', 'info');
+                }
             }
         }
 
