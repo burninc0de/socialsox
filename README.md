@@ -211,11 +211,6 @@ npm run dev
 # Launch the Electron app (loads from Vite dev server in dev mode)
 npm start
 
-# For full development: Run both commands above in separate terminals
-# Terminal 1: npm run dev
-# Terminal 2: npm start
-# This gives you live updates in the Electron window
-
 # Build for production
 npm run build
 ```
