@@ -13,7 +13,7 @@ A simple, local Electron app for posting short messages to Mastodon, X (aka Twit
 - 📤📥 Export/Import credentials for portability
 - 🖥️ Desktop app - no browser or server needed!
 - 📦 Cross-platform distributable builds
-- 📋 Tabbed interface: Post, History, Settings
+- 📋 Tabbed interface: Post, History, Notifications, Settings
 - 🖼️ Image upload support
 - 📜 Posting history with status tracking
 - 🎛️ Dedicated settings tab for API configuration
@@ -49,6 +49,23 @@ A simple, local Electron app for posting short messages to Mastodon, X (aka Twit
 > - Tailwind CSS and Lucide icons are loaded via CDN for simplicity
 > - Tested on Linux (Arch CachyOS) and Windows 11
 > - Mac builds need testing
+
+## Project Structure
+
+The application follows a modular architecture to keep code organized and maintainable. The core functionality is split into separate modules located in the `src/modules/` directory:
+
+```
+src/
+├── modules/
+│   ├── history.js          # Handles posting history and status tracking
+│   ├── imageUpload.js      # Manages image upload functionality
+│   ├── notifications.js    # Handles platform notifications
+│   ├── platforms.js        # Contains platform-specific API integrations
+│   ├── storage.js          # Manages secure credential storage
+│   └── ui.js               # UI-related utilities and helpers
+```
+
+This modular approach allows for easy maintenance and future extensions.
 
 ## Quick Start
 
