@@ -1295,7 +1295,9 @@ async function fetchMastodonNotifications(instance, token, sinceId = null) {
     }
     
     const notifications = await response.json();
-    return notifications.map(n => {
+    
+    // Process notifications and fetch additional context where needed
+    const processedNotifications = await Promise.all(notifications.map(async n => {
         // Always construct URL using user's instance for federation
         let url = '';
         if (n.account?.acct && cleanInstance) {
@@ -1308,6 +1310,24 @@ async function fetchMastodonNotifications(instance, token, sinceId = null) {
             url = n.status?.url || n.account?.url || '';
         }
         
+        let replyingTo = null;
+        if (n.type === 'mention' && n.status?.in_reply_to_id) {
+            // Fetch the parent status for context
+            try {
+                const parentResponse = await fetch(`${cleanInstance}/api/v1/statuses/${n.status.in_reply_to_id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (parentResponse.ok) {
+                    const parentStatus = await parentResponse.json();
+                    replyingTo = parentStatus.content?.replace(/<[^>]*>/g, '') || '';
+                }
+            } catch (error) {
+                console.warn('Failed to fetch parent status:', error);
+            }
+        }
+        
         return {
             id: n.id,
             type: n.type,
@@ -1315,9 +1335,12 @@ async function fetchMastodonNotifications(instance, token, sinceId = null) {
             author: n.account?.display_name || n.account?.username || 'Unknown',
             authorHandle: n.account?.acct || '',
             content: n.status?.content?.replace(/<[^>]*>/g, '') || '',
+            replyingTo: replyingTo,
             url: url
         };
-    });
+    }));
+    
+    return processedNotifications;
 }
 
 async function fetchTwitterNotifications(apiKey, apiSecret, accessToken, accessTokenSecret) {
@@ -1378,9 +1401,13 @@ async function fetchBlueskyNotifications(handle, password) {
     }
     
     const data = await response.json();
-    return data.notifications.map(n => {
+    
+    // Process notifications and fetch additional context
+    const processedNotifications = await Promise.all(data.notifications.map(async n => {
         let url = null;
         const authorDid = n.author?.did;
+        let subjectContent = null;
+        let replyingTo = null;
         
         if (n.reason === 'follow') {
             // For follows, link to the author's profile
@@ -1388,7 +1415,7 @@ async function fetchBlueskyNotifications(handle, password) {
                 url = `https://bsky.app/profile/${authorDid}`;
             }
         } else if (n.reason === 'like' || n.reason === 'repost') {
-            // For likes and reposts, link to the subject post
+            // For likes and reposts, link to the subject post and fetch its content
             const subjectUri = n.record?.subject?.uri;
             if (subjectUri) {
                 const uriParts = subjectUri.split('/');
@@ -1396,10 +1423,51 @@ async function fetchBlueskyNotifications(handle, password) {
                 const postId = uriParts[uriParts.length - 1];
                 if (subjectDid && postId) {
                     url = `https://bsky.app/profile/${subjectDid}/post/${postId}`;
+                    // Fetch the subject post content
+                    try {
+                        const recordResponse = await fetch(`https://bsky.social/xrpc/com.atproto.repo.getRecord?repo=${subjectDid}&collection=app.bsky.feed.post&rkey=${postId}`, {
+                            headers: {
+                                'Authorization': `Bearer ${session.accessJwt}`
+                            }
+                        });
+                        if (recordResponse.ok) {
+                            const recordData = await recordResponse.json();
+                            subjectContent = recordData.value?.text || '';
+                        }
+                    } catch (error) {
+                        console.warn('Failed to fetch subject post:', error);
+                    }
+                }
+            }
+        } else if (n.reason === 'reply') {
+            // For replies, link to the reply and fetch the parent
+            const uriParts = n.uri.split('/');
+            const postId = uriParts[uriParts.length - 1];
+            if (authorDid && postId) {
+                url = `https://bsky.app/profile/${authorDid}/post/${postId}`;
+                // Fetch the parent post if this is a reply
+                if (n.record?.reply?.parent?.uri) {
+                    const parentUri = n.record.reply.parent.uri;
+                    const parentUriParts = parentUri.split('/');
+                    const parentDid = parentUriParts[2];
+                    const parentPostId = parentUriParts[uriParts.length - 1];
+                    try {
+                        const parentResponse = await fetch(`https://bsky.social/xrpc/com.atproto.repo.getRecord?repo=${parentDid}&collection=app.bsky.feed.post&rkey=${parentPostId}`, {
+                            headers: {
+                                'Authorization': `Bearer ${session.accessJwt}`
+                            }
+                        });
+                        if (parentResponse.ok) {
+                            const parentData = await parentResponse.json();
+                            replyingTo = parentData.value?.text || '';
+                        }
+                    } catch (error) {
+                        console.warn('Failed to fetch parent post:', error);
+                    }
                 }
             }
         } else if (n.uri) {
-            // For mentions, replies, quotes, etc., link to the post
+            // For mentions, quotes, etc., link to the post
             const uriParts = n.uri.split('/');
             const postId = uriParts[uriParts.length - 1];
             if (authorDid && postId) {
@@ -1414,10 +1482,14 @@ async function fetchBlueskyNotifications(handle, password) {
             author: n.author?.displayName || n.author?.handle || 'Unknown',
             authorHandle: n.author?.handle || '',
             content: n.record?.text || '',
+            subjectContent: subjectContent,
+            replyingTo: replyingTo,
             isRead: n.isRead,
             url: url
         };
-    });
+    }));
+    
+    return processedNotifications;
 }
 
 function displayNotifications(notifications) {
@@ -1496,7 +1568,19 @@ function displayNotifications(notifications) {
                     <span class="text-sm font-medium text-gray-800 dark:text-gray-200">${notif.author}</span>
                     ${notif.authorHandle ? `<span class="text-xs text-gray-500 dark:text-gray-400">@${notif.authorHandle}</span>` : ''}
                 </div>
-                ${notif.content ? `<p class="text-sm text-gray-700 dark:text-gray-300 mb-2">${notif.content.substring(0, 200)}${notif.content.length > 200 ? '...' : ''}</p>` : ''}
+                ${(() => {
+                    let displayContent = notif.content;
+                    let contentLabel = '';
+                    
+                    // For Bluesky likes/reposts, show the subject content
+                    if ((notif.type === 'like' || notif.type === 'repost') && notif.subjectContent) {
+                        displayContent = notif.subjectContent;
+                        contentLabel = notif.type === 'like' ? 'Liked: ' : 'Reposted: ';
+                    }
+                    
+                    return displayContent ? `<p class="text-sm text-gray-700 dark:text-gray-300 mb-2">${contentLabel}${displayContent.substring(0, 200)}${displayContent.length > 200 ? '...' : ''}</p>` : '';
+                })()}
+                ${notif.replyingTo ? `<div class="mb-2 p-2 bg-gray-100 dark:bg-gray-600 rounded text-xs text-gray-600 dark:text-gray-400"><strong>Replying to:</strong> ${notif.replyingTo.substring(0, 150)}${notif.replyingTo.length > 150 ? '...' : ''}</div>` : ''}
                 ${notif.url ? `<a href="${notif.url}" ${localStorage.getItem('socialSoxExternalLinks') === 'true' ? 'onclick="window.electron.openExternalLink(this.href); return false;"' : 'target="_blank"'} class="text-xs text-primary-600 dark:text-primary-400 hover:underline">View on ${notif.platform}</a>` : ''}
             </div>
         `;
