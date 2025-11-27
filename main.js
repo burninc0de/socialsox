@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, clipboard, Tray, Menu, Notification } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, clipboard, Tray, Menu, Notification, safeStorage } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
 
@@ -81,6 +81,11 @@ async function createWindow() {
     } else {
         win.loadFile('index.html');
     }
+
+    // Forward renderer console messages to terminal
+    win.webContents.on('console-message', (event, level, message, line, sourceId) => {
+        console.log(`[Renderer]: ${message}`);
+    });
 
     // Save window bounds on move and resize
     win.on('move', () => {
@@ -471,6 +476,27 @@ app.whenReady().then(() => {
 });
 
 ipcMain.handle('get-version', () => app.getVersion());
+
+// SafeStorage handlers for credentials
+ipcMain.handle('encrypt-credentials', async (event, data) => {
+    if (!safeStorage.isEncryptionAvailable()) {
+        throw new Error('Encryption is not available on this system');
+    }
+    const encrypted = safeStorage.encryptString(data);
+    return encrypted.toString('base64');
+});
+
+ipcMain.handle('decrypt-credentials', async (event, encryptedData) => {
+    if (!safeStorage.isEncryptionAvailable()) {
+        throw new Error('Encryption is not available on this system');
+    }
+    const buffer = Buffer.from(encryptedData, 'base64');
+    return safeStorage.decryptString(buffer);
+});
+
+ipcMain.on('log', (event, message) => {
+    console.log('[Renderer Log]:', message);
+});
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {

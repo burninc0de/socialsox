@@ -28,6 +28,8 @@ contextBridge.exposeInMainWorld(
         readFileAsDataURL: (filePath) => ipcRenderer.invoke('read-file-as-data-url', filePath),
         getDefaultTrayIconPath: () => ipcRenderer.invoke('get-default-tray-icon-path'),
         openExternalLink: (url) => ipcRenderer.send('open-external-link', url),
-        getVersion: () => ipcRenderer.invoke('get-version')
+        getVersion: () => ipcRenderer.invoke('get-version'),
+        encryptCredentials: (data) => ipcRenderer.invoke('encrypt-credentials', data),
+        decryptCredentials: (encryptedData) => ipcRenderer.invoke('decrypt-credentials', encryptedData)
     }
 );

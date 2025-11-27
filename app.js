@@ -16,8 +16,8 @@ let notificationPollingIntervals = {
 };
 
 // Load credentials from localStorage on page load
-window.addEventListener('DOMContentLoaded', () => {
-    loadCredentials();
+window.addEventListener('DOMContentLoaded', async () => {
+    await loadCredentials();
     loadHistory();
     
     // Load version
@@ -133,7 +133,7 @@ window.addEventListener('DOMContentLoaded', () => {
     
     // Platform toggles
     document.querySelectorAll('.platform-toggle').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', async function() {
             const platform = this.dataset.platform;
             platforms[platform] = !platforms[platform];
             this.classList.toggle('active');
@@ -148,29 +148,29 @@ window.addEventListener('DOMContentLoaded', () => {
             }
             
             // Save platforms state
-            saveCredentials();
+            await saveCredentials();
         });
     });
     
     // Save credentials on change
     document.querySelectorAll('input').forEach(input => {
-        input.addEventListener('change', saveCredentials);
+        input.addEventListener('change', async () => await saveCredentials());
     });
     
     // Polling interval sliders
-    document.getElementById('mastodonInterval').addEventListener('input', function() {
+    document.getElementById('mastodonInterval').addEventListener('input', async function() {
         document.getElementById('mastodonIntervalValue').textContent = this.value;
-        saveCredentials();
+        await saveCredentials();
         restartNotificationPolling();
     });
-    document.getElementById('twitterInterval').addEventListener('input', function() {
+    document.getElementById('twitterInterval').addEventListener('input', async function() {
         document.getElementById('twitterIntervalValue').textContent = this.value;
-        saveCredentials();
+        await saveCredentials();
         restartNotificationPolling();
     });
-    document.getElementById('blueskyInterval').addEventListener('input', function() {
+    document.getElementById('blueskyInterval').addEventListener('input', async function() {
         document.getElementById('blueskyIntervalValue').textContent = this.value;
-        saveCredentials();
+        await saveCredentials();
         restartNotificationPolling();
     });
     
@@ -241,16 +241,19 @@ function updateCharCount() {
     }
 }
 
-function saveCredentials() {
-    const creds = {
-        mastodonInstance: document.getElementById('mastodon-instance').value,
+async function saveCredentials() {
+    const sensitiveCreds = {
         mastodonToken: document.getElementById('mastodon-token').value,
         twitterKey: document.getElementById('twitter-key').value,
         twitterSecret: document.getElementById('twitter-secret').value,
         twitterToken: document.getElementById('twitter-token').value,
         twitterTokenSecret: document.getElementById('twitter-token-secret').value,
+        blueskyPassword: document.getElementById('bluesky-password').value
+    };
+
+    const settings = {
+        mastodonInstance: document.getElementById('mastodon-instance').value,
         blueskyHandle: document.getElementById('bluesky-handle').value,
-        blueskyPassword: document.getElementById('bluesky-password').value,
         platforms: { ...platforms },
         pollingIntervals: {
             mastodon: parseInt(document.getElementById('mastodonInterval').value) || 5,
@@ -263,36 +266,106 @@ function saveCredentials() {
             bluesky: document.getElementById('excludeBlueskyNotifications').checked
         }
     };
-    
-    localStorage.setItem('socialSoxCredentials', JSON.stringify(creds));
+
+    try {
+        const encrypted = await window.electron.encryptCredentials(JSON.stringify(sensitiveCreds));
+        localStorage.setItem('socialSoxEncryptedCredentials', encrypted);
+    } catch (error) {
+        console.error('Failed to encrypt credentials:', error);
+        // Fallback to unencrypted storage if encryption fails
+        localStorage.setItem('socialSoxCredentials', JSON.stringify({ ...sensitiveCreds, ...settings }));
+        return;
+    }
+
+    localStorage.setItem('socialSoxSettings', JSON.stringify(settings));
 }
 
-function loadCredentials() {
-    const saved = localStorage.getItem('socialSoxCredentials');
-    if (saved) {
-        const creds = JSON.parse(saved);
-        document.getElementById('mastodon-instance').value = creds.mastodonInstance || '';
-        document.getElementById('mastodon-token').value = creds.mastodonToken || '';
-        document.getElementById('twitter-key').value = creds.twitterKey || '';
-        document.getElementById('twitter-secret').value = creds.twitterSecret || '';
-        document.getElementById('twitter-token').value = creds.twitterToken || '';
-        document.getElementById('twitter-token-secret').value = creds.twitterTokenSecret || '';
-        document.getElementById('bluesky-handle').value = creds.blueskyHandle || '';
-        document.getElementById('bluesky-password').value = creds.blueskyPassword || '';
+async function loadCredentials() {
+    try {
+        let sensitiveCreds = {};
+        let settings = {};
+
+        // Try to load encrypted credentials
+        const encrypted = localStorage.getItem('socialSoxEncryptedCredentials');
+        if (encrypted) {
+            try {
+                const decrypted = await window.electron.decryptCredentials(encrypted);
+                sensitiveCreds = JSON.parse(decrypted);
+            } catch (error) {
+                console.error('Failed to parse old credentials:', error);
+                // Clear corrupted encrypted data
+                localStorage.removeItem('socialSoxEncryptedCredentials');
+                showStatus('Corrupted encrypted credentials cleared. Please re-enter your credentials.', 'info');
+            }
+        }
+
+        // Load settings
+        const settingsSaved = localStorage.getItem('socialSoxSettings');
+        if (settingsSaved) {
+            try {
+                settings = JSON.parse(settingsSaved);
+            } catch (error) {
+                console.error('Failed to parse settings:', error);
+                localStorage.removeItem('socialSoxSettings');
+            }
+        }
+
+        // Fallback to old storage format if new ones don't exist
+        if (!encrypted && !settingsSaved) {
+            const saved = localStorage.getItem('socialSoxCredentials');
+            if (saved) {
+                try {
+                    const creds = JSON.parse(saved);
+                    // Migrate to new format
+                    sensitiveCreds = {
+                        mastodonToken: creds.mastodonToken || '',
+                        twitterKey: creds.twitterKey || '',
+                        twitterSecret: creds.twitterSecret || '',
+                        twitterToken: creds.twitterToken || '',
+                        twitterTokenSecret: creds.twitterTokenSecret || '',
+                        blueskyPassword: creds.blueskyPassword || ''
+                    };
+                    settings = {
+                        mastodonInstance: creds.mastodonInstance || '',
+                        blueskyHandle: creds.blueskyHandle || '',
+                        platforms: creds.platforms || {},
+                        pollingIntervals: creds.pollingIntervals || {},
+                        notificationExclusions: creds.notificationExclusions || {}
+                    };
+                    // Save in new format
+                    await saveCredentials();
+                } catch (error) {
+                    console.error('Failed to parse old credentials:', error);
+                    // Clear corrupted old credentials
+                    localStorage.removeItem('socialSoxCredentials');
+                    showStatus('Corrupted credentials cleared. Please re-enter your credentials.', 'info');
+                }
+            }
+        }
+
+        // Populate form fields
+        document.getElementById('mastodon-instance').value = settings.mastodonInstance || '';
+        document.getElementById('mastodon-token').value = sensitiveCreds.mastodonToken || '';
+        document.getElementById('twitter-key').value = sensitiveCreds.twitterKey || '';
+        document.getElementById('twitter-secret').value = sensitiveCreds.twitterSecret || '';
+        document.getElementById('twitter-token').value = sensitiveCreds.twitterToken || '';
+        document.getElementById('twitter-token-secret').value = sensitiveCreds.twitterTokenSecret || '';
+        document.getElementById('bluesky-handle').value = settings.blueskyHandle || '';
+        document.getElementById('bluesky-password').value = sensitiveCreds.blueskyPassword || '';
         
         // Load platforms
-        if (creds.platforms) {
-            Object.assign(platforms, creds.platforms);
+        if (settings.platforms) {
+            Object.assign(platforms, settings.platforms);
         }
         
         // Load polling intervals
-        if (creds.pollingIntervals) {
-            document.getElementById('mastodonInterval').value = creds.pollingIntervals.mastodon || 5;
-            document.getElementById('mastodonIntervalValue').textContent = creds.pollingIntervals.mastodon || 5;
-            document.getElementById('twitterInterval').value = creds.pollingIntervals.twitter || 60;
-            document.getElementById('twitterIntervalValue').textContent = creds.pollingIntervals.twitter || 60;
-            document.getElementById('blueskyInterval').value = creds.pollingIntervals.bluesky || 5;
-            document.getElementById('blueskyIntervalValue').textContent = creds.pollingIntervals.bluesky || 5;
+        if (settings.pollingIntervals) {
+            document.getElementById('mastodonInterval').value = settings.pollingIntervals.mastodon || 5;
+            document.getElementById('mastodonIntervalValue').textContent = settings.pollingIntervals.mastodon || 5;
+            document.getElementById('twitterInterval').value = settings.pollingIntervals.twitter || 60;
+            document.getElementById('twitterIntervalValue').textContent = settings.pollingIntervals.twitter || 60;
+            document.getElementById('blueskyInterval').value = settings.pollingIntervals.bluesky || 5;
+            document.getElementById('blueskyIntervalValue').textContent = settings.pollingIntervals.bluesky || 5;
         } else {
             // Defaults
             document.getElementById('mastodonInterval').value = 5;
@@ -304,10 +377,10 @@ function loadCredentials() {
         }
         
         // Load notification exclusions
-        if (creds.notificationExclusions) {
-            document.getElementById('excludeMastodonNotifications').checked = creds.notificationExclusions.mastodon || false;
-            document.getElementById('excludeTwitterNotifications').checked = creds.notificationExclusions.twitter || false;
-            document.getElementById('excludeBlueskyNotifications').checked = creds.notificationExclusions.bluesky || false;
+        if (settings.notificationExclusions) {
+            document.getElementById('excludeMastodonNotifications').checked = settings.notificationExclusions.mastodon || false;
+            document.getElementById('excludeTwitterNotifications').checked = settings.notificationExclusions.twitter || false;
+            document.getElementById('excludeBlueskyNotifications').checked = settings.notificationExclusions.bluesky || false;
         }
         
         // Apply platforms to buttons
@@ -323,6 +396,9 @@ function loadCredentials() {
                 btn.classList.remove('border-primary-500', 'bg-primary-500', 'text-white');
             }
         });
+    } catch (error) {
+        console.error('Error loading credentials from localStorage:', error);
+        showStatus('Error loading saved credentials. Storage may be corrupted. Try "Reset All Data" in Settings.', 'error');
     }
 }
 
@@ -883,7 +959,7 @@ async function importCredentials() {
                 document.getElementById('bluesky-password').value = creds.blueskyPassword || '';
                 
                 // Save to localStorage
-                saveCredentials();
+                await saveCredentials();
                 showStatus('Credentials imported successfully!', 'success');
             } else if (!result.canceled) {
                 showStatus('Failed to import credentials: ' + result.error, 'error');
@@ -911,7 +987,7 @@ async function importCredentials() {
                         document.getElementById('bluesky-password').value = creds.blueskyPassword || '';
                         
                         // Save to localStorage
-                        saveCredentials();
+                        await saveCredentials();
                         showStatus('Credentials imported successfully!', 'success');
                     } catch (error) {
                         showStatus('Failed to parse credentials file: ' + error.message, 'error');
@@ -1044,15 +1120,90 @@ function clearNotificationsCache() {
     showStatus('Notification cache cleared!', 'success');
 }
 
+// Reset all app data and settings
+function resetAllData() {
+    if (!confirm('⚠️ WARNING: This will permanently delete ALL your credentials, history, notifications, and settings. This action cannot be undone!\n\nAre you absolutely sure you want to reset everything?')) {
+        return;
+    }
+    
+    // Clear all localStorage
+    localStorage.clear();
+    
+    // Reset form fields
+    document.getElementById('mastodon-instance').value = '';
+    document.getElementById('mastodon-token').value = '';
+    document.getElementById('twitter-key').value = '';
+    document.getElementById('twitter-secret').value = '';
+    document.getElementById('twitter-token').value = '';
+    document.getElementById('twitter-token-secret').value = '';
+    document.getElementById('bluesky-handle').value = '';
+    document.getElementById('bluesky-password').value = '';
+    
+    // Reset platforms
+    Object.keys(platforms).forEach(platform => {
+        platforms[platform] = false;
+        const btn = document.querySelector(`.platform-toggle[data-platform="${platform}"]`);
+        if (btn) {
+            btn.classList.remove('active', 'border-primary-500', 'bg-primary-500', 'text-white');
+            btn.classList.add('border-gray-300', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
+        }
+    });
+    
+    // Reset polling intervals to defaults
+    document.getElementById('mastodonInterval').value = 5;
+    document.getElementById('mastodonIntervalValue').textContent = 5;
+    document.getElementById('twitterInterval').value = 60;
+    document.getElementById('twitterIntervalValue').textContent = 60;
+    document.getElementById('blueskyInterval').value = 5;
+    document.getElementById('blueskyIntervalValue').textContent = 5;
+    
+    // Reset notification exclusions
+    document.getElementById('excludeMastodonNotifications').checked = false;
+    document.getElementById('excludeTwitterNotifications').checked = false;
+    document.getElementById('excludeBlueskyNotifications').checked = false;
+    
+    // Reset dark mode to default (true)
+    document.getElementById('darkModeToggle').checked = true;
+    document.documentElement.classList.add('dark');
+    
+    // Reset tray icon to default (false)
+    document.getElementById('trayIconToggle').checked = false;
+    document.getElementById('trayIconSection').style.display = 'none';
+    if (window.electron && window.electron.setTrayEnabled) {
+        window.electron.setTrayEnabled(false);
+    }
+    
+    // Reset external links to default (false)
+    document.getElementById('externalLinksToggle').checked = false;
+    
+    // Clear history display
+    const historyList = document.getElementById('historyList');
+    const noHistory = document.getElementById('noHistory');
+    historyList.innerHTML = '';
+    noHistory.style.display = 'block';
+    
+    // Clear notifications display
+    const notificationsList = document.getElementById('notificationsList');
+    const noNotifications = document.getElementById('noNotifications');
+    notificationsList.innerHTML = '';
+    noNotifications.style.display = 'block';
+    noNotifications.textContent = 'Click "Load Notifications" to check for replies, likes, and mentions across your platforms.';
+    
+    // Stop any polling
+    stopNotificationPolling();
+    
+    showStatus('All data has been reset! Please restart the app for a complete fresh start.', 'success');
+}
+
 // Start automatic notification checking
 function startNotificationPolling() {
     // Clear any existing intervals
     stopNotificationPolling();
     
     // Get polling intervals and exclusions from settings
-    const creds = JSON.parse(localStorage.getItem('socialSoxCredentials') || '{}');
-    const intervals = creds.pollingIntervals || { mastodon: 5, twitter: 60, bluesky: 5 };
-    const exclusions = creds.notificationExclusions || {};
+    const settings = JSON.parse(localStorage.getItem('socialSoxSettings') || '{}');
+    const intervals = settings.pollingIntervals || { mastodon: 5, twitter: 60, bluesky: 5 };
+    const exclusions = settings.notificationExclusions || {};
     
     // Start polling for each non-excluded platform
     ['mastodon', 'twitter', 'bluesky'].filter(platform => !exclusions[platform]).forEach(platform => {
@@ -1200,8 +1351,8 @@ async function loadNotifications(silent = false) {
     
     try {
         // Get notification exclusions
-        const creds = JSON.parse(localStorage.getItem('socialSoxCredentials') || '{}');
-        const exclusions = creds.notificationExclusions || {};
+        const settings = JSON.parse(localStorage.getItem('socialSoxSettings') || '{}');
+        const exclusions = settings.notificationExclusions || {};
         
         // Load notifications from all non-excluded platforms in parallel
         const platformsToCheck = ['mastodon', 'twitter', 'bluesky'].filter(platform => !exclusions[platform]);
@@ -1295,7 +1446,9 @@ async function fetchMastodonNotifications(instance, token, sinceId = null) {
     }
     
     const notifications = await response.json();
-    return notifications.map(n => {
+    
+    // Process notifications and fetch additional context where needed
+    const processedNotifications = await Promise.all(notifications.map(async n => {
         // Always construct URL using user's instance for federation
         let url = '';
         if (n.account?.acct && cleanInstance) {
@@ -1308,6 +1461,62 @@ async function fetchMastodonNotifications(instance, token, sinceId = null) {
             url = n.status?.url || n.account?.url || '';
         }
         
+        let replyingTo = null;
+        let quotingTo = null;
+        
+        if (n.type === 'mention' && n.status?.in_reply_to_id) {
+            // Fetch the parent status for context
+            try {
+                const parentResponse = await fetch(`${cleanInstance}/api/v1/statuses/${n.status.in_reply_to_id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (parentResponse.ok) {
+                    const parentStatus = await parentResponse.json();
+                    replyingTo = parentStatus.content?.replace(/<[^>]*>/g, '') || '';
+                }
+            } catch (error) {
+                console.warn('Failed to fetch parent status:', error);
+            }
+        } else if (n.type === 'mention' && n.status?.content) {
+            // For mentions that are not replies, check if they contain a status URL (quote)
+            const content = n.status.content;
+            const urlRegex = /https?:\/\/([^\/]+)\/@[^\/]+\/(\d+)/g;
+            let match;
+            const foundUrls = [];
+            while ((match = urlRegex.exec(content)) !== null) {
+                foundUrls.push({
+                    instance: match[1],
+                    statusId: match[2],
+                    fullUrl: match[0]
+                });
+            }
+            if (foundUrls.length > 0) {
+                // Take the first status URL found
+                const { instance, statusId } = foundUrls[0];
+                try {
+                    const quotedResponse = await fetch(`https://${instance}/api/v1/statuses/${statusId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (quotedResponse.ok) {
+                        const quotedStatus = await quotedResponse.json();
+                        quotingTo = quotedStatus.content?.replace(/<[^>]*>/g, '') || '';
+                    }
+                } catch (error) {
+                    console.warn('Failed to fetch quoted status:', error);
+                }
+            }
+        }
+        
+        let subjectContent = null;
+        if ((n.type === 'favourite' || n.type === 'reblog') && n.status?.content) {
+            // For favourites and reblogs, extract the subject status content
+            subjectContent = n.status.content.replace(/<[^>]*>/g, '') || '';
+        }
+        
         return {
             id: n.id,
             type: n.type,
@@ -1315,9 +1524,14 @@ async function fetchMastodonNotifications(instance, token, sinceId = null) {
             author: n.account?.display_name || n.account?.username || 'Unknown',
             authorHandle: n.account?.acct || '',
             content: n.status?.content?.replace(/<[^>]*>/g, '') || '',
+            subjectContent: subjectContent,
+            replyingTo: replyingTo,
+            quotingTo: quotingTo,
             url: url
         };
-    });
+    }));
+    
+    return processedNotifications;
 }
 
 async function fetchTwitterNotifications(apiKey, apiSecret, accessToken, accessTokenSecret) {
@@ -1378,9 +1592,14 @@ async function fetchBlueskyNotifications(handle, password) {
     }
     
     const data = await response.json();
-    return data.notifications.map(n => {
+    
+    // Process notifications and fetch additional context
+    const processedNotifications = await Promise.all(data.notifications.map(async n => {
         let url = null;
         const authorDid = n.author?.did;
+        let subjectContent = null;
+        let replyingTo = null;
+        let quotingTo = null;
         
         if (n.reason === 'follow') {
             // For follows, link to the author's profile
@@ -1388,7 +1607,7 @@ async function fetchBlueskyNotifications(handle, password) {
                 url = `https://bsky.app/profile/${authorDid}`;
             }
         } else if (n.reason === 'like' || n.reason === 'repost') {
-            // For likes and reposts, link to the subject post
+            // For likes and reposts, link to the subject post and fetch its content
             const subjectUri = n.record?.subject?.uri;
             if (subjectUri) {
                 const uriParts = subjectUri.split('/');
@@ -1396,10 +1615,78 @@ async function fetchBlueskyNotifications(handle, password) {
                 const postId = uriParts[uriParts.length - 1];
                 if (subjectDid && postId) {
                     url = `https://bsky.app/profile/${subjectDid}/post/${postId}`;
+                    // Fetch the subject post content
+                    try {
+                        const recordResponse = await fetch(`https://bsky.social/xrpc/com.atproto.repo.getRecord?repo=${subjectDid}&collection=app.bsky.feed.post&rkey=${postId}`, {
+                            headers: {
+                                'Authorization': `Bearer ${session.accessJwt}`
+                            }
+                        });
+                        if (recordResponse.ok) {
+                            const recordData = await recordResponse.json();
+                            subjectContent = recordData.value?.text || '';
+                        }
+                    } catch (error) {
+                        console.warn('Failed to fetch subject post:', error);
+                    }
+                }
+            }
+        } else if (n.reason === 'reply') {
+            // For replies, link to the reply and fetch the parent
+            const uriParts = n.uri.split('/');
+            const postId = uriParts[uriParts.length - 1];
+            if (authorDid && postId) {
+                url = `https://bsky.app/profile/${authorDid}/post/${postId}`;
+                // Fetch the parent post if this is a reply
+                if (n.record?.reply?.parent?.uri) {
+                    const parentUri = n.record.reply.parent.uri;
+                    const parentUriParts = parentUri.split('/');
+                    const parentDid = parentUriParts[2];
+                    const parentPostId = parentUriParts[uriParts.length - 1];
+                    try {
+                        const parentResponse = await fetch(`https://bsky.social/xrpc/com.atproto.repo.getRecord?repo=${parentDid}&collection=app.bsky.feed.post&rkey=${parentPostId}`, {
+                            headers: {
+                                'Authorization': `Bearer ${session.accessJwt}`
+                            }
+                        });
+                        if (parentResponse.ok) {
+                            const parentData = await parentResponse.json();
+                            replyingTo = parentData.value?.text || '';
+                        }
+                    } catch (error) {
+                        console.warn('Failed to fetch parent post:', error);
+                    }
+                }
+            }
+        } else if (n.reason === 'quote') {
+            // For quotes, link to the quote and fetch the quoted post
+            const uriParts = n.uri.split('/');
+            const postId = uriParts[uriParts.length - 1];
+            if (authorDid && postId) {
+                url = `https://bsky.app/profile/${authorDid}/post/${postId}`;
+                // Fetch the quoted post if this is a quote
+                if (n.record?.embed?.record?.uri) {
+                    const quotedUri = n.record.embed.record.uri;
+                    const quotedUriParts = quotedUri.split('/');
+                    const quotedDid = quotedUriParts[2];
+                    const quotedPostId = quotedUriParts[quotedUriParts.length - 1];
+                    try {
+                        const quotedResponse = await fetch(`https://bsky.social/xrpc/com.atproto.repo.getRecord?repo=${quotedDid}&collection=app.bsky.feed.post&rkey=${quotedPostId}`, {
+                            headers: {
+                                'Authorization': `Bearer ${session.accessJwt}`
+                            }
+                        });
+                        if (quotedResponse.ok) {
+                            const quotedData = await quotedResponse.json();
+                            quotingTo = quotedData.value?.text || '';
+                        }
+                    } catch (error) {
+                        console.warn('Failed to fetch quoted post:', error);
+                    }
                 }
             }
         } else if (n.uri) {
-            // For mentions, replies, quotes, etc., link to the post
+            // For mentions, quotes, etc., link to the post
             const uriParts = n.uri.split('/');
             const postId = uriParts[uriParts.length - 1];
             if (authorDid && postId) {
@@ -1414,10 +1701,15 @@ async function fetchBlueskyNotifications(handle, password) {
             author: n.author?.displayName || n.author?.handle || 'Unknown',
             authorHandle: n.author?.handle || '',
             content: n.record?.text || '',
+            subjectContent: subjectContent,
+            replyingTo: replyingTo,
+            quotingTo: quotingTo,
             isRead: n.isRead,
             url: url
         };
-    });
+    }));
+    
+    return processedNotifications;
 }
 
 function displayNotifications(notifications) {
@@ -1496,7 +1788,24 @@ function displayNotifications(notifications) {
                     <span class="text-sm font-medium text-gray-800 dark:text-gray-200">${notif.author}</span>
                     ${notif.authorHandle ? `<span class="text-xs text-gray-500 dark:text-gray-400">@${notif.authorHandle}</span>` : ''}
                 </div>
-                ${notif.content ? `<p class="text-sm text-gray-700 dark:text-gray-300 mb-2">${notif.content.substring(0, 200)}${notif.content.length > 200 ? '...' : ''}</p>` : ''}
+                ${(() => {
+                    let displayContent = notif.content;
+                    let contentLabel = '';
+                    
+                    // For likes/reposts/favourites/reblogs and mentions, show the content in a styled box
+                    if ((notif.type === 'like' || notif.type === 'repost' || notif.type === 'favourite' || notif.type === 'reblog') && notif.subjectContent) {
+                        displayContent = notif.subjectContent;
+                        // Use styled box like replying to section
+                        return `<div class="mb-2 p-2 bg-gray-100 dark:bg-gray-600 rounded text-xs text-gray-600 dark:text-gray-400">${displayContent.substring(0, 150)}${displayContent.length > 150 ? '...' : ''}</div>`;
+                    } else if (notif.type === 'mention') {
+                        // For mentions, show the mention content in a styled box
+                        return `<div class="mb-2 p-2 bg-gray-100 dark:bg-gray-600 rounded text-xs text-gray-600 dark:text-gray-400">${displayContent.substring(0, 150)}${displayContent.length > 150 ? '...' : ''}</div>`;
+                    }
+                    
+                    return displayContent ? `<p class="text-sm text-gray-700 dark:text-gray-300 mb-2">${contentLabel}${displayContent.substring(0, 200)}${displayContent.length > 200 ? '...' : ''}</p>` : '';
+                })()}
+                ${notif.replyingTo ? `<div class="mb-2 p-2 bg-gray-100 dark:bg-gray-600 rounded text-xs text-gray-600 dark:text-gray-400"><strong>Replying to:</strong> ${notif.replyingTo.substring(0, 150)}${notif.replyingTo.length > 150 ? '...' : ''}</div>` : ''}
+                ${notif.quotingTo ? `<div class="mb-2 p-2 bg-gray-100 dark:bg-gray-600 rounded text-xs text-gray-600 dark:text-gray-400"><strong>Quoting:</strong> ${notif.quotingTo.substring(0, 150)}${notif.quotingTo.length > 150 ? '...' : ''}</div>` : ''}
                 ${notif.url ? `<a href="${notif.url}" ${localStorage.getItem('socialSoxExternalLinks') === 'true' ? 'onclick="window.electron.openExternalLink(this.href); return false;"' : 'target="_blank"'} class="text-xs text-primary-600 dark:text-primary-400 hover:underline">View on ${notif.platform}</a>` : ''}
             </div>
         `;
