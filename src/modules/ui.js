@@ -67,6 +67,10 @@ export function switchTab(tab) {
     
     document.getElementById(tab + 'Tab').classList.remove('text-gray-500', 'dark:text-gray-400', 'border-transparent');
     document.getElementById(tab + 'Tab').classList.add('text-primary-600', 'dark:text-primary-400', 'border-b-2', 'border-primary-600', 'dark:border-primary-400');
+    
+    // Clear status message when switching tabs
+    const status = document.getElementById('status');
+    status.classList.add('hidden');
 }
 
 export function toggleCollapsible() {
