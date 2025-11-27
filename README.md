@@ -1,6 +1,6 @@
 # 🧦 SocialSox
 
-A simple, local Electron app for posting short messages to Mastodon, Twitter, and Bluesky simultaneously.
+A simple, local Electron app for posting short messages to Mastodon, X (aka Twitter), and Bluesky simultaneously.
 
 ## Features
 
@@ -100,9 +100,9 @@ This creates platform-specific packages in the `dist/` folder:
 3. Create a new app password
 4. Use your handle (e.g., `username.bsky.social`) and the app password
 
-#### Twitter
+#### X
 
-1. Go to [Twitter Developer Portal](https://developer.twitter.com/en/portal/dashboard)
+1. Go to [X Developer Portal](https://developer.X.com/en/portal/dashboard)
 2. Create a project and app (or use existing)
 3. **IMPORTANT: Configure OAuth 1.0a permissions:**
    - Click on your app → **Settings** tab
@@ -110,11 +110,11 @@ This creates platform-specific packages in the `dist/` folder:
    - Click **"Set up"** or **"Edit"**
    - Enable **OAuth 1.0a** by choosing "Web App, Automated App or Bot"
    - Set **App permissions** to **"Read and Write"** (not just "Read")
-   - For **Callback URL**: Enter your GitHub repository URL (e.g., `https://github.com/yourusername/socialsox`) or any valid URL - it's not actually used but required by Twitter
+   - For **Callback URL**: Enter your GitHub repository URL (e.g., `https://github.com/yourusername/socialsox`) or any valid URL - it's not actually used but required by X
    - For **Website URL**: Enter the same GitHub repository URL or any valid URL like `https://github.com/yourusername/socialsox`
    - Click **Save**
    
-   > **Note**: We're using OAuth 1.0a with your own Access Tokens (not the 3-legged OAuth flow), so the callback URL won't actually be used. Twitter just requires these fields to be filled in.
+   > **Note**: We're using OAuth 1.0a with your own Access Tokens (not the 3-legged OAuth flow), so the callback URL won't actually be used. X just requires these fields to be filled in.
 4. Go to **"Keys and Tokens"** tab
 5. **Regenerate** your Access Token and Access Token Secret (important after changing permissions!)
 6. Copy all 4 credentials:
@@ -144,7 +144,7 @@ Check the **History** tab to view your past posts and their status.
 > - ✅ Everything runs locally on your computer
 > - ✅ Credentials are encrypted using Electron's safeStorage (OS-level encryption)
 > - ✅ Settings stored securely in localStorage
-> - ✅ Twitter OAuth handled securely in Electron backend
+> - ✅ X OAuth handled securely in Electron backend
 > - ✅ No external servers involved (except the social media APIs)
 
 > [!WARNING]
@@ -161,7 +161,7 @@ For security-related concerns, please see our [Security Policy](SECURITY.md).
 > **Current Limitations:**
 > - No multiple image support (single image only)
 > - No thread/reply support
-> - Character limits: Twitter 280 chars, Mastodon 500+ (varies by instance), Bluesky 300 chars
+> - Character limits: X 280 chars, Mastodon 500+ (varies by instance), Bluesky 300 chars
 > - Image size limit: 5MB
 > - Image format support: PNG, JPG, GIF, WebP
 
@@ -170,7 +170,7 @@ For security-related concerns, please see our [Security Policy](SECURITY.md).
 **App won't start or icons don't load**: Try running with debug console: `DEBUG=1 ./SocialSox.exe` (Windows) or `DEBUG=1 ./SocialSox` (Linux/Mac) to see error messages.
 
 > [!IMPORTANT]
-> **Twitter Errors**:
+> **X Errors**:
 > - **"oauth1 app permissions" error**: Your app isn't configured correctly
 >   1. Go to your app's **Settings** → "User authentication settings"
 >   2. Enable **OAuth 1.0a** with **"Read and Write"** permissions
