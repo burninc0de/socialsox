@@ -268,9 +268,10 @@ function saveCredentials() {
 }
 
 function loadCredentials() {
-    const saved = localStorage.getItem('socialSoxCredentials');
-    if (saved) {
-        const creds = JSON.parse(saved);
+    try {
+        const saved = localStorage.getItem('socialSoxCredentials');
+        if (saved) {
+            const creds = JSON.parse(saved);
         document.getElementById('mastodon-instance').value = creds.mastodonInstance || '';
         document.getElementById('mastodon-token').value = creds.mastodonToken || '';
         document.getElementById('twitter-key').value = creds.twitterKey || '';
@@ -323,6 +324,10 @@ function loadCredentials() {
                 btn.classList.remove('border-primary-500', 'bg-primary-500', 'text-white');
             }
         });
+    }
+    } catch (error) {
+        console.error('Error loading credentials from localStorage:', error);
+        showStatus('Error loading saved credentials. Storage may be corrupted. Try "Reset All Data" in Settings.', 'error');
     }
 }
 
@@ -1044,6 +1049,81 @@ function clearNotificationsCache() {
     showStatus('Notification cache cleared!', 'success');
 }
 
+// Reset all app data and settings
+function resetAllData() {
+    if (!confirm('⚠️ WARNING: This will permanently delete ALL your credentials, history, notifications, and settings. This action cannot be undone!\n\nAre you absolutely sure you want to reset everything?')) {
+        return;
+    }
+    
+    // Clear all localStorage
+    localStorage.clear();
+    
+    // Reset form fields
+    document.getElementById('mastodon-instance').value = '';
+    document.getElementById('mastodon-token').value = '';
+    document.getElementById('twitter-key').value = '';
+    document.getElementById('twitter-secret').value = '';
+    document.getElementById('twitter-token').value = '';
+    document.getElementById('twitter-token-secret').value = '';
+    document.getElementById('bluesky-handle').value = '';
+    document.getElementById('bluesky-password').value = '';
+    
+    // Reset platforms
+    Object.keys(platforms).forEach(platform => {
+        platforms[platform] = false;
+        const btn = document.querySelector(`.platform-toggle[data-platform="${platform}"]`);
+        if (btn) {
+            btn.classList.remove('active', 'border-primary-500', 'bg-primary-500', 'text-white');
+            btn.classList.add('border-gray-300', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
+        }
+    });
+    
+    // Reset polling intervals to defaults
+    document.getElementById('mastodonInterval').value = 5;
+    document.getElementById('mastodonIntervalValue').textContent = 5;
+    document.getElementById('twitterInterval').value = 60;
+    document.getElementById('twitterIntervalValue').textContent = 60;
+    document.getElementById('blueskyInterval').value = 5;
+    document.getElementById('blueskyIntervalValue').textContent = 5;
+    
+    // Reset notification exclusions
+    document.getElementById('excludeMastodonNotifications').checked = false;
+    document.getElementById('excludeTwitterNotifications').checked = false;
+    document.getElementById('excludeBlueskyNotifications').checked = false;
+    
+    // Reset dark mode to default (true)
+    document.getElementById('darkModeToggle').checked = true;
+    document.documentElement.classList.add('dark');
+    
+    // Reset tray icon to default (false)
+    document.getElementById('trayIconToggle').checked = false;
+    document.getElementById('trayIconSection').style.display = 'none';
+    if (window.electron && window.electron.setTrayEnabled) {
+        window.electron.setTrayEnabled(false);
+    }
+    
+    // Reset external links to default (false)
+    document.getElementById('externalLinksToggle').checked = false;
+    
+    // Clear history display
+    const historyList = document.getElementById('historyList');
+    const noHistory = document.getElementById('noHistory');
+    historyList.innerHTML = '';
+    noHistory.style.display = 'block';
+    
+    // Clear notifications display
+    const notificationsList = document.getElementById('notificationsList');
+    const noNotifications = document.getElementById('noNotifications');
+    notificationsList.innerHTML = '';
+    noNotifications.style.display = 'block';
+    noNotifications.textContent = 'Click "Load Notifications" to check for replies, likes, and mentions across your platforms.';
+    
+    // Stop any polling
+    stopNotificationPolling();
+    
+    showStatus('All data has been reset! Please restart the app for a complete fresh start.', 'success');
+}
+
 // Start automatic notification checking
 function startNotificationPolling() {
     // Clear any existing intervals
@@ -1408,6 +1488,7 @@ async function fetchBlueskyNotifications(handle, password) {
         const authorDid = n.author?.did;
         let subjectContent = null;
         let replyingTo = null;
+        let quotingTo = null;
         
         if (n.reason === 'follow') {
             // For follows, link to the author's profile
@@ -1466,6 +1547,33 @@ async function fetchBlueskyNotifications(handle, password) {
                     }
                 }
             }
+        } else if (n.reason === 'quote') {
+            // For quotes, link to the quote and fetch the quoted post
+            const uriParts = n.uri.split('/');
+            const postId = uriParts[uriParts.length - 1];
+            if (authorDid && postId) {
+                url = `https://bsky.app/profile/${authorDid}/post/${postId}`;
+                // Fetch the quoted post if this is a quote
+                if (n.record?.embed?.record?.uri) {
+                    const quotedUri = n.record.embed.record.uri;
+                    const quotedUriParts = quotedUri.split('/');
+                    const quotedDid = quotedUriParts[2];
+                    const quotedPostId = quotedUriParts[quotedUriParts.length - 1];
+                    try {
+                        const quotedResponse = await fetch(`https://bsky.social/xrpc/com.atproto.repo.getRecord?repo=${quotedDid}&collection=app.bsky.feed.post&rkey=${quotedPostId}`, {
+                            headers: {
+                                'Authorization': `Bearer ${session.accessJwt}`
+                            }
+                        });
+                        if (quotedResponse.ok) {
+                            const quotedData = await quotedResponse.json();
+                            quotingTo = quotedData.value?.text || '';
+                        }
+                    } catch (error) {
+                        console.warn('Failed to fetch quoted post:', error);
+                    }
+                }
+            }
         } else if (n.uri) {
             // For mentions, quotes, etc., link to the post
             const uriParts = n.uri.split('/');
@@ -1484,6 +1592,7 @@ async function fetchBlueskyNotifications(handle, password) {
             content: n.record?.text || '',
             subjectContent: subjectContent,
             replyingTo: replyingTo,
+            quotingTo: quotingTo,
             isRead: n.isRead,
             url: url
         };
@@ -1581,6 +1690,7 @@ function displayNotifications(notifications) {
                     return displayContent ? `<p class="text-sm text-gray-700 dark:text-gray-300 mb-2">${contentLabel}${displayContent.substring(0, 200)}${displayContent.length > 200 ? '...' : ''}</p>` : '';
                 })()}
                 ${notif.replyingTo ? `<div class="mb-2 p-2 bg-gray-100 dark:bg-gray-600 rounded text-xs text-gray-600 dark:text-gray-400"><strong>Replying to:</strong> ${notif.replyingTo.substring(0, 150)}${notif.replyingTo.length > 150 ? '...' : ''}</div>` : ''}
+                ${notif.quotingTo ? `<div class="mb-2 p-2 bg-gray-100 dark:bg-gray-600 rounded text-xs text-gray-600 dark:text-gray-400"><strong>Quoting:</strong> ${notif.quotingTo.substring(0, 150)}${notif.quotingTo.length > 150 ? '...' : ''}</div>` : ''}
                 ${notif.url ? `<a href="${notif.url}" ${localStorage.getItem('socialSoxExternalLinks') === 'true' ? 'onclick="window.electron.openExternalLink(this.href); return false;"' : 'target="_blank"'} class="text-xs text-primary-600 dark:text-primary-400 hover:underline">View on ${notif.platform}</a>` : ''}
             </div>
         `;
