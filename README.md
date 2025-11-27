@@ -31,7 +31,7 @@ A simple, local Electron app for posting short messages to Mastodon, X (aka Twit
 ![View your posting history with status tracking](screenshots/history-tab.png)
 
 ### Settings & Credentials
-![Configure API credentials and app settings](screenshots/settings-tab.png)
+![Configure API credentials and app settings](screenshots/settings-tab-2.png)
 
 ### Notifications
 ![Monitor notifications from connected platforms](screenshots/notifications-tab.png)
