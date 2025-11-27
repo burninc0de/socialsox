@@ -82,6 +82,11 @@ async function createWindow() {
         win.loadFile('index.html');
     }
 
+    // Forward renderer console messages to terminal
+    win.webContents.on('console-message', (event, level, message, line, sourceId) => {
+        console.log(`[Renderer]: ${message}`);
+    });
+
     // Save window bounds on move and resize
     win.on('move', () => {
         const bounds = win.getBounds();
@@ -487,6 +492,10 @@ ipcMain.handle('decrypt-credentials', async (event, encryptedData) => {
     }
     const buffer = Buffer.from(encryptedData, 'base64');
     return safeStorage.decryptString(buffer);
+});
+
+ipcMain.on('log', (event, message) => {
+    console.log('[Renderer Log]:', message);
 });
 
 app.on('window-all-closed', () => {
