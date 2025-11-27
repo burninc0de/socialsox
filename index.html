@@ -345,11 +345,16 @@
                 
                 <!-- Window Controls Style -->
                 <div class="mb-6">
-                    <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Window Controls Style:</label>
-                    <select id="windowControlsStyle" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
-                        <option value="macos-circles">macOS Circles</option>
-                        <option value="lucide-icons">Lucide Icons</option>
-                    </select>
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Window Controls Style</span>
+                        <div class="relative">
+                            <select id="windowControlsStyle" class="appearance-none p-2 pr-8 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                                <option value="macos-circles">Traffic Light</option>
+                                <option value="lucide-icons">Basic</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400 pointer-events-none"></i>
+                        </div>
+                    </label>
                 </div>
             </div>
             
