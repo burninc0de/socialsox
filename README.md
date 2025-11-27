@@ -5,7 +5,7 @@ A simple, local Electron app for posting short messages to Mastodon, Twitter, an
 ## Features
 
 - 📝 Post to multiple platforms at once
-- 🔒 All credentials stored locally
+- 🔒 Credentials securely encrypted using Electron's safeStorage
 - 🎨 Clean, modern interface with native dark mode support
 - 🔄 Toggle platforms on/off
 - 📊 Character counter
@@ -125,7 +125,7 @@ This creates platform-specific packages in the `dist/` folder:
 
 ### Enter Credentials & Post
 
-Use the **Settings** tab to configure your API credentials. They're stored locally in the app.
+Use the **Settings** tab to configure your API credentials. They're encrypted locally using Electron's safeStorage for security.
 
 **Portability**: Use the "📤 Export Credentials" button to save your credentials to a JSON file for backup or transfer to another device. Use "📥 Import Credentials" to load them back.
 
@@ -142,13 +142,15 @@ Check the **History** tab to view your past posts and their status.
 > [!NOTE]
 > **Security Features:**
 > - ✅ Everything runs locally on your computer
-> - ✅ Credentials are stored in localStorage (Electron app storage)
+> - ✅ Credentials are encrypted using Electron's safeStorage (OS-level encryption)
+> - ✅ Settings stored securely in localStorage
 > - ✅ Twitter OAuth handled securely in Electron backend
 > - ✅ No external servers involved (except the social media APIs)
 
 > [!WARNING]
 > **Security Considerations:**
-> - ⚠️ Anyone with access to your computer can potentially read localStorage
+> - ⚠️ SafeStorage encryption requires your OS to have a password/login set up
+> - ⚠️ If safeStorage is unavailable, credentials fall back to encrypted localStorage
 > - ⚠️ Use app-specific passwords where available (like Bluesky's app passwords)
 
 For security-related concerns, please see our [Security Policy](SECURITY.md).

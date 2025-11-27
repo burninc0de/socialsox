@@ -16,8 +16,8 @@ let notificationPollingIntervals = {
 };
 
 // Load credentials from localStorage on page load
-window.addEventListener('DOMContentLoaded', () => {
-    loadCredentials();
+window.addEventListener('DOMContentLoaded', async () => {
+    await loadCredentials();
     loadHistory();
     
     // Load version
@@ -133,7 +133,7 @@ window.addEventListener('DOMContentLoaded', () => {
     
     // Platform toggles
     document.querySelectorAll('.platform-toggle').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', async function() {
             const platform = this.dataset.platform;
             platforms[platform] = !platforms[platform];
             this.classList.toggle('active');
@@ -148,29 +148,29 @@ window.addEventListener('DOMContentLoaded', () => {
             }
             
             // Save platforms state
-            saveCredentials();
+            await saveCredentials();
         });
     });
     
     // Save credentials on change
     document.querySelectorAll('input').forEach(input => {
-        input.addEventListener('change', saveCredentials);
+        input.addEventListener('change', async () => await saveCredentials());
     });
     
     // Polling interval sliders
-    document.getElementById('mastodonInterval').addEventListener('input', function() {
+    document.getElementById('mastodonInterval').addEventListener('input', async function() {
         document.getElementById('mastodonIntervalValue').textContent = this.value;
-        saveCredentials();
+        await saveCredentials();
         restartNotificationPolling();
     });
-    document.getElementById('twitterInterval').addEventListener('input', function() {
+    document.getElementById('twitterInterval').addEventListener('input', async function() {
         document.getElementById('twitterIntervalValue').textContent = this.value;
-        saveCredentials();
+        await saveCredentials();
         restartNotificationPolling();
     });
-    document.getElementById('blueskyInterval').addEventListener('input', function() {
+    document.getElementById('blueskyInterval').addEventListener('input', async function() {
         document.getElementById('blueskyIntervalValue').textContent = this.value;
-        saveCredentials();
+        await saveCredentials();
         restartNotificationPolling();
     });
     
@@ -241,16 +241,19 @@ function updateCharCount() {
     }
 }
 
-function saveCredentials() {
-    const creds = {
-        mastodonInstance: document.getElementById('mastodon-instance').value,
+async function saveCredentials() {
+    const sensitiveCreds = {
         mastodonToken: document.getElementById('mastodon-token').value,
         twitterKey: document.getElementById('twitter-key').value,
         twitterSecret: document.getElementById('twitter-secret').value,
         twitterToken: document.getElementById('twitter-token').value,
         twitterTokenSecret: document.getElementById('twitter-token-secret').value,
+        blueskyPassword: document.getElementById('bluesky-password').value
+    };
+
+    const settings = {
+        mastodonInstance: document.getElementById('mastodon-instance').value,
         blueskyHandle: document.getElementById('bluesky-handle').value,
-        blueskyPassword: document.getElementById('bluesky-password').value,
         platforms: { ...platforms },
         pollingIntervals: {
             mastodon: parseInt(document.getElementById('mastodonInterval').value) || 5,
@@ -263,37 +266,91 @@ function saveCredentials() {
             bluesky: document.getElementById('excludeBlueskyNotifications').checked
         }
     };
-    
-    localStorage.setItem('socialSoxCredentials', JSON.stringify(creds));
+
+    try {
+        const encrypted = await window.electron.encryptCredentials(JSON.stringify(sensitiveCreds));
+        localStorage.setItem('socialSoxEncryptedCredentials', encrypted);
+    } catch (error) {
+        console.error('Failed to encrypt credentials:', error);
+        // Fallback to unencrypted storage if encryption fails
+        localStorage.setItem('socialSoxCredentials', JSON.stringify({ ...sensitiveCreds, ...settings }));
+        return;
+    }
+
+    localStorage.setItem('socialSoxSettings', JSON.stringify(settings));
 }
 
-function loadCredentials() {
+async function loadCredentials() {
     try {
-        const saved = localStorage.getItem('socialSoxCredentials');
-        if (saved) {
-            const creds = JSON.parse(saved);
-        document.getElementById('mastodon-instance').value = creds.mastodonInstance || '';
-        document.getElementById('mastodon-token').value = creds.mastodonToken || '';
-        document.getElementById('twitter-key').value = creds.twitterKey || '';
-        document.getElementById('twitter-secret').value = creds.twitterSecret || '';
-        document.getElementById('twitter-token').value = creds.twitterToken || '';
-        document.getElementById('twitter-token-secret').value = creds.twitterTokenSecret || '';
-        document.getElementById('bluesky-handle').value = creds.blueskyHandle || '';
-        document.getElementById('bluesky-password').value = creds.blueskyPassword || '';
+        let sensitiveCreds = {};
+        let settings = {};
+
+        // Try to load encrypted credentials
+        const encrypted = localStorage.getItem('socialSoxEncryptedCredentials');
+        if (encrypted) {
+            try {
+                const decrypted = await window.electron.decryptCredentials(encrypted);
+                sensitiveCreds = JSON.parse(decrypted);
+            } catch (error) {
+                console.error('Failed to decrypt credentials:', error);
+            }
+        }
+
+        // Load settings
+        const settingsSaved = localStorage.getItem('socialSoxSettings');
+        if (settingsSaved) {
+            settings = JSON.parse(settingsSaved);
+        }
+
+        // Fallback to old storage format if new ones don't exist
+        if (!encrypted && !settingsSaved) {
+            const saved = localStorage.getItem('socialSoxCredentials');
+            if (saved) {
+                const creds = JSON.parse(saved);
+                // Migrate to new format
+                sensitiveCreds = {
+                    mastodonToken: creds.mastodonToken || '',
+                    twitterKey: creds.twitterKey || '',
+                    twitterSecret: creds.twitterSecret || '',
+                    twitterToken: creds.twitterToken || '',
+                    twitterTokenSecret: creds.twitterTokenSecret || '',
+                    blueskyPassword: creds.blueskyPassword || ''
+                };
+                settings = {
+                    mastodonInstance: creds.mastodonInstance || '',
+                    blueskyHandle: creds.blueskyHandle || '',
+                    platforms: creds.platforms || {},
+                    pollingIntervals: creds.pollingIntervals || {},
+                    notificationExclusions: creds.notificationExclusions || {}
+                };
+                // Save in new format
+                await saveCredentials();
+            }
+        }
+
+        // Populate form fields
+        document.getElementById('mastodon-instance').value = settings.mastodonInstance || '';
+        document.getElementById('mastodon-token').value = sensitiveCreds.mastodonToken || '';
+        document.getElementById('twitter-key').value = sensitiveCreds.twitterKey || '';
+        document.getElementById('twitter-secret').value = sensitiveCreds.twitterSecret || '';
+        document.getElementById('twitter-token').value = sensitiveCreds.twitterToken || '';
+        document.getElementById('twitter-token-secret').value = sensitiveCreds.twitterTokenSecret || '';
+        document.getElementById('bluesky-handle').value = settings.blueskyHandle || '';
+        document.getElementById('bluesky-password').value = sensitiveCreds.blueskyPassword || '';
         
         // Load platforms
-        if (creds.platforms) {
-            Object.assign(platforms, creds.platforms);
+        if (settings.platforms) {
+            Object.assign(platforms, settings.platforms);
         }
         
         // Load polling intervals
-        if (creds.pollingIntervals) {
-            document.getElementById('mastodonInterval').value = creds.pollingIntervals.mastodon || 5;
-            document.getElementById('mastodonIntervalValue').textContent = creds.pollingIntervals.mastodon || 5;
-            document.getElementById('twitterInterval').value = creds.pollingIntervals.twitter || 60;
-            document.getElementById('twitterIntervalValue').textContent = creds.pollingIntervals.twitter || 60;
-            document.getElementById('blueskyInterval').value = creds.pollingIntervals.bluesky || 5;
-            document.getElementById('blueskyIntervalValue').textContent = creds.pollingIntervals.bluesky || 5;
+        if (settings.pollingIntervals) {
+            document.getElementById('mastodonInterval').value = settings.pollingIntervals.mastodon || 5;
+            document.getElementById('mastodonIntervalValue').textContent = settings.pollingIntervals.mastodon || 5;
+            document.getElementById('twitterInterval').value = settings.pollingIntervals.twitter || 60;
+            document.getElementById('twitterIntervalValue').textContent = settings.pollingIntervals.twitter || 60;
+            document.getElementById('blueskyInterval').value = settings.pollingIntervals.bluesky || 5;
+            document.getElementById('blueskyIntervalValue').textContent = settings.pollingIntervals.bluesky || 5;
         } else {
             // Defaults
             document.getElementById('mastodonInterval').value = 5;
@@ -305,10 +362,10 @@ function loadCredentials() {
         }
         
         // Load notification exclusions
-        if (creds.notificationExclusions) {
-            document.getElementById('excludeMastodonNotifications').checked = creds.notificationExclusions.mastodon || false;
-            document.getElementById('excludeTwitterNotifications').checked = creds.notificationExclusions.twitter || false;
-            document.getElementById('excludeBlueskyNotifications').checked = creds.notificationExclusions.bluesky || false;
+        if (settings.notificationExclusions) {
+            document.getElementById('excludeMastodonNotifications').checked = settings.notificationExclusions.mastodon || false;
+            document.getElementById('excludeTwitterNotifications').checked = settings.notificationExclusions.twitter || false;
+            document.getElementById('excludeBlueskyNotifications').checked = settings.notificationExclusions.bluesky || false;
         }
         
         // Apply platforms to buttons
@@ -324,7 +381,6 @@ function loadCredentials() {
                 btn.classList.remove('border-primary-500', 'bg-primary-500', 'text-white');
             }
         });
-    }
     } catch (error) {
         console.error('Error loading credentials from localStorage:', error);
         showStatus('Error loading saved credentials. Storage may be corrupted. Try "Reset All Data" in Settings.', 'error');
@@ -888,7 +944,7 @@ async function importCredentials() {
                 document.getElementById('bluesky-password').value = creds.blueskyPassword || '';
                 
                 // Save to localStorage
-                saveCredentials();
+                await saveCredentials();
                 showStatus('Credentials imported successfully!', 'success');
             } else if (!result.canceled) {
                 showStatus('Failed to import credentials: ' + result.error, 'error');
@@ -916,7 +972,7 @@ async function importCredentials() {
                         document.getElementById('bluesky-password').value = creds.blueskyPassword || '';
                         
                         // Save to localStorage
-                        saveCredentials();
+                        await saveCredentials();
                         showStatus('Credentials imported successfully!', 'success');
                     } catch (error) {
                         showStatus('Failed to parse credentials file: ' + error.message, 'error');
