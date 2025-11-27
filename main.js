@@ -102,8 +102,8 @@ async function createWindow() {
             icon: trayIconPath,
             title: 'SocialSox - Link',
             autoHideMenuBar: true,
-            frame: false,
-            backgroundColor: '#1a1a1a'
+            frame: true,
+            backgroundColor: '#ffffff'
         });
         newWin.loadURL(details.url);
         return { action: 'deny' }; // Prevent default behavior
