@@ -248,13 +248,13 @@ async function postToAll() {
             
             if (instance && token) {
                 try {
-                    await postToMastodon(message, instance, token, selectedImage);
-                    results.push('✓ Mastodon');
+                    const result = await postToMastodon(message, instance, token, selectedImage);
+                    results.push({ platform: 'Mastodon', success: true, url: result.url });
                 } catch (error) {
-                    results.push('✗ Mastodon: ' + error.message);
+                    results.push({ platform: 'Mastodon', success: false, error: error.message });
                 }
             } else {
-                results.push('✗ Mastodon: Missing credentials');
+                results.push({ platform: 'Mastodon', success: false, error: 'Missing credentials' });
             }
         }
         
@@ -266,17 +266,17 @@ async function postToAll() {
             
             if (apiKey && apiSecret && accessToken && accessTokenSecret) {
                 try {
-                    await postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData);
-                    results.push('✓ Twitter');
+                    const result = await postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData);
+                    results.push({ platform: 'Twitter', success: true, url: result.url });
                 } catch (error) {
                     let errorMsg = error.message;
                     if (errorMsg.includes('403') || errorMsg.includes('Forbidden')) {
                         errorMsg = 'Permission denied. Make sure your Twitter app has "Read and Write" permissions in Developer Portal, then regenerate your Access Token and Access Token Secret.';
                     }
-                    results.push('✗ Twitter: ' + errorMsg);
+                    results.push({ platform: 'Twitter', success: false, error: errorMsg });
                 }
             } else {
-                results.push('✗ Twitter: Missing credentials');
+                results.push({ platform: 'Twitter', success: false, error: 'Missing credentials' });
             }
         }
         
@@ -286,24 +286,28 @@ async function postToAll() {
             
             if (handle && password) {
                 try {
-                    await postToBluesky(message, handle, password, selectedImage);
-                    results.push('✓ Bluesky');
+                    const result = await postToBluesky(message, handle, password, selectedImage);
+                    results.push({ platform: 'Bluesky', success: true, url: result.url });
                 } catch (error) {
-                    results.push('✗ Bluesky: ' + error.message);
+                    results.push({ platform: 'Bluesky', success: false, error: error.message });
                 }
             } else {
-                results.push('✗ Bluesky: Missing credentials');
+                results.push({ platform: 'Bluesky', success: false, error: 'Missing credentials' });
             }
         }
         
-        const hasSuccess = results.some(r => r.startsWith('✓'));
-        const hasFailure = results.some(r => r.startsWith('✗'));
+        const hasSuccess = results.some(r => r.success);
+        const hasFailure = results.some(r => !r.success);
         
         let statusType = 'info';
         if (hasSuccess && !hasFailure) statusType = 'success';
         if (hasFailure) statusType = 'error';
         
-        showStatus(results.join('\n'), statusType);
+        // Convert results to display strings
+        const statusMessages = results.map(r => 
+            r.success ? `✓ ${r.platform}` : `✗ ${r.platform}: ${r.error}`
+        );
+        showStatus(statusMessages.join('\n'), statusType);
         
         addHistoryEntry(message, selectedPlatforms, results);
         

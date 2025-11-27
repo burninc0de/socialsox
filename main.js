@@ -215,7 +215,8 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
         
         const result = await client.v2.tweet(tweetData);
         console.log('Twitter: Success!', result);
-        return { success: true, data: result };
+        const tweetUrl = `https://twitter.com/i/status/${result.data.id}`;
+        return { success: true, data: result, url: tweetUrl };
     } catch (error) {
         console.error('Twitter Error:', error);
         console.error('Twitter Error Code:', error.code);

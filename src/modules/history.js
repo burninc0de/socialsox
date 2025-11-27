@@ -51,7 +51,15 @@ export function displayHistory(history) {
         const date = new Date(entry.timestamp);
         const timeString = date.toLocaleString();
         const platformsString = entry.platforms.join(', ');
-        const resultsString = entry.results.join('\n');
+        
+        // Build results display with links
+        const resultsDisplay = entry.results.map(result => {
+            if (result.success) {
+                return `<a href="${result.url}" target="_blank" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline">✓ ${result.platform}</a>`;
+            } else {
+                return `<span class="text-red-600 dark:text-red-400">✗ ${result.platform}: ${result.error}</span>`;
+            }
+        }).join('<br>');
         
         return `
             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
@@ -60,7 +68,7 @@ export function displayHistory(history) {
                     <span class="text-xs text-gray-600 dark:text-gray-300">${platformsString}</span>
                 </div>
                 <p class="text-sm text-gray-800 dark:text-gray-200 mb-2 whitespace-pre-wrap">${entry.message}</p>
-                <div class="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-line">${resultsString}</div>
+                <div class="text-xs text-gray-600 dark:text-gray-400">${resultsDisplay}</div>
             </div>
         `;
     }).join('');

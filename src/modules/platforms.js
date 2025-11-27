@@ -50,7 +50,8 @@ export async function postToMastodon(message, instance, token, imageFile = null)
         throw new Error(`${response.status} ${response.statusText}: ${errorText}`);
     }
     
-    return await response.json();
+    const data = await response.json();
+    return { success: true, url: data.url };
 }
 
 export async function postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData = null) {
@@ -68,7 +69,7 @@ export async function postToTwitter(message, apiKey, apiSecret, accessToken, acc
             }
             throw new Error(errorMsg);
         }
-        return result.data;
+        return { success: true, url: result.url };
     } else {
         throw new Error('Twitter posting requires Electron app (run: npm start)');
     }
@@ -239,5 +240,8 @@ export async function postToBluesky(message, handle, password, imageFile = null)
         throw new Error(`Post failed: ${errorText}`);
     }
     
-    return await postResponse.json();
+    const data = await postResponse.json();
+    const postId = data.uri.split('/').pop();
+    const postUrl = `https://bsky.app/profile/${session.did}/post/${postId}`;
+    return { success: true, url: postUrl };
 }
