@@ -231,7 +231,7 @@ SocialSox stores your data locally on your computer. Here's where to find and ma
 - `window-config.json` - Window position and size preferences
 
 ### Clearing Data Manually
-If you need to clear data manually (or the in-app "CLEAR ALL DATA" button doesn't work):
+If you need to clear data manually (or the in-app "Clear All Data" button doesn't work):
 1. Close SocialSox completely
 2. Navigate to the folder above for your platform
 3. Delete the files you want to clear:
