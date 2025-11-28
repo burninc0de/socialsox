@@ -67,6 +67,7 @@ async function createWindow() {
             nodeIntegration: false,
             contextIsolation: true,
             enableRemoteModule: false,
+            colorScheme: 'system',
             preload: path.join(__dirname, 'preload.js')
         },
         icon: trayIconPath,

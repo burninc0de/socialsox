@@ -61,8 +61,10 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     const darkModeStored = localStorage.getItem('socialSoxDarkMode');
     const darkMode = darkModeStored !== null ? darkModeStored === 'true' : true;
+    console.log('Initializing dark mode:', darkMode, 'stored:', darkModeStored);
     document.getElementById('darkModeToggle').checked = darkMode;
     if (darkMode) {
+        console.log('Adding dark class to documentElement');
         document.documentElement.classList.add('dark');
     }
 
@@ -124,12 +126,16 @@ createIcons({icons});
 
     document.getElementById('darkModeToggle').addEventListener('change', function () {
         const isDark = this.checked;
+        console.log('Dark mode toggle changed to:', isDark);
         localStorage.setItem('socialSoxDarkMode', isDark);
         if (isDark) {
+            console.log('Adding dark class');
             document.documentElement.classList.add('dark');
         } else {
+            console.log('Removing dark class');
             document.documentElement.classList.remove('dark');
         }
+        console.log('documentElement classes:', document.documentElement.classList.toString());
     });
 
     document.getElementById('trayIconToggle').addEventListener('change', function () {

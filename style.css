@@ -1,10 +1,6 @@
-@import "tailwindcss";
-
-@theme {
-    --color-primary-500: #667eea;
-    --color-primary-600: #5a67d8;
-    --color-primary-700: #4c51bf;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 .title-bar {
     -webkit-app-region: drag;
