@@ -81,6 +81,7 @@
 #darkModeToggle:checked+div,
 #trayIconToggle:checked+div,
 #externalLinksToggle:checked+div,
+#debugModeToggle:checked+div,
 #excludeMastodonNotifications:checked+div,
 #excludeTwitterNotifications:checked+div,
 #excludeBlueskyNotifications:checked+div {
@@ -90,6 +91,7 @@
 #darkModeToggle:checked+div+.dot,
 #trayIconToggle:checked+div+.dot,
 #externalLinksToggle:checked+div+.dot,
+#debugModeToggle:checked+div+.dot,
 #excludeMastodonNotifications:checked+div+.dot,
 #excludeTwitterNotifications:checked+div+.dot,
 #excludeBlueskyNotifications:checked+div+.dot {

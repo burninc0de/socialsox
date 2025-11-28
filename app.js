@@ -81,6 +81,11 @@ window.addEventListener('DOMContentLoaded', () => {
         document.documentElement.classList.add('dark');
     }
 
+    const debugModeStored = localStorage.getItem('socialSoxDebugMode');
+    const debugMode = debugModeStored !== null ? debugModeStored === 'true' : false;
+    document.getElementById('debugModeToggle').checked = debugMode;
+    window.debugMode = debugMode;
+
     const trayEnabledStored = localStorage.getItem('socialSoxTrayEnabled');
     const trayEnabled = trayEnabledStored !== null ? trayEnabledStored === 'true' : false;
     document.getElementById('trayIconToggle').checked = trayEnabled;
@@ -158,6 +163,12 @@ createIcons({icons});
     document.getElementById('externalLinksToggle').addEventListener('change', function () {
         const isEnabled = this.checked;
         localStorage.setItem('socialSoxExternalLinks', isEnabled);
+    });
+
+    document.getElementById('debugModeToggle').addEventListener('change', function () {
+        const isEnabled = this.checked;
+        localStorage.setItem('socialSoxDebugMode', isEnabled);
+        window.debugMode = isEnabled;
     });
 
     document.getElementById('windowControlsStyle').addEventListener('change', function () {
@@ -341,57 +352,75 @@ async function postToAll() {
     }
 
     try {
-        if (window.platforms.mastodon) {
-            const instance = document.getElementById('mastodon-instance').value;
-            const token = document.getElementById('mastodon-token').value;
+        if (window.debugMode) {
+            // Debug mode: simulate posting with delay
+            const simulateDelay = (platform) => new Promise(resolve => {
+                setTimeout(() => {
+                    resolve({ platform, success: true, url: `https://debug.${platform.toLowerCase()}.com/post/123` });
+                }, 3000 + Math.random() * 2000); // 3-5 seconds random delay
+            });
 
-            if (instance && token) {
-                try {
-                    const result = await postToMastodon(message, instance, token, selectedImage);
-                    results.push({ platform: 'Mastodon', success: true, url: result.url });
-                } catch (error) {
-                    results.push({ platform: 'Mastodon', success: false, error: error.message });
-                }
-            } else {
-                results.push({ platform: 'Mastodon', success: false, error: 'Missing credentials' });
-            }
-        }
+            const promises = [];
+            if (window.platforms.mastodon) promises.push(simulateDelay('Mastodon'));
+            if (window.platforms.twitter) promises.push(simulateDelay('Twitter'));
+            if (window.platforms.bluesky) promises.push(simulateDelay('Bluesky'));
 
-        if (window.platforms.twitter) {
-            const apiKey = document.getElementById('twitter-key').value;
-            const apiSecret = document.getElementById('twitter-secret').value;
-            const accessToken = document.getElementById('twitter-token').value;
-            const accessTokenSecret = document.getElementById('twitter-token-secret').value;
+            const debugResults = await Promise.all(promises);
+            results.push(...debugResults);
+        } else {
+            // Real posting
+            if (window.platforms.mastodon) {
+                const instance = document.getElementById('mastodon-instance').value;
+                const token = document.getElementById('mastodon-token').value;
 
-            if (apiKey && apiSecret && accessToken && accessTokenSecret) {
-                try {
-                    const result = await postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData);
-                    results.push({ platform: 'Twitter', success: true, url: result.url });
-                } catch (error) {
-                    let errorMsg = error.message;
-                    if (errorMsg.includes('403') || errorMsg.includes('Forbidden')) {
-                        errorMsg = 'Permission denied. Make sure your Twitter app has "Read and Write" permissions in Developer Portal, then regenerate your Access Token and Access Token Secret.';
+                if (instance && token) {
+                    try {
+                        const result = await postToMastodon(message, instance, token, selectedImage);
+                        results.push({ platform: 'Mastodon', success: true, url: result.url });
+                    } catch (error) {
+                        results.push({ platform: 'Mastodon', success: false, error: error.message });
                     }
-                    results.push({ platform: 'Twitter', success: false, error: errorMsg });
+                } else {
+                    results.push({ platform: 'Mastodon', success: false, error: 'Missing credentials' });
                 }
-            } else {
-                results.push({ platform: 'Twitter', success: false, error: 'Missing credentials' });
             }
-        }
 
-        if (window.platforms.bluesky) {
-            const handle = document.getElementById('bluesky-handle').value;
-            const password = document.getElementById('bluesky-password').value;
+            if (window.platforms.twitter) {
+                const apiKey = document.getElementById('twitter-key').value;
+                const apiSecret = document.getElementById('twitter-secret').value;
+                const accessToken = document.getElementById('twitter-token').value;
+                const accessTokenSecret = document.getElementById('twitter-token-secret').value;
 
-            if (handle && password) {
-                try {
-                    const result = await postToBluesky(message, handle, password, selectedImage);
-                    results.push({ platform: 'Bluesky', success: true, url: result.url });
-                } catch (error) {
-                    results.push({ platform: 'Bluesky', success: false, error: error.message });
+                if (apiKey && apiSecret && accessToken && accessTokenSecret) {
+                    try {
+                        const result = await postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData);
+                        results.push({ platform: 'Twitter', success: true, url: result.url });
+                    } catch (error) {
+                        let errorMsg = error.message;
+                        if (errorMsg.includes('403') || errorMsg.includes('Forbidden')) {
+                            errorMsg = 'Permission denied. Make sure your Twitter app has "Read and Write" permissions in Developer Portal, then regenerate your Access Token and Access Token Secret.';
+                        }
+                        results.push({ platform: 'Twitter', success: false, error: errorMsg });
+                    }
+                } else {
+                    results.push({ platform: 'Twitter', success: false, error: 'Missing credentials' });
                 }
-            } else {
-                results.push({ platform: 'Bluesky', success: false, error: 'Missing credentials' });
+            }
+
+            if (window.platforms.bluesky) {
+                const handle = document.getElementById('bluesky-handle').value;
+                const password = document.getElementById('bluesky-password').value;
+
+                if (handle && password) {
+                    try {
+                        const result = await postToBluesky(message, handle, password, selectedImage);
+                        results.push({ platform: 'Bluesky', success: true, url: result.url });
+                    } catch (error) {
+                        results.push({ platform: 'Bluesky', success: false, error: error.message });
+                    }
+                } else {
+                    results.push({ platform: 'Bluesky', success: false, error: 'Missing credentials' });
+                }
             }
         }
 
