@@ -63,11 +63,12 @@ function handleImageFiles(files) {
             continue;
         }
         
+        const currentIndex = selectedImages.length;
         selectedImages.push(file);
         
         const reader = new FileReader();
         reader.onload = (e) => {
-            addImagePreview(e.target.result, selectedImages.length - 1);
+            addImagePreview(e.target.result, currentIndex);
         };
         reader.readAsDataURL(file);
     }
@@ -79,22 +80,94 @@ function addImagePreview(dataURL, index) {
     const container = document.getElementById('imagePreviewContainer');
     
     const previewDiv = document.createElement('div');
-    previewDiv.className = 'relative border-2 border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-gray-50 dark:bg-gray-700';
+    previewDiv.className = 'relative border-2 border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-gray-50 dark:bg-gray-700 cursor-move';
     previewDiv.dataset.imageIndex = index;
+    previewDiv.draggable = true;
+    
+    // Drag and drop handlers for reordering
+    previewDiv.addEventListener('dragstart', handleDragStart);
+    previewDiv.addEventListener('dragover', handleDragOver);
+    previewDiv.addEventListener('drop', handleDrop);
+    previewDiv.addEventListener('dragend', handleDragEnd);
     
     const img = document.createElement('img');
     img.src = dataURL;
     img.alt = 'Preview';
-    img.className = 'w-full h-32 object-cover rounded';
+    img.className = 'w-full h-32 object-cover rounded pointer-events-none';
     
     const removeBtn = document.createElement('button');
-    removeBtn.className = 'absolute top-3 right-3 w-6 h-6 rounded-full bg-red-500 text-white border-0 cursor-pointer text-sm leading-none hover:bg-red-600 transition-colors';
+    removeBtn.className = 'absolute top-3 right-3 w-6 h-6 rounded-full bg-red-500 text-white border-0 cursor-pointer text-sm leading-none hover:bg-red-600 transition-colors z-10';
     removeBtn.textContent = '✕';
-    removeBtn.onclick = () => removeImageAtIndex(index);
+    removeBtn.onclick = (e) => {
+        e.stopPropagation();
+        removeImageAtIndex(index);
+    };
+    
+    // Add order badge
+    const orderBadge = document.createElement('div');
+    orderBadge.className = 'absolute top-3 left-3 w-6 h-6 rounded-full bg-primary-500 text-white text-xs flex items-center justify-center font-bold';
+    orderBadge.textContent = index + 1;
     
     previewDiv.appendChild(img);
     previewDiv.appendChild(removeBtn);
+    previewDiv.appendChild(orderBadge);
     container.appendChild(previewDiv);
+}
+
+let draggedIndex = null;
+
+function handleDragStart(e) {
+    draggedIndex = parseInt(e.currentTarget.dataset.imageIndex);
+    e.currentTarget.classList.add('opacity-50');
+    e.dataTransfer.effectAllowed = 'move';
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const target = e.currentTarget;
+    target.classList.add('border-primary-500', 'border-4');
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const target = e.currentTarget;
+    target.classList.remove('border-primary-500', 'border-4');
+    
+    const dropIndex = parseInt(target.dataset.imageIndex);
+    
+    if (draggedIndex !== null && draggedIndex !== dropIndex) {
+        // Reorder the array
+        const draggedImage = selectedImages[draggedIndex];
+        selectedImages.splice(draggedIndex, 1);
+        selectedImages.splice(dropIndex, 0, draggedImage);
+        
+        // Refresh the preview
+        refreshImagePreviews();
+    }
+}
+
+function handleDragEnd(e) {
+    e.currentTarget.classList.remove('opacity-50');
+    document.querySelectorAll('[data-image-index]').forEach(el => {
+        el.classList.remove('border-primary-500', 'border-4');
+    });
+    draggedIndex = null;
+}
+
+function refreshImagePreviews() {
+    const container = document.getElementById('imagePreviewContainer');
+    container.innerHTML = '';
+    
+    selectedImages.forEach((file, i) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            addImagePreview(e.target.result, i);
+        };
+        reader.readAsDataURL(file);
+    });
 }
 
 function updateImageUploadUI() {
@@ -124,17 +197,7 @@ function updateImageUploadUI() {
 
 export function removeImageAtIndex(index) {
     selectedImages.splice(index, 1);
-    const container = document.getElementById('imagePreviewContainer');
-    container.innerHTML = '';
-    
-    selectedImages.forEach((file, i) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            addImagePreview(e.target.result, i);
-        };
-        reader.readAsDataURL(file);
-    });
-    
+    refreshImagePreviews();
     updateImageUploadUI();
     document.getElementById('fileInput').value = '';
 }
