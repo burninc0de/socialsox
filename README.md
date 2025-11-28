@@ -167,6 +167,7 @@ Check the **History** tab to view your past posts and their status.
 > - ✅ Credentials are encrypted using Electron's safeStorage (OS-level encryption)
 > - ✅ X OAuth handled securely in Electron backend
 > - ✅ No external servers involved (except the social media APIs)
+> - ✅ Notifications cache stored in notifications.json
 
 > [!WARNING]
 > **Security Considerations:**
@@ -189,6 +190,8 @@ For security-related concerns, please see our [Security Policy](SECURITY.md).
 ## Troubleshooting
 
 **App won't start or icons don't load**: Try running with debug console: `DEBUG=1 ./SocialSox.exe` (Windows) or `DEBUG=1 ./SocialSox` (Linux/Mac) to see error messages.
+
+**Having issues with notifications, settings, or credentials?** Use the red "CLEAR ALL DATA" button in Settings for a complete reset - it wipes everything for a fresh start!
 
 > [!IMPORTANT]
 > **X Errors**:
