@@ -548,6 +548,26 @@ ipcMain.handle('write-notifications', async (event, notifications) => {
     }
 });
 
+ipcMain.handle('delete-notifications', async () => {
+    try {
+        await fs.unlink(notificationsPath);
+        return true;
+    } catch (error) {
+        // File doesn't exist or can't be deleted, that's ok
+        return true;
+    }
+});
+
+ipcMain.handle('delete-window-config', async () => {
+    try {
+        await fs.unlink(configPath);
+        return true;
+    } catch (error) {
+        // File doesn't exist or can't be deleted, that's ok
+        return true;
+    }
+});
+
 ipcMain.on('log', (event, message) => {
     console.log('[Renderer Log]:', message);
 });

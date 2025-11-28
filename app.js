@@ -374,6 +374,16 @@ function resetAllData() {
 
     localStorage.clear();
 
+    // Delete notifications JSON file
+    if (window.electron && window.electron.deleteNotifications) {
+        window.electron.deleteNotifications();
+    }
+
+    // Delete window config JSON file
+    if (window.electron && window.electron.deleteWindowConfig) {
+        window.electron.deleteWindowConfig();
+    }
+
     document.getElementById('mastodon-instance').value = '';
     document.getElementById('mastodon-token').value = '';
     document.getElementById('twitter-key').value = '';
