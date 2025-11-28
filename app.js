@@ -339,7 +339,7 @@ async function postToAll() {
 
     setTimeout(() => {
         showRandomMessage(); // Show first message immediately
-        messageInterval = setInterval(showRandomMessage, 2500);
+        messageInterval = setInterval(showRandomMessage, 2000);
     }, 0);
 
     const results = [];
