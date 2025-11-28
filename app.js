@@ -24,6 +24,7 @@ import {
     loadNotifications,
     markAsSeen,
     markAllAsRead,
+    loadCachedNotifications,
     testNotification
 } from './src/modules/notifications.js';
 
@@ -47,6 +48,7 @@ window.clearNotificationsCache = clearNotificationsCache;
 window.loadNotifications = loadNotifications;
 window.markAsSeen = markAsSeen;
 window.markAllAsRead = markAllAsRead;
+window.loadCachedNotifications = loadCachedNotifications;
 window.testNotification = testNotification;
 window.resetAllData = resetAllData;
 
@@ -58,6 +60,11 @@ window.addEventListener('DOMContentLoaded', () => {
     // Restore active tab from localStorage
     const savedTab = localStorage.getItem('socialSoxActiveTab') || 'post';
     switchTab(savedTab);
+
+    // Load cached notifications if notifications tab is active
+    if (savedTab === 'notifications') {
+        loadCachedNotifications();
+    }
 
     window.electron.getVersion().then(version => {
         document.getElementById('version').textContent = version;

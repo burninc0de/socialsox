@@ -20,6 +20,7 @@ const { TwitterApi } = require('twitter-api-v2');
 const sharp = require('sharp');
 
 const configPath = path.join(app.getPath('userData'), 'window-config.json');
+const notificationsPath = path.join(app.getPath('userData'), 'notifications.json');
 
 async function getWindowBounds() {
     try {
@@ -526,6 +527,25 @@ ipcMain.handle('get-assets-path', () => {
     return (app && app.isPackaged)
         ? path.join(process.resourcesPath, 'assets')
         : path.join(__dirname, 'assets');
+});
+
+ipcMain.handle('read-notifications', async () => {
+    try {
+        const data = await fs.readFile(notificationsPath, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        return [];
+    }
+});
+
+ipcMain.handle('write-notifications', async (event, notifications) => {
+    try {
+        await fs.writeFile(notificationsPath, JSON.stringify(notifications, null, 2));
+        return true;
+    } catch (error) {
+        console.error('Failed to save notifications:', error);
+        return false;
+    }
 });
 
 ipcMain.on('log', (event, message) => {

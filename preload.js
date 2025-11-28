@@ -31,6 +31,8 @@ contextBridge.exposeInMainWorld(
         getVersion: () => ipcRenderer.invoke('get-version'),
         encryptCredentials: (data) => ipcRenderer.invoke('encrypt-credentials', data),
         decryptCredentials: (encryptedData) => ipcRenderer.invoke('decrypt-credentials', encryptedData),
-        getAssetsPath: () => ipcRenderer.invoke('get-assets-path')
+        getAssetsPath: () => ipcRenderer.invoke('get-assets-path'),
+        readNotifications: () => ipcRenderer.invoke('read-notifications'),
+        writeNotifications: (notifications) => ipcRenderer.invoke('write-notifications', notifications)
     }
 );
