@@ -46,7 +46,8 @@ A simple, local Electron app for posting short messages to Mastodon, X (aka Twit
 
 > [!IMPORTANT]
 > **Current implementation details:**
-> - Tailwind CSS and Lucide icons are loaded via CDN for simplicity
+> - Tailwind CSS and Lucide icons are bundled with the app (no CDN dependencies)
+> - Only essential Lucide icons are imported to minimize bundle size
 > - Tested on Linux (Arch CachyOS) and Windows 11
 > - Mac builds need testing
 
