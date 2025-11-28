@@ -81,25 +81,23 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const trayIconPathStored = localStorage.getItem('socialSoxTrayIconPath') || 'tray.png';
 
-    // Defer loading tray icon preview to avoid delay
-    // if (trayIconPathStored === 'tray.png') {
-    //     window.electron.getDefaultTrayIconPath().then(defaultPath => {
-    //         window.electron.readFileAsDataURL(defaultPath).then(dataURL => {
-    //             if (dataURL) {
-    //                 document.getElementById('trayIconPreview').src = dataURL;
-    //             }
-    //         });
-    //     });
-    // } else {
-    //     window.electron.readFileAsDataURL(trayIconPathStored).then(dataURL => {
-    //         if (dataURL) {
-    //             document.getElementById('trayIconPreview').src = dataURL;
-    //         }
-    //     });
-    // }
-    window.electron.setTrayIcon(trayIconPathStored);
-
-    const externalLinksStored = localStorage.getItem('socialSoxExternalLinks');
+    // Load tray icon preview
+    if (trayIconPathStored === 'tray.png') {
+        window.electron.getDefaultTrayIconPath().then(defaultPath => {
+            window.electron.readFileAsDataURL(defaultPath).then(dataURL => {
+                if (dataURL) {
+                    document.getElementById('trayIconPreview').src = dataURL;
+                }
+            });
+        });
+    } else {
+        window.electron.readFileAsDataURL(trayIconPathStored).then(dataURL => {
+            if (dataURL) {
+                document.getElementById('trayIconPreview').src = dataURL;
+            }
+        });
+    }
+    window.electron.setTrayIcon(trayIconPathStored);    const externalLinksStored = localStorage.getItem('socialSoxExternalLinks');
     const externalLinks = externalLinksStored !== null ? externalLinksStored === 'true' : false;
     document.getElementById('externalLinksToggle').checked = externalLinks;
 
