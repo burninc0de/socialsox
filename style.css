@@ -1,0 +1,163 @@
+@import "tailwindcss";
+
+@theme {
+    --color-primary-500: #667eea;
+    --color-primary-600: #5a67d8;
+    --color-primary-700: #4c51bf;
+}
+
+.title-bar {
+    -webkit-app-region: drag;
+}
+
+.window-controls {
+    -webkit-app-region: no-drag;
+}
+
+.bg-gradient-purple {
+    background: linear-gradient(135deg, #4c51bf 0%, #5a4d8f 100%);
+}
+
+.bg-gradient-dark {
+    background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+}
+
+.tab-content {
+    display: block;
+}
+
+.tab-content.hidden {
+    display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+    }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    /* Light mode */
+}
+
+.dark ::-webkit-scrollbar-track {
+    background: #2d3748;
+    /* Dark mode */
+}
+
+::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    /* Light mode */
+    border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: #374151;
+    /* Dark mode */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+    /* Light mode hover */
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: #4b5563;
+    /* Dark mode hover */
+}
+
+/* Platform button active state icons */
+.platform-toggle img {
+    transition: filter 300ms ease;
+}
+
+.platform-toggle.active img {
+    filter: brightness(0) invert(1);
+}
+
+/* Dark Mode Toggle */
+#darkModeToggle:checked+div,
+#trayIconToggle:checked+div,
+#externalLinksToggle:checked+div,
+#excludeMastodonNotifications:checked+div,
+#excludeTwitterNotifications:checked+div,
+#excludeBlueskyNotifications:checked+div {
+    background-color: #4f46e5;
+}
+
+#darkModeToggle:checked+div+.dot,
+#trayIconToggle:checked+div+.dot,
+#externalLinksToggle:checked+div+.dot,
+#excludeMastodonNotifications:checked+div+.dot,
+#excludeTwitterNotifications:checked+div+.dot,
+#excludeBlueskyNotifications:checked+div+.dot {
+    transform: translateX(20px);
+}
+
+/* Toast Styles */
+.toast {
+    padding: 12px 16px;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: slideIn 0.3s ease-out;
+    max-width: 300px;
+    word-wrap: break-word;
+}
+
+.toast.success {
+    background-color: #10b981;
+}
+
+.toast.error {
+    background-color: #ef4444;
+}
+
+.toast.info {
+    background-color: #3b82f6;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.toast.fade-out {
+    animation: fadeOut 0.3s ease-out forwards;
+}
+
+@keyframes fadeOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Prevent text selection on buttons and tabs */
+button,
+.tab-button {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}

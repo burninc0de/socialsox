@@ -47,7 +47,7 @@ function createTray(win) {
     ]);
     tray.setToolTip('SocialSox');
     tray.setContextMenu(contextMenu);
-    tray.on('click', () => { 
+    tray.on('click', () => {
         if (win.isVisible()) {
             win.hide();
         } else {
@@ -80,7 +80,7 @@ async function createWindow() {
     if (process.env.VITE_DEV_SERVER_URL) {
         win.loadURL(process.env.VITE_DEV_SERVER_URL);
     } else {
-        win.loadFile('index.html');
+        win.loadFile('dist-vite/index.html');
     }
 
     // Forward renderer console messages to terminal
@@ -154,7 +154,7 @@ ipcMain.on('set-tray-enabled', (event, enabled) => {
 ipcMain.on('set-tray-icon', (event, iconPath) => {
     // If it's the default tray.png, use the correct path for packaged/dev mode
     if (iconPath === 'tray.png') {
-        trayIconPath = app.isPackaged 
+        trayIconPath = app.isPackaged
             ? path.join(process.resourcesPath, 'tray.png')
             : path.join(__dirname, 'tray.png');
     } else {
@@ -167,7 +167,7 @@ ipcMain.on('set-tray-icon', (event, iconPath) => {
 
 // Handle getting the default tray icon path
 ipcMain.handle('get-default-tray-icon-path', () => {
-    return app.isPackaged 
+    return app.isPackaged
         ? path.join(process.resourcesPath, 'tray.png')
         : path.join(__dirname, 'tray.png');
 });
@@ -208,7 +208,7 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
         console.log('Twitter: Attempting to post...');
         console.log('Twitter: Message length:', message.length);
         console.log('Twitter: Has image:', !!imageData);
-        
+
         const client = new TwitterApi({
             appKey: apiKey,
             appSecret: apiSecret,
@@ -217,7 +217,7 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
         });
 
         let mediaId = null;
-        
+
         // Upload image if provided
         if (imageData) {
             console.log('Twitter: Uploading image...');
@@ -227,13 +227,13 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
             mediaId = await client.v1.uploadMedia(buffer, { mimeType: 'image/jpeg' });
             console.log('Twitter: Image uploaded, mediaId:', mediaId);
         }
-        
+
         // Create tweet with optional media
         const tweetData = { text: message };
         if (mediaId) {
             tweetData.media = { media_ids: [mediaId] };
         }
-        
+
         const result = await client.v2.tweet(tweetData);
         console.log('Twitter: Success!', result);
         const tweetUrl = `https://twitter.com/i/status/${result.data.id}`;
@@ -242,7 +242,7 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
         console.error('Twitter Error:', error);
         console.error('Twitter Error Code:', error.code);
         console.error('Twitter Error Data:', error.data);
-        
+
         // Return more detailed error message
         let errorMessage = error.message;
         if (error.data && error.data.detail) {
@@ -250,7 +250,7 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
         } else if (error.data && error.data.title) {
             errorMessage = error.data.title;
         }
-        
+
         return { success: false, error: errorMessage, code: error.code, details: error.data };
     }
 });
@@ -259,7 +259,7 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
 ipcMain.handle('fetch-twitter-notifications', async (event, { apiKey, apiSecret, accessToken, accessTokenSecret, lastSeenId }) => {
     try {
         console.log('Twitter: Fetching notifications...');
-        
+
         const client = new TwitterApi({
             appKey: apiKey,
             appSecret: apiSecret,
@@ -270,7 +270,7 @@ ipcMain.handle('fetch-twitter-notifications', async (event, { apiKey, apiSecret,
         // Get authenticated user ID
         const me = await client.v2.me();
         const userId = me.data.id;
-        
+
         // Fetch mentions - only newer than last seen to avoid old notifications
         const options = {
             max_results: 20,
@@ -278,16 +278,16 @@ ipcMain.handle('fetch-twitter-notifications', async (event, { apiKey, apiSecret,
             'user.fields': ['username', 'name'],
             expansions: ['author_id']
         };
-        
+
         if (lastSeenId) {
             options.since_id = lastSeenId;
         }
-        
+
         const mentions = await client.v2.userMentionTimeline(userId, options);
-        
+
         const notifications = [];
         let latestId = lastSeenId;
-        
+
         for await (const tweet of mentions) {
             const author = mentions.includes?.users?.find(u => u.id === tweet.author_id);
             notifications.push({
@@ -299,25 +299,25 @@ ipcMain.handle('fetch-twitter-notifications', async (event, { apiKey, apiSecret,
                 content: tweet.text,
                 url: `https://twitter.com/${author?.username}/status/${tweet.id}`
             });
-            
+
             // Track the latest (newest) mention ID
             if (!latestId || BigInt(tweet.id) > BigInt(latestId)) {
                 latestId = tweet.id;
             }
         }
-        
+
         console.log('Twitter: Found', notifications.length, 'notifications');
         return { success: true, data: notifications, latestId };
     } catch (error) {
         console.error('Twitter Notifications Error:', error);
-        
+
         let errorMessage = error.message;
         if (error.data && error.data.detail) {
             errorMessage = error.data.detail;
         } else if (error.data && error.data.title) {
             errorMessage = error.data.title;
         }
-        
+
         return { success: false, error: errorMessage, code: error.code, details: error.data };
     }
 });
@@ -465,7 +465,7 @@ ipcMain.handle('show-os-notification', (event, { title, body, platform }) => {
                 icon: appIconPath,
                 silent: false
             });
-            
+
             notification.on('click', () => {
                 const win = BrowserWindow.getAllWindows()[0];
                 if (win) {
@@ -476,7 +476,7 @@ ipcMain.handle('show-os-notification', (event, { title, body, platform }) => {
                     win.webContents.send('switch-to-notifications-tab');
                 }
             });
-            
+
             notification.show();
             return { success: true };
         } else {
