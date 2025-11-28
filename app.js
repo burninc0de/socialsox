@@ -305,7 +305,6 @@ async function postToAll() {
 "arguing with OAuth again …",
 "launching message into the void …",
 "bribing the API with snacks …",
-"asking Bluesky if it's awake …",
 "spinning up the content hamster …",
 "duct-taping the timelines together …",
 "delivering your post via carrier pigeon …",
@@ -332,12 +331,16 @@ async function postToAll() {
 
     let messageInterval;
 
+    // Start loading messages immediately
+    const showRandomMessage = () => {
+        const randomIndex = Math.floor(Math.random() * loadingMessages.length);
+        btn.textContent = loadingMessages[randomIndex];
+    };
+
     setTimeout(() => {
-        messageInterval = setInterval(() => {
-            const randomIndex = Math.floor(Math.random() * loadingMessages.length);
-            btn.textContent = loadingMessages[randomIndex];
-        }, 2500);
-    }, 500);
+        showRandomMessage(); // Show first message immediately
+        messageInterval = setInterval(showRandomMessage, 2500);
+    }, 0);
 
     const results = [];
 
