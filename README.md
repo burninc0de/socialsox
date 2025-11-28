@@ -13,6 +13,7 @@ Today's social media landscape is fragmented. Your audience is scattered across 
 - 🖼️ Multiple image uploads (up to 4) with drag-and-drop
 - 🔄 Drag to reorder images before posting
 - 📊 Real-time character counter per platform
+- 🧪 Debug mode: Test your posts without actually publishing them
 
 **Management & History**
 - 📜 View posting history with status tracking
