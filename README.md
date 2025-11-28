@@ -211,6 +211,38 @@ For security-related concerns, please see our [Security Policy](SECURITY.md).
 > - **Bluesky Errors**: Use your full handle including the domain (e.g., `user.bsky.social`)
 > - **Image Upload Issues**: Ensure your image is under 5MB and in a supported format (PNG, JPG, GIF, WebP)
 
+## Data Storage & Clearing Saved Data
+
+SocialSox stores your data locally on your computer. Here's where to find and manage it:
+
+### Windows
+**Location**: `%APPDATA%\socialsox\`  
+**Full path**: `C:\Users\[YourUsername]\AppData\Roaming\socialsox\`
+
+### macOS
+**Location**: `~/Library/Application Support/socialsox/`
+
+### Linux
+**Location**: `~/.config/socialsox/`
+
+### Files Stored
+- `notifications.json` - Cached notifications from platforms
+- `history.json` - Your posting history and status tracking
+- `window-config.json` - Window position and size preferences
+
+### Clearing Data Manually
+If you need to clear data manually (or the in-app "CLEAR ALL DATA" button doesn't work):
+1. Close SocialSox completely
+2. Navigate to the folder above for your platform
+3. Delete the files you want to clear:
+   - Delete `notifications.json` to clear notification cache
+   - Delete `history.json` to clear posting history
+   - Delete `window-config.json` to reset window preferences
+4. Restart SocialSox
+
+> [!NOTE]
+> Your encrypted API credentials are stored separately using your operating system's secure storage and won't be in these folders.
+
 ## Development
 
 ### Prerequisites
