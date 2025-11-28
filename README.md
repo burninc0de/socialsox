@@ -1,4 +1,4 @@
-# <img src="appicon.png" alt="🧦" width="32" /> SocialSox
+# <img src="tray.png" alt="🧦" width="32" /> SocialSox
 
 A simple, open source cross-platform desktop app for posting short messages to Mastodon, X (aka Twitter), and Bluesky separately or simultaneously.
 
