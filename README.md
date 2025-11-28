@@ -4,20 +4,17 @@ A simple, local Electron app for posting short messages to Mastodon, X (aka Twit
 
 ## Features
 
-- 📝 Post to multiple platforms at once
-- 🔒 Credentials securely encrypted using Electron's safeStorage
+- 📝 Post to single or multiple platforms
+- 🖥️ Cross-platform desktop app - no browser or server needed!
 - 🎨 Clean, modern interface with native dark mode support
-- 🔄 Toggle platforms on/off
+- 🖼️ Image upload support
 - 📊 Character counter
 - ✅ Per-platform status feedback
-- 📤📥 Export/Import credentials for portability
-- 🖥️ Desktop app - no browser or server needed!
-- 📦 Cross-platform distributable builds
-- 📋 Tabbed interface: Post, History, Notifications, Settings
-- 🖼️ Image upload support
+- 🔔 Get notifications on replies, likes, reposts
 - 📜 Posting history with status tracking
-- 🎛️ Dedicated settings tab for API configuration
-- 🌙 Custom dark scrollbars and theme
+- ⚙️ Customize tray icon, window decorations and more
+- 🔒 Credentials securely encrypted using Electron's safeStorage
+- 📥 Export/Import credentials for portability
 
 ## Screenshots
 
@@ -46,7 +43,7 @@ A simple, local Electron app for posting short messages to Mastodon, X (aka Twit
 
 > [!IMPORTANT]
 > **Current implementation details:**
-> - Tailwind CSS and Lucide icons are bundled with the app (no CDN dependencies)
+> - Tailwind CSS and Lucide icons are bundled with the app
 > - Only essential Lucide icons are imported to minimize bundle size
 > - Tested on Linux (Arch CachyOS) and Windows 11
 > - Mac builds need testing
