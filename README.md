@@ -1,4 +1,4 @@
-# 🧦 SocialSox
+# <img src="appicon.png" alt="🧦" width="32" /> SocialSox
 
 A simple, local Electron app for posting short messages to Mastodon, X (aka Twitter), and Bluesky simultaneously.
 
