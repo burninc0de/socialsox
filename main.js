@@ -517,6 +517,12 @@ ipcMain.handle('decrypt-credentials', async (event, encryptedData) => {
     return safeStorage.decryptString(buffer);
 });
 
+ipcMain.handle('get-assets-path', () => {
+    return (app && app.isPackaged)
+        ? path.join(process.resourcesPath, 'assets')
+        : path.join(__dirname, 'assets');
+});
+
 ipcMain.on('log', (event, message) => {
     console.log('[Renderer Log]:', message);
 });

@@ -30,6 +30,7 @@ contextBridge.exposeInMainWorld(
         openExternalLink: (url) => ipcRenderer.send('open-external-link', url),
         getVersion: () => ipcRenderer.invoke('get-version'),
         encryptCredentials: (data) => ipcRenderer.invoke('encrypt-credentials', data),
-        decryptCredentials: (encryptedData) => ipcRenderer.invoke('decrypt-credentials', encryptedData)
+        decryptCredentials: (encryptedData) => ipcRenderer.invoke('decrypt-credentials', encryptedData),
+        getAssetsPath: () => ipcRenderer.invoke('get-assets-path')
     }
 );

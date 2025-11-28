@@ -526,7 +526,7 @@ async function fetchBlueskyNotifications(handle, password) {
     return processedNotifications;
 }
 
-function displayNotifications(notifications) {
+async function displayNotifications(notifications) {
     const notificationsList = document.getElementById('notificationsList');
     const noNotifications = document.getElementById('noNotifications');
     
@@ -543,10 +543,11 @@ function displayNotifications(notifications) {
     
     noNotifications.style.display = 'none';
     
+    const assetsPath = await window.electron.getAssetsPath();
     const platformIcons = {
-        mastodon: '<img src="assets/masto.svg" alt="M" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">',
-        twitter: '<img src="assets/twit.svg" alt="X" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">',
-        bluesky: '<img src="assets/bsky.svg" alt="B" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">'
+        mastodon: `<img src="file://${assetsPath}/masto.svg" alt="M" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`,
+        twitter: `<img src="file://${assetsPath}/twit.svg" alt="X" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`,
+        bluesky: `<img src="file://${assetsPath}/bsky.svg" alt="B" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`
     };
     
     const typeLabels = {

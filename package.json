@@ -61,6 +61,10 @@
       {
         "from": "tray.png",
         "to": "tray.png"
+      },
+      {
+        "from": "assets",
+        "to": "assets"
       }
     ],
     "mac": {
