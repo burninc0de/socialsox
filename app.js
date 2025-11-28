@@ -250,9 +250,27 @@ createIcons({icons});
     };
 });
 
+// URL decoding helper
+function decodeUrlsInText(text) {
+    return text.replace(/(https?:\/\/[^\s]+)/g, (match) => {
+        try {
+            const url = new URL(match);
+            url.pathname = decodeURIComponent(url.pathname);
+            url.search = decodeURIComponent(url.search);
+            url.hash = decodeURIComponent(url.hash);
+            return url.toString();
+        } catch (e) {
+            return match;
+        }
+    });
+}
+
 // Main post function
 async function postToAll() {
-    const message = document.getElementById('message').value.trim();
+    let message = document.getElementById('message').value.trim();
+
+    // Decode URLs to handle encoded characters better
+    message = decodeUrlsInText(message);
 
     if (!message) {
         showStatus('Please enter a message', 'error');
