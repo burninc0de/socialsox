@@ -214,7 +214,7 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
     try {
         console.log('Twitter: Attempting to post...');
         console.log('Twitter: Message length:', message.length);
-        console.log('Twitter: Has image:', !!imageData);
+        console.log('Twitter: Has images:', Array.isArray(imageData) ? imageData.length : (imageData ? 1 : 0));
 
         const client = new TwitterApi({
             appKey: apiKey,
@@ -223,22 +223,26 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
             accessSecret: accessTokenSecret,
         });
 
-        let mediaId = null;
+        let mediaIds = [];
 
-        // Upload image if provided
+        // Upload images if provided
         if (imageData) {
-            console.log('Twitter: Uploading image...');
-            // Convert base64 to buffer
-            const base64Data = imageData.split(',')[1];
-            const buffer = Buffer.from(base64Data, 'base64');
-            mediaId = await client.v1.uploadMedia(buffer, { mimeType: 'image/jpeg' });
-            console.log('Twitter: Image uploaded, mediaId:', mediaId);
+            const imageArray = Array.isArray(imageData) ? imageData : [imageData];
+            
+            for (const imgData of imageArray.slice(0, 4)) {
+                console.log('Twitter: Uploading image...');
+                const base64Data = imgData.split(',')[1];
+                const buffer = Buffer.from(base64Data, 'base64');
+                const mediaId = await client.v1.uploadMedia(buffer, { mimeType: 'image/jpeg' });
+                console.log('Twitter: Image uploaded, mediaId:', mediaId);
+                mediaIds.push(mediaId);
+            }
         }
 
         // Create tweet with optional media
         const tweetData = { text: message };
-        if (mediaId) {
-            tweetData.media = { media_ids: [mediaId] };
+        if (mediaIds.length > 0) {
+            tweetData.media = { media_ids: mediaIds };
         }
 
         const result = await client.v2.tweet(tweetData);

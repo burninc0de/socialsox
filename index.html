@@ -94,15 +94,12 @@
                     class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-10 text-center cursor-pointer transition-all bg-gray-50 dark:bg-gray-700 hover:border-primary-500 hover:bg-gray-100 dark:hover:bg-gray-600">
                     <div class="text-gray-600 dark:text-gray-400 text-sm flex items-center justify-center gap-2">
                         <i data-lucide="camera" class="w-4 h-4"></i>
-                        Drag & drop an image here or click to select
+                        Drag & drop images here or click to select (max 4)
                     </div>
                 </div>
-                <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                <div id="imagePreview"
-                    class="relative border-2 border-gray-300 dark:border-gray-600 rounded-lg p-2.5 bg-gray-50 dark:bg-gray-700 hidden">
-                    <img id="previewImg" src="" alt="Preview" class="max-w-full max-h-[300px] block mx-auto rounded">
-                    <button id="removeImage" onclick="removeImage()"
-                        class="absolute top-4 right-4 w-8 h-8 rounded-full bg-red-500 text-white border-0 cursor-pointer text-lg leading-none hover:bg-red-600 transition-colors">✕</button>
+                <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+                <div id="imagePreview" class="hidden mt-3">
+                    <div id="imagePreviewContainer" class="grid grid-cols-2 gap-2"></div>
                 </div>
             </div>
 

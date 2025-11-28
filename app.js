@@ -14,7 +14,7 @@ import { saveCredentials, loadCredentials, exportCredentials, importCredentials 
 import { postToMastodon, postToTwitter, postToBluesky } from './src/modules/platforms.js';
 import { showStatus, showToast, updateCharCount, switchTab, toggleCollapsible } from './src/modules/ui.js';
 import { loadHistory, loadAndDisplayHistory, clearHistory, addHistoryEntry, deleteHistoryEntry } from './src/modules/history.js';
-import { setupImageUpload, removeImage, getSelectedImage } from './src/modules/imageUpload.js';
+import { setupImageUpload, removeImage, getSelectedImages } from './src/modules/imageUpload.js';
 import {
     getAllCachedNotifications,
     clearNotificationsCache,
@@ -363,14 +363,17 @@ async function postToAll() {
 
     const results = [];
 
-    const selectedImage = getSelectedImage();
-    let imageData = null;
-    if (selectedImage) {
-        const reader = new FileReader();
-        imageData = await new Promise((resolve) => {
-            reader.onload = (e) => resolve(e.target.result);
-            reader.readAsDataURL(selectedImage);
-        });
+    const selectedImages = getSelectedImages();
+    let imageDataArray = [];
+    if (selectedImages.length > 0) {
+        for (const image of selectedImages) {
+            const reader = new FileReader();
+            const imageData = await new Promise((resolve) => {
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(image);
+            });
+            imageDataArray.push(imageData);
+        }
     }
 
     try {
@@ -397,7 +400,7 @@ async function postToAll() {
 
                 if (instance && token) {
                     try {
-                        const result = await postToMastodon(message, instance, token, selectedImage);
+                        const result = await postToMastodon(message, instance, token, selectedImages);
                         results.push({ platform: 'Mastodon', success: true, url: result.url });
                     } catch (error) {
                         results.push({ platform: 'Mastodon', success: false, error: error.message });
@@ -415,7 +418,7 @@ async function postToAll() {
 
                 if (apiKey && apiSecret && accessToken && accessTokenSecret) {
                     try {
-                        const result = await postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData);
+                        const result = await postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageDataArray);
                         results.push({ platform: 'Twitter', success: true, url: result.url });
                     } catch (error) {
                         let errorMsg = error.message;
@@ -435,7 +438,7 @@ async function postToAll() {
 
                 if (handle && password) {
                     try {
-                        const result = await postToBluesky(message, handle, password, selectedImage);
+                        const result = await postToBluesky(message, handle, password, selectedImages);
                         results.push({ platform: 'Bluesky', success: true, url: result.url });
                     } catch (error) {
                         results.push({ platform: 'Bluesky', success: false, error: error.message });

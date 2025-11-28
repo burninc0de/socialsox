@@ -1,6 +1,6 @@
 // Platform posting functions
 
-export async function postToMastodon(message, instance, token, imageFile = null) {
+export async function postToMastodon(message, instance, token, imageFiles = []) {
     let cleanInstance = instance.trim();
     if (cleanInstance.endsWith('/')) {
         cleanInstance = cleanInstance.slice(0, -1);
@@ -8,32 +8,34 @@ export async function postToMastodon(message, instance, token, imageFile = null)
     const url = new URL(cleanInstance);
     cleanInstance = `${url.protocol}//${url.host}`;
     
-    let mediaId = null;
+    let mediaIds = [];
     
-    if (imageFile) {
-        const formData = new FormData();
-        formData.append('file', imageFile);
-        
-        const mediaResponse = await fetch(`${cleanInstance}/api/v2/media`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
-            body: formData
-        });
-        
-        if (!mediaResponse.ok) {
-            const errorText = await mediaResponse.text();
-            throw new Error(`Image upload failed: ${errorText}`);
+    if (imageFiles && imageFiles.length > 0) {
+        for (const imageFile of imageFiles.slice(0, 4)) {
+            const formData = new FormData();
+            formData.append('file', imageFile);
+            
+            const mediaResponse = await fetch(`${cleanInstance}/api/v2/media`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            
+            if (!mediaResponse.ok) {
+                const errorText = await mediaResponse.text();
+                throw new Error(`Image upload failed: ${errorText}`);
+            }
+            
+            const mediaData = await mediaResponse.json();
+            mediaIds.push(mediaData.id);
         }
-        
-        const mediaData = await mediaResponse.json();
-        mediaId = mediaData.id;
     }
     
     const postData = { status: message };
-    if (mediaId) {
-        postData.media_ids = [mediaId];
+    if (mediaIds.length > 0) {
+        postData.media_ids = mediaIds;
     }
     
     const response = await fetch(`${cleanInstance}/api/v1/statuses`, {
@@ -54,10 +56,10 @@ export async function postToMastodon(message, instance, token, imageFile = null)
     return { success: true, url: data.url };
 }
 
-export async function postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData = null) {
+export async function postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageDataArray = []) {
     if (window.electron && window.electron.postToTwitter) {
         console.log('Calling Electron backend for Twitter...');
-        const result = await window.electron.postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData);
+        const result = await window.electron.postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageDataArray);
         console.log('Twitter result:', result);
         
         if (!result.success) {
@@ -75,7 +77,7 @@ export async function postToTwitter(message, apiKey, apiSecret, accessToken, acc
     }
 }
 
-export async function postToBluesky(message, handle, password, imageFile = null) {
+export async function postToBluesky(message, handle, password, imageFiles = []) {
     const sessionResponse = await fetch('https://bsky.social/xrpc/com.atproto.server.createSession', {
         method: 'POST',
         headers: {
@@ -94,27 +96,29 @@ export async function postToBluesky(message, handle, password, imageFile = null)
     
     const session = await sessionResponse.json();
     
-    let imageBlob = null;
+    let imageBlobs = [];
     
-    if (imageFile) {
-        const imageBytes = await imageFile.arrayBuffer();
-        
-        const uploadResponse = await fetch('https://bsky.social/xrpc/com.atproto.repo.uploadBlob', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${session.accessJwt}`,
-                'Content-Type': imageFile.type
-            },
-            body: imageBytes
-        });
-        
-        if (!uploadResponse.ok) {
-            const errorText = await uploadResponse.text();
-            throw new Error(`Image upload failed: ${errorText}`);
+    if (imageFiles && imageFiles.length > 0) {
+        for (const imageFile of imageFiles.slice(0, 4)) {
+            const imageBytes = await imageFile.arrayBuffer();
+            
+            const uploadResponse = await fetch('https://bsky.social/xrpc/com.atproto.repo.uploadBlob', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${session.accessJwt}`,
+                    'Content-Type': imageFile.type
+                },
+                body: imageBytes
+            });
+            
+            if (!uploadResponse.ok) {
+                const errorText = await uploadResponse.text();
+                throw new Error(`Image upload failed: ${errorText}`);
+            }
+            
+            const uploadData = await uploadResponse.json();
+            imageBlobs.push(uploadData.blob);
         }
-        
-        const uploadData = await uploadResponse.json();
-        imageBlob = uploadData.blob;
     }
     
     const facets = [];
@@ -212,13 +216,13 @@ export async function postToBluesky(message, handle, password, imageFile = null)
         record.facets = facets;
     }
     
-    if (imageBlob) {
+    if (imageBlobs.length > 0) {
         record.embed = {
             $type: 'app.bsky.embed.images',
-            images: [{
+            images: imageBlobs.map(blob => ({
                 alt: '',
-                image: imageBlob
-            }]
+                image: blob
+            }))
         };
     }
     
