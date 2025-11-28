@@ -1,7 +1,12 @@
 
 // Import lucide icons
-import * as lucide from 'lucide';
-import { icons } from 'lucide';
+import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2 } from 'lucide';
+
+const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2 };
+
+// Make icons and createIcons globally available for modules
+window.lucide = { createIcons };
+window.lucideIcons = icons;
 
 
 // Import modules
@@ -107,7 +112,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Initialize lucide icons
-lucide.createIcons({icons});
+createIcons({icons});
     // Event listeners
     document.getElementById('message').addEventListener('input', updateCharCount);
 

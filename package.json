@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "npx vite",
     "start": "electron .",
-    "build": "electron-builder --publish=never"
+    "build": "npx vite build && electron-builder --publish=never"
   },
   "keywords": [
     "mastodon",
@@ -50,7 +50,6 @@
       "tray.png",
       "appicon.png",
       "!dist/**/*",
-      "!dist-vite/**/*",
       "!dist-electron/**/*",
       "!build/**/*",
       "!*.md",

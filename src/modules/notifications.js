@@ -163,7 +163,9 @@ export async function loadNotifications(silent = false) {
     if (!silent) {
         btn.disabled = true;
         btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Loading...';
-        lucide.createIcons();
+        if (typeof lucide !== 'undefined' && typeof window.lucideIcons !== 'undefined') {
+            lucide.createIcons({icons: window.lucideIcons});
+        }
     }
     
     noNotifications.style.display = 'none';
@@ -195,7 +197,9 @@ export async function loadNotifications(silent = false) {
         if (!silent) {
             btn.disabled = false;
             btn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i> Load Notifications';
-            lucide.createIcons();
+            if (typeof lucide !== 'undefined' && typeof window.lucideIcons !== 'undefined') {
+                lucide.createIcons({icons: window.lucideIcons});
+            }
         }
     }
 }
