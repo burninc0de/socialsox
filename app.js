@@ -54,6 +54,10 @@ window.resetAllData = resetAllData;
 window.addEventListener('DOMContentLoaded', () => {
     loadHistory();
 
+    // Restore active tab from localStorage
+    const savedTab = localStorage.getItem('socialSoxActiveTab') || 'post';
+    switchTab(savedTab);
+
     window.electron.getVersion().then(version => {
         document.getElementById('version').textContent = version;
         document.getElementById('modalVersion').textContent = version;

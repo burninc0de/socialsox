@@ -54,6 +54,9 @@ export function updateCharCount() {
 }
 
 export function switchTab(tab) {
+    // Save current tab to localStorage
+    localStorage.setItem('socialSoxActiveTab', tab);
+    
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.add('hidden');
     });
