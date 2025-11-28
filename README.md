@@ -126,7 +126,7 @@ This creates platform-specific packages in the `dist/` folder:
 3. Create a new app password
 4. Use your handle (e.g., `username.bsky.social`) and the app password
 
-#### X
+#### X (aka Twitter)
 
 1. Go to [X Developer Portal](https://developer.X.com/en/portal/dashboard)
 2. Create a project and app (or use existing)
@@ -165,7 +165,6 @@ Check the **History** tab to view your past posts and their status.
 > **Security Features:**
 > - ✅ Everything runs locally on your computer
 > - ✅ Credentials are encrypted using Electron's safeStorage (OS-level encryption)
-> - ✅ Settings stored securely in localStorage
 > - ✅ X OAuth handled securely in Electron backend
 > - ✅ No external servers involved (except the social media APIs)
 
