@@ -39,8 +39,7 @@
     "icon": "appicon.png",
     "asarUnpack": [
       "**/node_modules/sharp/**",
-      "**/node_modules/@img/**",
-      "**/node_modules/@emnapi/**"
+      "**/node_modules/@img/**"
     ],
     "directories": {
       "output": "dist"
@@ -55,7 +54,8 @@
       "!*.md",
       "!package-lock.json",
       "!vite.config.js",
-      "!electron-mock.js"
+      "!electron-mock.js",
+      "!node_modules/@emnapi/**"
     ],
     "extraResources": [
       {
