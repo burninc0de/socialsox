@@ -76,6 +76,11 @@ export function switchTab(tab) {
         window.loadCachedNotifications();
     }
     
+    // Load and display history when switching to history tab
+    if (tab === 'history' && window.loadAndDisplayHistory) {
+        window.loadAndDisplayHistory();
+    }
+    
     // Clear status message when switching tabs
     const status = document.getElementById('status');
     status.classList.add('hidden');

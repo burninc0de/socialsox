@@ -13,7 +13,7 @@ window.lucideIcons = icons;
 import { saveCredentials, loadCredentials, exportCredentials, importCredentials } from './src/modules/storage.js';
 import { postToMastodon, postToTwitter, postToBluesky } from './src/modules/platforms.js';
 import { showStatus, showToast, updateCharCount, switchTab, toggleCollapsible } from './src/modules/ui.js';
-import { loadHistory, clearHistory, addHistoryEntry } from './src/modules/history.js';
+import { loadHistory, loadAndDisplayHistory, clearHistory, addHistoryEntry } from './src/modules/history.js';
 import { setupImageUpload, removeImage, getSelectedImage } from './src/modules/imageUpload.js';
 import {
     getAllCachedNotifications,
@@ -44,6 +44,7 @@ window.removeImage = removeImage;
 window.exportCredentials = exportCredentials;
 window.importCredentials = importCredentials;
 window.clearHistory = clearHistory;
+window.loadAndDisplayHistory = loadAndDisplayHistory;
 window.clearNotificationsCache = clearNotificationsCache;
 window.loadNotifications = loadNotifications;
 window.markAsSeen = markAsSeen;
@@ -53,9 +54,13 @@ window.testNotification = testNotification;
 window.resetAllData = resetAllData;
 
 // Page load
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
     loadCredentials();
-    loadHistory();
+    try {
+        await loadHistory();
+    } catch (error) {
+        console.error('Failed to load history on startup:', error);
+    }
 
     // Restore active tab from localStorage
     const savedTab = localStorage.getItem('socialSoxActiveTab') || 'post';
@@ -63,7 +68,20 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Load cached notifications if notifications tab is active
     if (savedTab === 'notifications') {
-        loadCachedNotifications();
+        try {
+            await loadCachedNotifications();
+        } catch (error) {
+            console.error('Failed to load cached notifications:', error);
+        }
+    }
+    
+    // Load and display history if history tab is active
+    if (savedTab === 'history') {
+        try {
+            await loadAndDisplayHistory();
+        } catch (error) {
+            console.error('Failed to load and display history:', error);
+        }
     }
 
     window.electron.getVersion().then(version => {
@@ -440,7 +458,7 @@ async function postToAll() {
         );
         showStatus(statusMessages.join('\n'), statusType);
 
-        addHistoryEntry(message, selectedPlatforms, results);
+        await addHistoryEntry(message, selectedPlatforms, results);
 
         if (hasSuccess && !hasFailure) {
             document.getElementById('message').value = '';

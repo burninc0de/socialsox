@@ -35,6 +35,9 @@ contextBridge.exposeInMainWorld(
         readNotifications: () => ipcRenderer.invoke('read-notifications'),
         writeNotifications: (notifications) => ipcRenderer.invoke('write-notifications', notifications),
         deleteNotifications: () => ipcRenderer.invoke('delete-notifications'),
-        deleteWindowConfig: () => ipcRenderer.invoke('delete-window-config')
+        deleteWindowConfig: () => ipcRenderer.invoke('delete-window-config'),
+        readHistory: () => ipcRenderer.invoke('read-history'),
+        writeHistory: (history) => ipcRenderer.invoke('write-history', history),
+        deleteHistory: () => ipcRenderer.invoke('delete-history')
     }
 );

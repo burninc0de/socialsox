@@ -3,38 +3,61 @@
 let historyData = [];
 let historyDisplayed = false;
 
-export function loadHistory() {
-    historyData = JSON.parse(localStorage.getItem('postingHistory') || '[]');
+export async function loadHistory() {
+    try {
+        historyData = await window.electron.readHistory();
+    } catch (error) {
+        console.error('Failed to load history:', error);
+        historyData = [];
+    }
 }
 
-export function saveHistory(history) {
-    localStorage.setItem('postingHistory', JSON.stringify(history));
+export async function loadAndDisplayHistory() {
+    await loadHistory();
+    displayHistory(historyData);
 }
 
-export function clearHistory() {
+export async function saveHistory(history) {
+    try {
+        await window.electron.writeHistory(history);
+    } catch (error) {
+        console.error('Failed to save history:', error);
+    }
+}
+
+export async function clearHistory() {
     if (confirm('Are you sure you want to clear all posting history? This action cannot be undone.')) {
-        localStorage.removeItem('postingHistory');
-        displayHistory([]);
-        window.showToast('Posting history cleared', 'success');
+        try {
+            await window.electron.deleteHistory();
+            displayHistory([]);
+            window.showToast('Posting history cleared', 'success');
+        } catch (error) {
+            console.error('Failed to clear history:', error);
+            window.showToast('Failed to clear history', 'error');
+        }
     }
 }
 
-export function addHistoryEntry(message, selectedPlatforms, results) {
-    const history = JSON.parse(localStorage.getItem('postingHistory') || '[]');
-    const entry = {
-        timestamp: new Date().toISOString(),
-        message: message,
-        platforms: selectedPlatforms,
-        results: results
-    };
-    history.unshift(entry);
-    
-    if (history.length > 100) {
-        history.splice(100);
+export async function addHistoryEntry(message, selectedPlatforms, results) {
+    try {
+        const history = await window.electron.readHistory();
+        const entry = {
+            timestamp: new Date().toISOString(),
+            message: message,
+            platforms: selectedPlatforms,
+            results: results
+        };
+        history.unshift(entry);
+        
+        if (history.length > 100) {
+            history.splice(100);
+        }
+        
+        await saveHistory(history);
+        displayHistory(history);
+    } catch (error) {
+        console.error('Failed to add history entry:', error);
     }
-    
-    saveHistory(history);
-    displayHistory(history);
 }
 
 export function displayHistory(history) {
