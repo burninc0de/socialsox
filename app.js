@@ -122,12 +122,14 @@ window.addEventListener('DOMContentLoaded', async () => {
                 }
             });
         });
+        document.getElementById('resetTrayIconBtn').style.display = 'none';
     } else {
         window.electron.readFileAsDataURL(trayIconPathStored).then(dataURL => {
             if (dataURL) {
                 document.getElementById('trayIconPreview').src = dataURL;
             }
         });
+        document.getElementById('resetTrayIconBtn').style.display = 'block';
     }
     window.electron.setTrayIcon(trayIconPathStored);    const externalLinksStored = localStorage.getItem('socialSoxExternalLinks');
     const externalLinks = externalLinksStored !== null ? externalLinksStored === 'true' : false;
@@ -271,12 +273,26 @@ createIcons({icons});
                         document.getElementById('trayIconPreview').src = dataURL;
                         localStorage.setItem('socialSoxTrayIconPath', path);
                         window.electron.setTrayIcon(path);
+                        document.getElementById('resetTrayIconBtn').style.display = 'block';
                     } else {
                         showStatus('Failed to load image', 'error');
                     }
                 });
             }
         });
+    };
+
+    window.resetTrayIcon = function () {
+        localStorage.removeItem('socialSoxTrayIconPath');
+        window.electron.getDefaultTrayIconPath().then(defaultPath => {
+            window.electron.readFileAsDataURL(defaultPath).then(dataURL => {
+                if (dataURL) {
+                    document.getElementById('trayIconPreview').src = dataURL;
+                }
+            });
+        });
+        window.electron.setTrayIcon('tray.png');
+        document.getElementById('resetTrayIconBtn').style.display = 'none';
     };
 });
 
