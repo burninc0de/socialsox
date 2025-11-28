@@ -1,5 +1,3 @@
-console.log('preload.js start');
-
 const { contextBridge, ipcRenderer } = require('electron');
 
 // Expose protected methods that allow the renderer process to use
@@ -36,5 +34,3 @@ contextBridge.exposeInMainWorld(
         getAssetsPath: () => ipcRenderer.invoke('get-assets-path')
     }
 );
-
-console.log('preload.js end');

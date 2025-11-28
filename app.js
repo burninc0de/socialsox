@@ -1,6 +1,4 @@
 
-console.log('app.js start');
-
 // Import lucide icons
 import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2 } from 'lucide';
 
@@ -54,7 +52,6 @@ window.resetAllData = resetAllData;
 
 // Page load
 window.addEventListener('DOMContentLoaded', () => {
-    console.timeEnd('HTML to DOMContentLoaded');
     loadHistory();
 
     window.electron.getVersion().then(version => {
@@ -63,10 +60,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const darkModeStored = localStorage.getItem('socialSoxDarkMode');
     const darkMode = darkModeStored !== null ? darkModeStored === 'true' : true;
-    console.log('Initializing dark mode:', darkMode, 'stored:', darkModeStored);
     document.getElementById('darkModeToggle').checked = darkMode;
     if (darkMode) {
-        console.log('Adding dark class to documentElement');
         document.documentElement.classList.add('dark');
     }
 
@@ -101,12 +96,9 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('externalLinksToggle').checked = externalLinks;
 
     const cachedNotifications = getAllCachedNotifications();
-    console.log('cachedNotifications length:', cachedNotifications.length);
     if (cachedNotifications.length > 0) {
-        console.log('importing notifications.js');
         // Import displayNotifications dynamically to avoid circular dependency
         import('./src/modules/notifications.js').then(module => {
-            console.log('notifications.js imported');
             // Already displayed via the function
         });
     }
@@ -135,10 +127,8 @@ createIcons({icons});
         console.log('Dark mode toggle changed to:', isDark);
         localStorage.setItem('socialSoxDarkMode', isDark);
         if (isDark) {
-            console.log('Adding dark class');
             document.documentElement.classList.add('dark');
         } else {
-            console.log('Removing dark class');
             document.documentElement.classList.remove('dark');
         }
         console.log('documentElement classes:', document.documentElement.classList.toString());
