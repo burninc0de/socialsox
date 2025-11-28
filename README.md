@@ -1,20 +1,31 @@
 # <img src="appicon.png" alt="🧦" width="32" /> SocialSox
 
-A simple, local Electron app for posting short messages to Mastodon, X (aka Twitter), and Bluesky simultaneously.
+A simple, open source cross-platform desktop app for posting short messages to Mastodon, X (aka Twitter), and Bluesky separately or simultaneously.
+
+## Who is this for?
+
+Tired of copy-pasting the same post across three browser tabs? Done paying for bloated social media management tools when you just want to share a quick thought? SocialSox is an free, local-first desktop app that posts to Mastodon, X, and Bluesky—no subscriptions, no servers, no drama.
 
 ## Features
 
-- 📝 Post to single or multiple platforms
-- 🖥️ Cross-platform desktop app - no browser or server needed!
-- 🎨 Clean, modern interface with native dark mode support
-- 🖼️ Image upload support
-- 📊 Character counter
-- ✅ Per-platform status feedback
-- 🔔 Get notifications on replies, likes, reposts
-- 📜 Posting history with status tracking
-- ⚙️ Customize tray icon, window decorations and more
-- 🔒 Credentials securely encrypted using Electron's safeStorage
-- 📥 Export/Import credentials for portability
+**Core Posting**
+- 📝 Post to one or all platforms simultaneously
+- 🖼️ Single image uploads with drag-and-drop
+- 📊 Real-time character counter per platform
+
+**Management & History**
+- 📜 View posting history with status tracking
+- 🔔 Monitor replies, likes, and reposts
+- ✅ Per-platform delivery status
+
+**Privacy & Security**
+- 🔒 Credentials encrypted using OS-level security
+- 🖥️ Runs entirely on your machine—no cloud required
+- 📥 Export/import credentials for backup
+
+**Customization**
+- 🎨 Native dark mode support
+- ⚙️ Customizable tray icons and window decorations
 
 ## Screenshots
 
@@ -67,23 +78,23 @@ This modular approach allows for easy maintenance and future extensions.
 
 ## Quick Start
 
-### Option 1: Run as Electron App (Recommended)
+### Option 1: Download Pre-built App (Recommended for most users)
+
+Download the latest [release](https://github.com/burninc0de/socialsox/releases/) for your platform:
+- **Windows**: `.exe` installer
+- **macOS**: `.dmg` file
+- **Linux**: `.AppImage` file
+
+### Option 2: Run from Source (Developers)
 
 ```bash
 npm install
-npm start
-```
-
-For development (with hot-reload):
-```bash
-# Terminal 1: Start Vite dev server
 npm run dev
-
-# Terminal 2: Launch Electron app
-npm start
 ```
 
-### Option 2: Build Distributable Packages
+This starts the Vite dev server with hot-reload and automatically launches the Electron app for development.
+
+### Option 3: Build Distributable Packages
 
 ```bash
 npm run build
@@ -220,10 +231,10 @@ npm install
 ### Development Commands
 
 ```bash
-# Start the Vite dev server (for hot-reloading the web app)
+# Start development mode (Vite dev server + Electron app with hot-reload)
 npm run dev
 
-# Launch the Electron app (loads from Vite dev server in dev mode)
+# Launch the built Electron app (production mode)
 npm start
 
 # Build for production
