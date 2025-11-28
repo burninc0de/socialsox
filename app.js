@@ -253,6 +253,23 @@ createIcons({icons});
         restartNotificationPolling();
     });
 
+    // Reset test button colors when credentials change
+    const resetTestButtonColor = (btnId) => {
+        const btn = document.getElementById(btnId);
+        btn.className = 'w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
+    };
+
+    document.getElementById('mastodon-instance').addEventListener('input', () => resetTestButtonColor('testMastodonBtn'));
+    document.getElementById('mastodon-token').addEventListener('input', () => resetTestButtonColor('testMastodonBtn'));
+    
+    document.getElementById('twitter-key').addEventListener('input', () => resetTestButtonColor('testTwitterBtn'));
+    document.getElementById('twitter-secret').addEventListener('input', () => resetTestButtonColor('testTwitterBtn'));
+    document.getElementById('twitter-token').addEventListener('input', () => resetTestButtonColor('testTwitterBtn'));
+    document.getElementById('twitter-token-secret').addEventListener('input', () => resetTestButtonColor('testTwitterBtn'));
+    
+    document.getElementById('bluesky-handle').addEventListener('input', () => resetTestButtonColor('testBlueskyBtn'));
+    document.getElementById('bluesky-password').addEventListener('input', () => resetTestButtonColor('testBlueskyBtn'));
+
     setupImageUpload();
 
     // Global link handler to respect external links setting
@@ -316,9 +333,11 @@ createIcons({icons});
         try {
             const result = await testMastodonConfig(instance, token);
             showToast(`✓ Connected as @${result.username} (${result.displayName})`, 'success');
+            btn.className = 'w-full py-2 px-3 bg-green-600 hover:bg-green-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
         } catch (error) {
             console.error('Mastodon test failed:', error);
             showToast(`✗ Mastodon test failed: ${error.message}`, 'error');
+            btn.className = 'w-full py-2 px-3 bg-red-600 hover:bg-red-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalText;
@@ -346,9 +365,11 @@ createIcons({icons});
         try {
             const result = await testTwitterConfig(apiKey, apiSecret, accessToken, tokenSecret);
             showToast(`✓ Connected as @${result.username}`, 'success');
+            btn.className = 'w-full py-2 px-3 bg-green-600 hover:bg-green-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
         } catch (error) {
             console.error('Twitter test failed:', error);
             showToast(`✗ Twitter test failed: ${error.message}`, 'error');
+            btn.className = 'w-full py-2 px-3 bg-red-600 hover:bg-red-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalText;
@@ -374,9 +395,11 @@ createIcons({icons});
         try {
             const result = await testBlueskyConfig(handle, password);
             showToast(`✓ Connected as @${result.username}`, 'success');
+            btn.className = 'w-full py-2 px-3 bg-green-600 hover:bg-green-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
         } catch (error) {
             console.error('Bluesky test failed:', error);
             showToast(`✗ Bluesky test failed: ${error.message}`, 'error');
+            btn.className = 'w-full py-2 px-3 bg-red-600 hover:bg-red-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalText;
