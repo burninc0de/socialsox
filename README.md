@@ -2,13 +2,9 @@
 
 A simple, open source cross-platform desktop app for posting short messages to Mastodon, X (aka Twitter), and Bluesky separately or simultaneously.
 
-## Who is this for?
-
-Tired of copy-pasting the same post across three browser tabs? Done paying for bloated social media management tools when you just want to share a quick thought? SocialSox is a free, local-first desktop app that posts to Mastodon, X, and Bluesky—no subscriptions, no servers, no drama.
-
 ## Why SocialSox?
 
-Today's social media landscape is fragmented. Your audience is scattered across Mastodon, Bluesky, and X, but existing tools are either browser-based tab juggling, overpriced SaaS, or complex self-hosted setups. SocialSox gives you a simple, free desktop app that does one thing well: post your message everywhere at once. [Read the full story](https://andreklein.net/i-built-my-own-damn-crossposter-because-2025-social-media-is-a-fragmented-hellscape/).
+Today's social media landscape is fragmented. Your audience is scattered across Mastodon, Bluesky, and X, but existing tools are either browser-based tab juggling, overpriced SaaS, or complex self-hosted setups. SocialSox gives you a simple, free desktop app that does one thing well: post your message everywhere at once.
 
 ## Features
 
@@ -51,7 +47,7 @@ Today's social media landscape is fragmented. Your audience is scattered across 
 ## Project Notes
 
 > [!NOTE]
-> **This is a small focused vanilla JavaScript project with Tailwind and Lucide Icons** built for a simple need. It may benefit from refactoring to React/TypeScript in the future.
+> **This is a small focused vanilla JavaScript project with Tailwind and Lucide Icons** built for a simple need. [Read the blog post about how and why I built it](https://andreklein.net/i-built-my-own-damn-crossposter-because-2025-social-media-is-a-fragmented-hellscape/). It may benefit from refactoring to React/TypeScript in the future.
 
 > [!TIP]
 > **Minimalist by design** - I have no plans to turn this into a super-app with endless features. For more advanced social media management tools, check out [Postiz](https://github.com/gitroomhq/postiz-app).
