@@ -157,3 +157,28 @@ button,
     -moz-user-select: none;
     -ms-user-select: none;
 }
+
+/* Version Pill */
+.version-pill {
+    font-weight: 500;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}

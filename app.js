@@ -55,8 +55,12 @@ window.addEventListener('DOMContentLoaded', () => {
     loadHistory();
 
     window.electron.getVersion().then(version => {
-        document.getElementById('version').textContent = `v${version}`;
+        document.getElementById('version').textContent = version;
+        document.getElementById('modalVersion').textContent = version;
     });
+
+    // Version pill click handler
+    document.getElementById('versionPill').addEventListener('click', showAboutModal);
 
     const darkModeStored = localStorage.getItem('socialSoxDarkMode');
     const darkMode = darkModeStored !== null ? darkModeStored === 'true' : true;
@@ -420,6 +424,19 @@ function resetAllData() {
 
     showStatus('All data has been reset! Please restart the app for a complete fresh start.', 'success');
 }
+
+// About Modal Functions
+function showAboutModal() {
+    document.getElementById('aboutModal').classList.remove('hidden');
+}
+
+function closeAboutModal() {
+    document.getElementById('aboutModal').classList.add('hidden');
+}
+
+// Make functions globally available
+window.showAboutModal = showAboutModal;
+window.closeAboutModal = closeAboutModal;
 
 // Make postToAll globally available
 window.postToAll = postToAll;
