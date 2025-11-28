@@ -74,7 +74,7 @@ async function createWindow() {
             colorScheme: 'system',
             preload: path.join(__dirname, 'preload.js')
         },
-        icon: trayIconPath,
+        icon: appIconPath,
         title: 'SocialSox',
         autoHideMenuBar: true,
         frame: false,
