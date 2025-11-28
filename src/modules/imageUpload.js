@@ -103,14 +103,8 @@ function addImagePreview(dataURL, index) {
         removeImageAtIndex(index);
     };
     
-    // Add order badge
-    const orderBadge = document.createElement('div');
-    orderBadge.className = 'absolute top-3 left-3 w-6 h-6 rounded-full bg-primary-500 text-white text-xs flex items-center justify-center font-bold';
-    orderBadge.textContent = index + 1;
-    
     previewDiv.appendChild(img);
     previewDiv.appendChild(removeBtn);
-    previewDiv.appendChild(orderBadge);
     container.appendChild(previewDiv);
 }
 
