@@ -13,7 +13,7 @@ window.lucideIcons = icons;
 import { saveCredentials, loadCredentials, exportCredentials, importCredentials } from './src/modules/storage.js';
 import { postToMastodon, postToTwitter, postToBluesky } from './src/modules/platforms.js';
 import { showStatus, showToast, updateCharCount, switchTab, toggleCollapsible } from './src/modules/ui.js';
-import { loadHistory, clearHistory, addHistoryEntry } from './src/modules/history.js';
+import { loadHistory, loadAndDisplayHistory, clearHistory, addHistoryEntry, deleteHistoryEntry } from './src/modules/history.js';
 import { setupImageUpload, removeImage, getSelectedImage } from './src/modules/imageUpload.js';
 import {
     getAllCachedNotifications,
@@ -44,6 +44,8 @@ window.removeImage = removeImage;
 window.exportCredentials = exportCredentials;
 window.importCredentials = importCredentials;
 window.clearHistory = clearHistory;
+window.loadAndDisplayHistory = loadAndDisplayHistory;
+window.deleteHistoryEntry = deleteHistoryEntry;
 window.clearNotificationsCache = clearNotificationsCache;
 window.loadNotifications = loadNotifications;
 window.markAsSeen = markAsSeen;
@@ -53,9 +55,13 @@ window.testNotification = testNotification;
 window.resetAllData = resetAllData;
 
 // Page load
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
     loadCredentials();
-    loadHistory();
+    try {
+        await loadHistory();
+    } catch (error) {
+        console.error('Failed to load history on startup:', error);
+    }
 
     // Restore active tab from localStorage
     const savedTab = localStorage.getItem('socialSoxActiveTab') || 'post';
@@ -63,7 +69,20 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Load cached notifications if notifications tab is active
     if (savedTab === 'notifications') {
-        loadCachedNotifications();
+        try {
+            await loadCachedNotifications();
+        } catch (error) {
+            console.error('Failed to load cached notifications:', error);
+        }
+    }
+    
+    // Load and display history if history tab is active
+    if (savedTab === 'history') {
+        try {
+            await loadAndDisplayHistory();
+        } catch (error) {
+            console.error('Failed to load and display history:', error);
+        }
     }
 
     window.electron.getVersion().then(version => {
@@ -80,6 +99,11 @@ window.addEventListener('DOMContentLoaded', () => {
     if (darkMode) {
         document.documentElement.classList.add('dark');
     }
+
+    const debugModeStored = localStorage.getItem('socialSoxDebugMode');
+    const debugMode = debugModeStored !== null ? debugModeStored === 'true' : false;
+    document.getElementById('debugModeToggle').checked = debugMode;
+    window.debugMode = debugMode;
 
     const trayEnabledStored = localStorage.getItem('socialSoxTrayEnabled');
     const trayEnabled = trayEnabledStored !== null ? trayEnabledStored === 'true' : false;
@@ -158,6 +182,12 @@ createIcons({icons});
     document.getElementById('externalLinksToggle').addEventListener('change', function () {
         const isEnabled = this.checked;
         localStorage.setItem('socialSoxExternalLinks', isEnabled);
+    });
+
+    document.getElementById('debugModeToggle').addEventListener('change', function () {
+        const isEnabled = this.checked;
+        localStorage.setItem('socialSoxDebugMode', isEnabled);
+        window.debugMode = isEnabled;
     });
 
     document.getElementById('windowControlsStyle').addEventListener('change', function () {
@@ -288,6 +318,49 @@ async function postToAll() {
     btn.disabled = true;
     btn.textContent = 'Posting...';
 
+    const loadingMessages = [
+"sacrificing a byte to the API gods …",
+"negotiating with rate limits …",
+"arguing with OAuth again …",
+"launching message into the void …",
+"bribing the API with snacks …",
+"spinning up the content hamster …",
+"duct-taping the timelines together …",
+"delivering your post via carrier pigeon …",
+"compressing your hot take …",
+"duct-taping your thoughts together …",
+"debugging reality … please wait …",
+"brewing fresh latency …",
+"hand-carving your post in ASCII …",
+"teaching the server to cope …",
+"whispering sweet nothings to the API …",
+"smuggling your post past the algorithm …",
+"loading… because social media is a mistake …",
+"poking the timeline with a stick …",
+"wrangling APIs like feral cats …",
+"compressing existential dread …",
+"ignoring the ‘touch grass’ alert …",
+"warming up the doomscroll engines …",
+"converting your thoughts to 280p …",
+"wrapping your content in bubble wrap …",
+"firing message through the tubes …",
+"packing your post’s parachute …",
+"convincing the server this isn’t spam …",
+    ];
+
+    let messageInterval;
+
+    // Start loading messages immediately
+    const showRandomMessage = () => {
+        const randomIndex = Math.floor(Math.random() * loadingMessages.length);
+        btn.textContent = loadingMessages[randomIndex];
+    };
+
+    setTimeout(() => {
+        showRandomMessage(); // Show first message immediately
+        messageInterval = setInterval(showRandomMessage, 2000);
+    }, 0);
+
     const results = [];
 
     const selectedImage = getSelectedImage();
@@ -301,57 +374,75 @@ async function postToAll() {
     }
 
     try {
-        if (window.platforms.mastodon) {
-            const instance = document.getElementById('mastodon-instance').value;
-            const token = document.getElementById('mastodon-token').value;
+        if (window.debugMode) {
+            // Debug mode: simulate posting with delay
+            const simulateDelay = (platform) => new Promise(resolve => {
+                setTimeout(() => {
+                    resolve({ platform, success: true, url: `https://debug.${platform.toLowerCase()}.com/post/123` });
+                }, 3000 + Math.random() * 2000); // 3-5 seconds random delay
+            });
 
-            if (instance && token) {
-                try {
-                    const result = await postToMastodon(message, instance, token, selectedImage);
-                    results.push({ platform: 'Mastodon', success: true, url: result.url });
-                } catch (error) {
-                    results.push({ platform: 'Mastodon', success: false, error: error.message });
-                }
-            } else {
-                results.push({ platform: 'Mastodon', success: false, error: 'Missing credentials' });
-            }
-        }
+            const promises = [];
+            if (window.platforms.mastodon) promises.push(simulateDelay('Mastodon'));
+            if (window.platforms.twitter) promises.push(simulateDelay('Twitter'));
+            if (window.platforms.bluesky) promises.push(simulateDelay('Bluesky'));
 
-        if (window.platforms.twitter) {
-            const apiKey = document.getElementById('twitter-key').value;
-            const apiSecret = document.getElementById('twitter-secret').value;
-            const accessToken = document.getElementById('twitter-token').value;
-            const accessTokenSecret = document.getElementById('twitter-token-secret').value;
+            const debugResults = await Promise.all(promises);
+            results.push(...debugResults);
+        } else {
+            // Real posting
+            if (window.platforms.mastodon) {
+                const instance = document.getElementById('mastodon-instance').value;
+                const token = document.getElementById('mastodon-token').value;
 
-            if (apiKey && apiSecret && accessToken && accessTokenSecret) {
-                try {
-                    const result = await postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData);
-                    results.push({ platform: 'Twitter', success: true, url: result.url });
-                } catch (error) {
-                    let errorMsg = error.message;
-                    if (errorMsg.includes('403') || errorMsg.includes('Forbidden')) {
-                        errorMsg = 'Permission denied. Make sure your Twitter app has "Read and Write" permissions in Developer Portal, then regenerate your Access Token and Access Token Secret.';
+                if (instance && token) {
+                    try {
+                        const result = await postToMastodon(message, instance, token, selectedImage);
+                        results.push({ platform: 'Mastodon', success: true, url: result.url });
+                    } catch (error) {
+                        results.push({ platform: 'Mastodon', success: false, error: error.message });
                     }
-                    results.push({ platform: 'Twitter', success: false, error: errorMsg });
+                } else {
+                    results.push({ platform: 'Mastodon', success: false, error: 'Missing credentials' });
                 }
-            } else {
-                results.push({ platform: 'Twitter', success: false, error: 'Missing credentials' });
             }
-        }
 
-        if (window.platforms.bluesky) {
-            const handle = document.getElementById('bluesky-handle').value;
-            const password = document.getElementById('bluesky-password').value;
+            if (window.platforms.twitter) {
+                const apiKey = document.getElementById('twitter-key').value;
+                const apiSecret = document.getElementById('twitter-secret').value;
+                const accessToken = document.getElementById('twitter-token').value;
+                const accessTokenSecret = document.getElementById('twitter-token-secret').value;
 
-            if (handle && password) {
-                try {
-                    const result = await postToBluesky(message, handle, password, selectedImage);
-                    results.push({ platform: 'Bluesky', success: true, url: result.url });
-                } catch (error) {
-                    results.push({ platform: 'Bluesky', success: false, error: error.message });
+                if (apiKey && apiSecret && accessToken && accessTokenSecret) {
+                    try {
+                        const result = await postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData);
+                        results.push({ platform: 'Twitter', success: true, url: result.url });
+                    } catch (error) {
+                        let errorMsg = error.message;
+                        if (errorMsg.includes('403') || errorMsg.includes('Forbidden')) {
+                            errorMsg = 'Permission denied. Make sure your Twitter app has "Read and Write" permissions in Developer Portal, then regenerate your Access Token and Access Token Secret.';
+                        }
+                        results.push({ platform: 'Twitter', success: false, error: errorMsg });
+                    }
+                } else {
+                    results.push({ platform: 'Twitter', success: false, error: 'Missing credentials' });
                 }
-            } else {
-                results.push({ platform: 'Bluesky', success: false, error: 'Missing credentials' });
+            }
+
+            if (window.platforms.bluesky) {
+                const handle = document.getElementById('bluesky-handle').value;
+                const password = document.getElementById('bluesky-password').value;
+
+                if (handle && password) {
+                    try {
+                        const result = await postToBluesky(message, handle, password, selectedImage);
+                        results.push({ platform: 'Bluesky', success: true, url: result.url });
+                    } catch (error) {
+                        results.push({ platform: 'Bluesky', success: false, error: error.message });
+                    }
+                } else {
+                    results.push({ platform: 'Bluesky', success: false, error: 'Missing credentials' });
+                }
             }
         }
 
@@ -368,7 +459,7 @@ async function postToAll() {
         );
         showStatus(statusMessages.join('\n'), statusType);
 
-        addHistoryEntry(message, selectedPlatforms, results);
+        await addHistoryEntry(message, selectedPlatforms, results);
 
         if (hasSuccess && !hasFailure) {
             document.getElementById('message').value = '';
@@ -379,6 +470,9 @@ async function postToAll() {
     } catch (error) {
         showStatus('Error: ' + error.message, 'error');
     } finally {
+        if (messageInterval) {
+            clearInterval(messageInterval);
+        }
         btn.disabled = false;
         btn.textContent = 'Post to Selected Platforms';
     }

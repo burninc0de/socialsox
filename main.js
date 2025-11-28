@@ -21,6 +21,7 @@ const sharp = require('sharp');
 
 const configPath = path.join(app.getPath('userData'), 'window-config.json');
 const notificationsPath = path.join(app.getPath('userData'), 'notifications.json');
+const historyPath = path.join(app.getPath('userData'), 'history.json');
 
 async function getWindowBounds() {
     try {
@@ -561,6 +562,35 @@ ipcMain.handle('delete-notifications', async () => {
 ipcMain.handle('delete-window-config', async () => {
     try {
         await fs.unlink(configPath);
+        return true;
+    } catch (error) {
+        // File doesn't exist or can't be deleted, that's ok
+        return true;
+    }
+});
+
+ipcMain.handle('read-history', async () => {
+    try {
+        const data = await fs.readFile(historyPath, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        return [];
+    }
+});
+
+ipcMain.handle('write-history', async (event, history) => {
+    try {
+        await fs.writeFile(historyPath, JSON.stringify(history, null, 2));
+        return true;
+    } catch (error) {
+        console.error('Failed to save history:', error);
+        return false;
+    }
+});
+
+ipcMain.handle('delete-history', async () => {
+    try {
+        await fs.unlink(historyPath);
         return true;
     } catch (error) {
         // File doesn't exist or can't be deleted, that's ok
