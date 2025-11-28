@@ -281,7 +281,8 @@ npm start
 To run the built app with developer console:
 
 - Windows: `DEBUG=1 && dist\win-unpacked\SocialSox.exe`
-- Linux/Mac: `DEBUG=1 ./dist/win-unpacked/SocialSox`
+- Linux: `DEBUG=1 ./dist/linux-unpacked/SocialSox`
+- macOS: `DEBUG=1 ./dist/mac/SocialSox.app/Contents/MacOS/SocialSox`
 
 ## License
 
