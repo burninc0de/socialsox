@@ -60,22 +60,6 @@ function createTray(win) {
 }
 
 async function createWindow() {
-    // Create splash window
-    const splash = new BrowserWindow({
-        width: 300,
-        height: 300,
-        frame: false,
-        alwaysOnTop: true,
-        center: true,
-        icon: appIconPath,
-        backgroundColor: '#0f0f1e',
-        show: false
-    });
-    splash.loadFile('splash.html');
-    splash.once('ready-to-show', () => {
-        splash.show();
-    });
-
     // Create main window
     const bounds = await getWindowBounds();
     const win = new BrowserWindow({
@@ -101,11 +85,6 @@ async function createWindow() {
     } else {
         win.loadFile('dist-vite/index.html');
     }
-
-    // When main window is ready, destroy splash
-    win.once('ready-to-show', () => {
-        splash.destroy();
-    });
 
     // Forward renderer console messages to terminal
     win.webContents.on('console-message', (event, level, message, line, sourceId) => {
