@@ -10,7 +10,8 @@ Today's social media landscape is fragmented. Your audience is scattered across 
 
 **Core Posting**
 - 📝 Post to one or all platforms simultaneously
-- 🖼️ Single image uploads with drag-and-drop
+- 🖼️ Multiple image uploads (up to 4) with drag-and-drop
+- 🔄 Drag to reorder images before posting
 - 📊 Real-time character counter per platform
 
 **Management & History**
@@ -154,7 +155,8 @@ Use the **Settings** tab to configure your API credentials. They're encrypted lo
 Switch to the **Post** tab to:
 - Select platforms to post to
 - Type your message (with character counter)
-- Upload an image (drag & drop or click)
+- Upload images (drag & drop or click, max 4)
+- Reorder images by dragging them
 - Click "Post to Selected Platforms"!
 
 Check the **History** tab to view your past posts and their status.
@@ -181,10 +183,10 @@ For security-related concerns, please see our [Security Policy](SECURITY.md).
 
 > [!CAUTION]
 > **Current Limitations:**
-> - No multiple image support (single image only)
+> - Maximum 4 images per post (platform API limits)
 > - No thread/reply support
 > - Character limits: X 280 chars, Mastodon 500+ (varies by instance), Bluesky 300 chars
-> - Image size limit: 5MB
+> - Image size limit: 5MB per image
 > - Image format support: PNG, JPG, GIF, WebP
 
 ## Troubleshooting
@@ -209,7 +211,8 @@ For security-related concerns, please see our [Security Policy](SECURITY.md).
 > - **Instance URL Errors**: Use only the domain (e.g., `https://mastodon.social`), not your profile URL
 > - **Mastodon Errors**: Make sure your instance URL is correct and includes `https://`
 > - **Bluesky Errors**: Use your full handle including the domain (e.g., `user.bsky.social`)
-> - **Image Upload Issues**: Ensure your image is under 5MB and in a supported format (PNG, JPG, GIF, WebP)
+> - **Image Upload Issues**: Ensure each image is under 5MB and in a supported format (PNG, JPG, GIF, WebP)
+> - **Image Order**: Drag and drop images to reorder them - the order in the preview is the order they'll appear in your post
 
 ## Data Storage & Clearing Saved Data
 
