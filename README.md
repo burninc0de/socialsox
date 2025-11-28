@@ -108,6 +108,8 @@ This creates platform-specific packages in the `dist/` folder:
 
 ## Setup
 
+Use the **Settings** tab to configure your API credentials. They're encrypted locally using Electron's safeStorage for security.
+
 ### Get Your API Credentials
 
 #### Mastodon
@@ -146,9 +148,9 @@ This creates platform-specific packages in the `dist/` folder:
    - **Access Token** (newly regenerated)
    - **Access Token Secret** (newly regenerated)
 
-### Enter Credentials & Post
+### Test Credentials & Post
 
-Use the **Settings** tab to configure your API credentials. They're encrypted locally using Electron's safeStorage for security.
+Use the "Test Configuration" buttons in Settings to conveniently verify your credentials are working correctly.
 
 **Portability**: Use the "📤 Export Credentials" button to save your credentials to a JSON file for backup or transfer to another device. Use "📥 Import Credentials" to load them back.
 
