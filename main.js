@@ -60,6 +60,23 @@ function createTray(win) {
 }
 
 async function createWindow() {
+    // Create splash window
+    const splash = new BrowserWindow({
+        width: 300,
+        height: 300,
+        frame: false,
+        alwaysOnTop: true,
+        center: true,
+        icon: appIconPath,
+        backgroundColor: '#0f0f1e',
+        show: false
+    });
+    splash.loadFile('splash.html');
+    splash.once('ready-to-show', () => {
+        splash.show();
+    });
+
+    // Create main window
     const bounds = await getWindowBounds();
     const win = new BrowserWindow({
         ...bounds,
@@ -74,7 +91,8 @@ async function createWindow() {
         title: 'SocialSox',
         autoHideMenuBar: true,
         frame: false,
-        backgroundColor: '#1a1a1a'
+        backgroundColor: '#0f0f1e',
+        show: false
     });
 
     // Load from Vite dev server in development, file in production
@@ -83,6 +101,14 @@ async function createWindow() {
     } else {
         win.loadFile('dist-vite/index.html');
     }
+
+    // When main window is ready, destroy splash and show main after minimum delay
+    win.once('ready-to-show', () => {
+        setTimeout(() => {
+            splash.destroy();
+            win.show();
+        }, 400);
+    });
 
     // Forward renderer console messages to terminal
     win.webContents.on('console-message', (event, level, message, line, sourceId) => {
