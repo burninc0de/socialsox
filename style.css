@@ -184,3 +184,8 @@ button,
         opacity: 1;
     }
 }
+
+/* Invert tray icon in bright mode */
+html:not(.dark) #appicon {
+    filter: invert(1);
+}
