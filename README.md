@@ -4,7 +4,11 @@ A simple, open source cross-platform desktop app for posting short messages to M
 
 ## Who is this for?
 
-Tired of copy-pasting the same post across three browser tabs? Done paying for bloated social media management tools when you just want to share a quick thought? SocialSox is an free, local-first desktop app that posts to Mastodon, X, and Bluesky—no subscriptions, no servers, no drama.
+Tired of copy-pasting the same post across three browser tabs? Done paying for bloated social media management tools when you just want to share a quick thought? SocialSox is a free, local-first desktop app that posts to Mastodon, X, and Bluesky—no subscriptions, no servers, no drama.
+
+## Why SocialSox?
+
+Today's social media landscape is fragmented. Your audience is scattered across Mastodon, Bluesky, and X, but existing tools are either browser-based tab juggling, overpriced SaaS, or complex self-hosted setups. SocialSox gives you a simple, free desktop app that does one thing well: post your message everywhere at once. [Read the full story](https://andreklein.net/i-built-my-own-damn-crossposter-because-2025-social-media-is-a-fragmented-hellscape/).
 
 ## Features
 
@@ -47,7 +51,7 @@ Tired of copy-pasting the same post across three browser tabs? Done paying for b
 ## Project Notes
 
 > [!NOTE]
-> **This is a small focused vanilla JavaScript project with Tailwind and Lucide Icons** built for a simple need. [Read the blog post about how and why I built it](https://andreklein.net/i-built-my-own-damn-crossposter-because-2025-social-media-is-a-fragmented-hellscape/). It may benefit from refactoring to React/TypeScript in the future.
+> **This is a small focused vanilla JavaScript project with Tailwind and Lucide Icons** built for a simple need. It may benefit from refactoring to React/TypeScript in the future.
 
 > [!TIP]
 > **Minimalist by design** - I have no plans to turn this into a super-app with endless features. For more advanced social media management tools, check out [Postiz](https://github.com/gitroomhq/postiz-app).
@@ -78,7 +82,7 @@ This modular approach allows for easy maintenance and future extensions.
 
 ## Quick Start
 
-### Option 1: Download Pre-built App (Recommended for most users)
+### Option 1: Download Pre-built App (Recommended)
 
 Download the latest [release](https://github.com/burninc0de/socialsox/releases/) for your platform:
 - **Windows**: `.exe` installer
@@ -130,17 +134,13 @@ This creates platform-specific packages in the `dist/` folder:
 
 1. Go to [X Developer Portal](https://developer.X.com/en/portal/dashboard)
 2. Create a project and app (or use existing)
-3. **IMPORTANT: Configure OAuth 1.0a permissions:**
-   - Click on your app → **Settings** tab
-   - Scroll to "User authentication settings"
+3. **Configure OAuth 1.0a permissions:**
+   - Click on your app → **Settings** tab → "User authentication settings"
    - Click **"Set up"** or **"Edit"**
-   - Enable **OAuth 1.0a** by choosing "Web App, Automated App or Bot"
-   - Set **App permissions** to **"Read and Write"** (not just "Read")
-   - For **Callback URL**: Enter your GitHub repository URL (e.g., `https://github.com/yourusername/socialsox`) or any valid URL - it's not actually used but required by X
-   - For **Website URL**: Enter the same GitHub repository URL or any valid URL like `https://github.com/yourusername/socialsox`
+   - Enable **OAuth 1.0a** (choose "Web App, Automated App or Bot")
+   - Set **App permissions** to **"Read and Write"**
+   - Add any valid URL for Callback/Website (your GitHub repo works fine—these won't be used but X requires them)
    - Click **Save**
-   
-   > **Note**: We're using OAuth 1.0a with your own Access Tokens (not the 3-legged OAuth flow), so the callback URL won't actually be used. X just requires these fields to be filled in.
 4. Go to **"Keys and Tokens"** tab
 5. **Regenerate** your Access Token and Access Token Secret (important after changing permissions!)
 6. Copy all 4 credentials:
@@ -231,14 +231,14 @@ npm install
 ### Development Commands
 
 ```bash
-# Start development mode (Vite dev server + Electron app with hot-reload)
+# Development mode (Vite dev server + Electron with hot-reload)
 npm run dev
 
-# Launch the built Electron app (production mode)
-npm start
-
-# Build for production
+# Build production distributables
 npm run build
+
+# Run the pre-built production app (after building)
+npm start
 ```
 
 ### Debugging Built App
