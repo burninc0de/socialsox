@@ -12,7 +12,7 @@ window.lucideIcons = icons;
 // Import modules
 import { saveCredentials, loadCredentials, exportCredentials, importCredentials } from './src/modules/storage.js';
 import { postToMastodon, postToTwitter, postToBluesky, testMastodonConfig, testTwitterConfig, testBlueskyConfig } from './src/modules/platforms.js';
-import { showStatus, showToast, updateCharCount, switchTab, toggleCollapsible } from './src/modules/ui.js';
+import { showStatus, showToast, updateCharCount, switchTab, toggleCollapsible, showPlatformStatus, clearPlatformStatuses } from './src/modules/ui.js';
 import { loadHistory, loadAndDisplayHistory, clearHistory, addHistoryEntry, deleteHistoryEntry } from './src/modules/history.js';
 import { setupImageUpload, removeImage, getSelectedImages } from './src/modules/imageUpload.js';
 import {
@@ -48,6 +48,8 @@ window.loadAndDisplayHistory = loadAndDisplayHistory;
 window.deleteHistoryEntry = deleteHistoryEntry;
 window.clearNotificationsCache = clearNotificationsCache;
 window.loadNotifications = loadNotifications;
+window.showPlatformStatus = showPlatformStatus;
+window.clearPlatformStatuses = clearPlatformStatuses;
 window.markAsSeen = markAsSeen;
 window.markAllAsRead = markAllAsRead;
 window.loadCachedNotifications = loadCachedNotifications;
@@ -425,6 +427,11 @@ function decodeUrlsInText(text) {
 
 // Main post function
 async function postToAll() {
+    // Clear any previous statuses
+    clearPlatformStatuses();
+    const status = document.getElementById('status');
+    status.classList.add('hidden');
+    
     let message = document.getElementById('message').value.trim();
 
     // Decode URLs to handle encoded characters better
@@ -577,6 +584,17 @@ async function postToAll() {
             }
         }
 
+        // Clear any previous platform statuses
+        clearPlatformStatuses();
+
+        // Show individual platform statuses
+        results.forEach(result => {
+            const statusType = result.success ? 'success' : 'error';
+            const message = result.success ? '✓ Posted successfully' : `✗ ${result.error}`;
+            showPlatformStatus(result.platform, message, statusType);
+        });
+
+        // Also show overall status for backward compatibility
         const hasSuccess = results.some(r => r.success);
         const hasFailure = results.some(r => !r.success);
 
@@ -599,6 +617,7 @@ async function postToAll() {
         }
 
     } catch (error) {
+        clearPlatformStatuses();
         showStatus('Error: ' + error.message, 'error');
     } finally {
         if (messageInterval) {

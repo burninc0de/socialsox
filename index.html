@@ -109,7 +109,14 @@
                 Post to Selected Platforms
             </button>
 
-            <!-- Status Message -->
+            <!-- Platform Status Messages -->
+            <div id="platformStatuses" class="mt-5 space-y-2 hidden">
+                <div id="mastodonStatus" class="p-3 rounded-lg text-sm hidden"></div>
+                <div id="twitterStatus" class="p-3 rounded-lg text-sm hidden"></div>
+                <div id="blueskyStatus" class="p-3 rounded-lg text-sm hidden"></div>
+            </div>
+
+            <!-- Overall Status Message (fallback) -->
             <div id="status" class="mt-5 p-4 rounded-lg text-sm whitespace-pre-line hidden"></div>
         </div>
 

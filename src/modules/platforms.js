@@ -115,6 +115,11 @@ export async function postToMastodon(message, instance, token, imageFiles = []) 
 }
 
 export async function postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageDataArray = []) {
+    // Check Twitter's 280 character limit
+    if (message.length > 280) {
+        throw new Error(`Twitter posts are limited to 280 characters. Your message is ${message.length} characters long.`);
+    }
+    
     if (window.electron && window.electron.postToTwitter) {
         console.log('Calling Electron backend for Twitter...');
         const result = await window.electron.postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageDataArray);
