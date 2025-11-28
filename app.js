@@ -428,10 +428,22 @@ function resetAllData() {
 // About Modal Functions
 function showAboutModal() {
     document.getElementById('aboutModal').classList.remove('hidden');
+    // Add click outside listener
+    document.getElementById('aboutModal').addEventListener('click', handleModalClick);
 }
 
 function closeAboutModal() {
-    document.getElementById('aboutModal').classList.add('hidden');
+    const modal = document.getElementById('aboutModal');
+    modal.classList.add('hidden');
+    // Remove click outside listener
+    modal.removeEventListener('click', handleModalClick);
+}
+
+function handleModalClick(event) {
+    // Close modal if clicked on the overlay (not on the modal content)
+    if (event.target.id === 'aboutModal') {
+        closeAboutModal();
+    }
 }
 
 // Make functions globally available
