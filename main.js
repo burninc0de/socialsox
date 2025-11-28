@@ -92,7 +92,7 @@ async function createWindow() {
         autoHideMenuBar: true,
         frame: false,
         backgroundColor: '#0f0f1e',
-        show: false
+        show: true
     });
 
     // Load from Vite dev server in development, file in production
@@ -102,12 +102,9 @@ async function createWindow() {
         win.loadFile('dist-vite/index.html');
     }
 
-    // When main window is ready, destroy splash and show main after minimum delay
+    // When main window is ready, destroy splash
     win.once('ready-to-show', () => {
-        setTimeout(() => {
-            splash.destroy();
-            win.show();
-        }, 400);
+        splash.destroy();
     });
 
     // Forward renderer console messages to terminal

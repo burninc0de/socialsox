@@ -1,4 +1,6 @@
 
+console.log('app.js start');
+
 // Import lucide icons
 import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2 } from 'lucide';
 
@@ -51,8 +53,8 @@ window.testNotification = testNotification;
 window.resetAllData = resetAllData;
 
 // Page load
-window.addEventListener('DOMContentLoaded', async () => {
-    await loadCredentials();
+window.addEventListener('DOMContentLoaded', () => {
+    console.timeEnd('HTML to DOMContentLoaded');
     loadHistory();
 
     window.electron.getVersion().then(version => {
@@ -76,21 +78,22 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     const trayIconPathStored = localStorage.getItem('socialSoxTrayIconPath') || 'tray.png';
 
-    if (trayIconPathStored === 'tray.png') {
-        window.electron.getDefaultTrayIconPath().then(defaultPath => {
-            window.electron.readFileAsDataURL(defaultPath).then(dataURL => {
-                if (dataURL) {
-                    document.getElementById('trayIconPreview').src = dataURL;
-                }
-            });
-        });
-    } else {
-        window.electron.readFileAsDataURL(trayIconPathStored).then(dataURL => {
-            if (dataURL) {
-                document.getElementById('trayIconPreview').src = dataURL;
-            }
-        });
-    }
+    // Defer loading tray icon preview to avoid delay
+    // if (trayIconPathStored === 'tray.png') {
+    //     window.electron.getDefaultTrayIconPath().then(defaultPath => {
+    //         window.electron.readFileAsDataURL(defaultPath).then(dataURL => {
+    //             if (dataURL) {
+    //                 document.getElementById('trayIconPreview').src = dataURL;
+    //             }
+    //         });
+    //     });
+    // } else {
+    //     window.electron.readFileAsDataURL(trayIconPathStored).then(dataURL => {
+    //         if (dataURL) {
+    //             document.getElementById('trayIconPreview').src = dataURL;
+    //         }
+    //     });
+    // }
     window.electron.setTrayIcon(trayIconPathStored);
 
     const externalLinksStored = localStorage.getItem('socialSoxExternalLinks');
@@ -98,9 +101,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('externalLinksToggle').checked = externalLinks;
 
     const cachedNotifications = getAllCachedNotifications();
+    console.log('cachedNotifications length:', cachedNotifications.length);
     if (cachedNotifications.length > 0) {
+        console.log('importing notifications.js');
         // Import displayNotifications dynamically to avoid circular dependency
         import('./src/modules/notifications.js').then(module => {
+            console.log('notifications.js imported');
             // Already displayed via the function
         });
     }

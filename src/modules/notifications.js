@@ -7,8 +7,11 @@ export let notificationPollingIntervals = {
 };
 
 export function getAllCachedNotifications() {
+    console.time('getAllCachedNotifications');
     const cached = localStorage.getItem('allNotifications');
-    return cached ? JSON.parse(cached) : [];
+    const result = cached ? JSON.parse(cached) : [];
+    console.timeEnd('getAllCachedNotifications');
+    return result;
 }
 
 export function saveAllNotifications(notifications) {

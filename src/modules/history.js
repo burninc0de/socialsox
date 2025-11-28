@@ -1,8 +1,10 @@
 // Posting history management
 
+let historyData = [];
+let historyDisplayed = false;
+
 export function loadHistory() {
-    const history = JSON.parse(localStorage.getItem('postingHistory') || '[]');
-    displayHistory(history);
+    historyData = JSON.parse(localStorage.getItem('postingHistory') || '[]');
 }
 
 export function saveHistory(history) {
