@@ -13,7 +13,7 @@ window.lucideIcons = icons;
 import { saveCredentials, loadCredentials, exportCredentials, importCredentials } from './src/modules/storage.js';
 import { postToMastodon, postToTwitter, postToBluesky } from './src/modules/platforms.js';
 import { showStatus, showToast, updateCharCount, switchTab, toggleCollapsible } from './src/modules/ui.js';
-import { loadHistory, loadAndDisplayHistory, clearHistory, addHistoryEntry } from './src/modules/history.js';
+import { loadHistory, loadAndDisplayHistory, clearHistory, addHistoryEntry, deleteHistoryEntry } from './src/modules/history.js';
 import { setupImageUpload, removeImage, getSelectedImage } from './src/modules/imageUpload.js';
 import {
     getAllCachedNotifications,
@@ -45,6 +45,7 @@ window.exportCredentials = exportCredentials;
 window.importCredentials = importCredentials;
 window.clearHistory = clearHistory;
 window.loadAndDisplayHistory = loadAndDisplayHistory;
+window.deleteHistoryEntry = deleteHistoryEntry;
 window.clearNotificationsCache = clearNotificationsCache;
 window.loadNotifications = loadNotifications;
 window.markAsSeen = markAsSeen;
