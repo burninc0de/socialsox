@@ -288,6 +288,46 @@ async function postToAll() {
     btn.disabled = true;
     btn.textContent = 'Posting...';
 
+    const loadingMessages = [
+"sacrificing a byte to the API gods …",
+"negotiating with rate limits …",
+"arguing with OAuth again …",
+"launching message into the void …",
+"bribing the API with snacks …",
+"asking Bluesky if it's awake …",
+"spinning up the content hamster …",
+"duct-taping the timelines together …",
+"delivering your post via carrier pigeon …",
+"compressing your hot take …",
+"duct-taping your thoughts together …",
+"debugging reality … please wait …",
+"brewing fresh latency …",
+"hand-carving your post in ASCII …",
+"teaching the server to cope …",
+"whispering sweet nothings to the API …",
+"smuggling your post past the algorithm …",
+"loading… because social media is a mistake …",
+"poking the timeline with a stick …",
+"wrangling APIs like feral cats …",
+"compressing existential dread …",
+"ignoring the ‘touch grass’ alert …",
+"warming up the doomscroll engines …",
+"converting your thoughts to 280p …",
+"wrapping your content in bubble wrap …",
+"firing message through the tubes …",
+"packing your post’s parachute …",
+"convincing the server this isn’t spam …",
+    ];
+
+    let messageInterval;
+
+    setTimeout(() => {
+        messageInterval = setInterval(() => {
+            const randomIndex = Math.floor(Math.random() * loadingMessages.length);
+            btn.textContent = loadingMessages[randomIndex];
+        }, 2500);
+    }, 500);
+
     const results = [];
 
     const selectedImage = getSelectedImage();
@@ -379,6 +419,9 @@ async function postToAll() {
     } catch (error) {
         showStatus('Error: ' + error.message, 'error');
     } finally {
+        if (messageInterval) {
+            clearInterval(messageInterval);
+        }
         btn.disabled = false;
         btn.textContent = 'Post to Selected Platforms';
     }
