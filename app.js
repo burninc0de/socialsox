@@ -59,6 +59,20 @@ window.testMastodonConfig = testMastodonConfig;
 window.testTwitterConfig = testTwitterConfig;
 window.testBlueskyConfig = testBlueskyConfig;
 
+// Update debug mode styling
+function updateDebugModeStyling(isDebug) {
+    const messageTextarea = document.getElementById('message');
+    if (isDebug) {
+        messageTextarea.style.borderStyle = 'dotted';
+        messageTextarea.style.borderColor = '#fbbf24'; // amber-400 - more subtle
+        messageTextarea.placeholder = 'DEBUG MODE: Nothing you write will actually get posted';
+    } else {
+        messageTextarea.style.borderStyle = '';
+        messageTextarea.style.borderColor = '';
+        messageTextarea.placeholder = "What's on your mind?";
+    }
+}
+
 // Page load
 window.addEventListener('DOMContentLoaded', async () => {
     loadCredentials();
@@ -109,6 +123,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const debugMode = debugModeStored !== null ? debugModeStored === 'true' : false;
     document.getElementById('debugModeToggle').checked = debugMode;
     window.debugMode = debugMode;
+    updateDebugModeStyling(debugMode);
 
     const trayEnabledStored = localStorage.getItem('socialSoxTrayEnabled');
     const trayEnabled = trayEnabledStored !== null ? trayEnabledStored === 'true' : false;
@@ -177,6 +192,10 @@ createIcons({icons});
             document.documentElement.classList.remove('dark');
         }
         console.log('documentElement classes:', document.documentElement.classList.toString());
+        // Update debug mode styling if debug mode is active
+        if (window.debugMode) {
+            updateDebugModeStyling(true);
+        }
     });
 
     document.getElementById('trayIconToggle').addEventListener('change', function () {
@@ -195,6 +214,7 @@ createIcons({icons});
         const isEnabled = this.checked;
         localStorage.setItem('socialSoxDebugMode', isEnabled);
         window.debugMode = isEnabled;
+        updateDebugModeStyling(isEnabled);
     });
 
     document.getElementById('windowControlsStyle').addEventListener('change', function () {
