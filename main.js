@@ -2,6 +2,8 @@ const { app, BrowserWindow, ipcMain, dialog, clipboard, Tray, Menu, Notification
 const path = require('path');
 const fs = require('fs').promises;
 
+app.setAppUserModelId('com.socialsox.app');
+
 let tray = null;
 let isQuiting = false;
 let trayEnabled = false;
