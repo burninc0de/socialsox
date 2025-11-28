@@ -13,6 +13,14 @@ if (!window.electron) {
       };
     },
     
+    testTwitterConfig: async (apiKey, apiSecret, accessToken, accessTokenSecret) => {
+      console.log('[Mock] Twitter config test');
+      return {
+        success: false,
+        error: 'Twitter testing requires Electron app (run: npm start)'
+      };
+    },
+    
     readClipboardImage: async () => {
       console.log('[Mock] Read clipboard image');
       return null;

@@ -11,7 +11,7 @@ window.lucideIcons = icons;
 
 // Import modules
 import { saveCredentials, loadCredentials, exportCredentials, importCredentials } from './src/modules/storage.js';
-import { postToMastodon, postToTwitter, postToBluesky } from './src/modules/platforms.js';
+import { postToMastodon, postToTwitter, postToBluesky, testMastodonConfig, testTwitterConfig, testBlueskyConfig } from './src/modules/platforms.js';
 import { showStatus, showToast, updateCharCount, switchTab, toggleCollapsible } from './src/modules/ui.js';
 import { loadHistory, loadAndDisplayHistory, clearHistory, addHistoryEntry, deleteHistoryEntry } from './src/modules/history.js';
 import { setupImageUpload, removeImage, getSelectedImages } from './src/modules/imageUpload.js';
@@ -53,6 +53,9 @@ window.markAllAsRead = markAllAsRead;
 window.loadCachedNotifications = loadCachedNotifications;
 window.testNotification = testNotification;
 window.resetAllData = resetAllData;
+window.testMastodonConfig = testMastodonConfig;
+window.testTwitterConfig = testTwitterConfig;
+window.testBlueskyConfig = testBlueskyConfig;
 
 // Page load
 window.addEventListener('DOMContentLoaded', async () => {
@@ -293,6 +296,92 @@ createIcons({icons});
         });
         window.electron.setTrayIcon('tray.png');
         document.getElementById('resetTrayIconBtn').style.display = 'none';
+    };
+
+    window.testMastodon = async function () {
+        const instance = document.getElementById('mastodon-instance').value.trim();
+        const token = document.getElementById('mastodon-token').value.trim();
+        
+        if (!instance || !token) {
+            showToast('Please fill in all Mastodon credentials', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('testMastodonBtn');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Testing...';
+        createIcons({icons});
+
+        try {
+            const result = await testMastodonConfig(instance, token);
+            showToast(`✓ Connected as @${result.username} (${result.displayName})`, 'success');
+        } catch (error) {
+            console.error('Mastodon test failed:', error);
+            showToast(`✗ Mastodon test failed: ${error.message}`, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            createIcons({icons});
+        }
+    };
+
+    window.testTwitter = async function () {
+        const apiKey = document.getElementById('twitter-key').value.trim();
+        const apiSecret = document.getElementById('twitter-secret').value.trim();
+        const accessToken = document.getElementById('twitter-token').value.trim();
+        const tokenSecret = document.getElementById('twitter-token-secret').value.trim();
+        
+        if (!apiKey || !apiSecret || !accessToken || !tokenSecret) {
+            showToast('Please fill in all Twitter credentials', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('testTwitterBtn');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Testing...';
+        createIcons({icons});
+
+        try {
+            const result = await testTwitterConfig(apiKey, apiSecret, accessToken, tokenSecret);
+            showToast(`✓ Connected as @${result.username}`, 'success');
+        } catch (error) {
+            console.error('Twitter test failed:', error);
+            showToast(`✗ Twitter test failed: ${error.message}`, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            createIcons({icons});
+        }
+    };
+
+    window.testBluesky = async function () {
+        const handle = document.getElementById('bluesky-handle').value.trim();
+        const password = document.getElementById('bluesky-password').value.trim();
+        
+        if (!handle || !password) {
+            showToast('Please fill in all Bluesky credentials', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('testBlueskyBtn');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Testing...';
+        createIcons({icons});
+
+        try {
+            const result = await testBlueskyConfig(handle, password);
+            showToast(`✓ Connected as @${result.username}`, 'success');
+        } catch (error) {
+            console.error('Bluesky test failed:', error);
+            showToast(`✗ Bluesky test failed: ${error.message}`, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            createIcons({icons});
+        }
     };
 });
 

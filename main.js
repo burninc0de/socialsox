@@ -266,6 +266,33 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
     }
 });
 
+// Handle Twitter configuration test
+ipcMain.handle('test-twitter-config', async (event, { apiKey, apiSecret, accessToken, accessTokenSecret }) => {
+    try {
+        console.log('Twitter: Testing configuration...');
+
+        const client = new TwitterApi({
+            appKey: apiKey,
+            appSecret: apiSecret,
+            accessToken: accessToken,
+            accessSecret: accessTokenSecret,
+        });
+
+        const user = await client.v2.me();
+        console.log('Twitter: Configuration valid for user:', user.data.username);
+        return { success: true, username: user.data.username };
+    } catch (error) {
+        console.error('Twitter Test Error:', error);
+        let errorMessage = error.message;
+        if (error.data && error.data.detail) {
+            errorMessage = error.data.detail;
+        } else if (error.data && error.data.title) {
+            errorMessage = error.data.title;
+        }
+        return { success: false, error: errorMessage };
+    }
+});
+
 // Handle Twitter notifications fetch
 ipcMain.handle('fetch-twitter-notifications', async (event, { apiKey, apiSecret, accessToken, accessTokenSecret, lastSeenId }) => {
     try {

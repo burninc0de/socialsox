@@ -1,5 +1,63 @@
 // Platform posting functions
 
+export async function testMastodonConfig(instance, token) {
+    let cleanInstance = instance.trim();
+    if (cleanInstance.endsWith('/')) {
+        cleanInstance = cleanInstance.slice(0, -1);
+    }
+    const url = new URL(cleanInstance);
+    cleanInstance = `${url.protocol}//${url.host}`;
+    
+    const response = await fetch(`${cleanInstance}/api/v1/accounts/verify_credentials`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+    
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Authentication failed: ${errorText}`);
+    }
+    
+    const data = await response.json();
+    return { success: true, username: data.username, displayName: data.display_name };
+}
+
+export async function testTwitterConfig(apiKey, apiSecret, accessToken, accessTokenSecret) {
+    if (window.electron && window.electron.testTwitterConfig) {
+        const result = await window.electron.testTwitterConfig(apiKey, apiSecret, accessToken, accessTokenSecret);
+        
+        if (!result.success) {
+            throw new Error(result.error);
+        }
+        return { success: true, username: result.username };
+    } else {
+        throw new Error('Twitter testing requires Electron app (run: npm start)');
+    }
+}
+
+export async function testBlueskyConfig(handle, password) {
+    const sessionResponse = await fetch('https://bsky.social/xrpc/com.atproto.server.createSession', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            identifier: handle,
+            password: password
+        })
+    });
+    
+    if (!sessionResponse.ok) {
+        const errorText = await sessionResponse.text();
+        throw new Error(`Authentication failed: ${errorText}`);
+    }
+    
+    const session = await sessionResponse.json();
+    return { success: true, username: session.handle, did: session.did };
+}
+
 export async function postToMastodon(message, instance, token, imageFiles = []) {
     let cleanInstance = instance.trim();
     if (cleanInstance.endsWith('/')) {
