@@ -590,7 +590,7 @@ async function postToAll() {
         // Show individual platform statuses
         results.forEach(result => {
             const statusType = result.success ? 'success' : 'error';
-            const message = result.success ? '✓ Posted successfully' : `✗ ${result.error}`;
+            const message = result.success ? `✓ ${result.platform}` : `✗ ${result.platform}: ${result.error}`;
             showPlatformStatus(result.platform, message, statusType);
         });
 
@@ -606,7 +606,7 @@ async function postToAll() {
         const statusMessages = results.map(r =>
             r.success ? `✓ ${r.platform}` : `✗ ${r.platform}: ${r.error}`
         );
-        showStatus(statusMessages.join('\n'), statusType);
+        // showStatus(statusMessages.join('\n'), statusType); // Removed redundant summary box
 
         await addHistoryEntry(message, selectedPlatforms, results);
 
