@@ -20,6 +20,7 @@ const { TwitterApi } = require('twitter-api-v2');
 const sharp = require('sharp');
 
 const configPath = path.join(app.getPath('userData'), 'window-config.json');
+const notificationsPath = path.join(app.getPath('userData'), 'notifications.json');
 
 async function getWindowBounds() {
     try {
@@ -47,7 +48,7 @@ function createTray(win) {
     ]);
     tray.setToolTip('SocialSox');
     tray.setContextMenu(contextMenu);
-    tray.on('click', () => { 
+    tray.on('click', () => {
         if (win.isVisible()) {
             win.hide();
         } else {
@@ -60,6 +61,7 @@ function createTray(win) {
 }
 
 async function createWindow() {
+    // Create main window
     const bounds = await getWindowBounds();
     const win = new BrowserWindow({
         ...bounds,
@@ -67,20 +69,23 @@ async function createWindow() {
             nodeIntegration: false,
             contextIsolation: true,
             enableRemoteModule: false,
+            webSecurity: app.isPackaged,
+            colorScheme: 'system',
             preload: path.join(__dirname, 'preload.js')
         },
         icon: trayIconPath,
         title: 'SocialSox',
         autoHideMenuBar: true,
         frame: false,
-        backgroundColor: '#1a1a1a'
+        backgroundColor: '#0f0f1e',
+        show: true
     });
 
     // Load from Vite dev server in development, file in production
     if (process.env.VITE_DEV_SERVER_URL) {
         win.loadURL(process.env.VITE_DEV_SERVER_URL);
     } else {
-        win.loadFile('index.html');
+        win.loadFile('dist-vite/index.html');
     }
 
     // Forward renderer console messages to terminal
@@ -97,6 +102,7 @@ async function createWindow() {
                 nodeIntegration: false,
                 contextIsolation: true,
                 enableRemoteModule: false,
+                webSecurity: app.isPackaged,
                 preload: path.join(__dirname, 'preload.js')
             },
             icon: trayIconPath,
@@ -154,7 +160,7 @@ ipcMain.on('set-tray-enabled', (event, enabled) => {
 ipcMain.on('set-tray-icon', (event, iconPath) => {
     // If it's the default tray.png, use the correct path for packaged/dev mode
     if (iconPath === 'tray.png') {
-        trayIconPath = app.isPackaged 
+        trayIconPath = app.isPackaged
             ? path.join(process.resourcesPath, 'tray.png')
             : path.join(__dirname, 'tray.png');
     } else {
@@ -167,7 +173,7 @@ ipcMain.on('set-tray-icon', (event, iconPath) => {
 
 // Handle getting the default tray icon path
 ipcMain.handle('get-default-tray-icon-path', () => {
-    return app.isPackaged 
+    return app.isPackaged
         ? path.join(process.resourcesPath, 'tray.png')
         : path.join(__dirname, 'tray.png');
 });
@@ -208,7 +214,7 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
         console.log('Twitter: Attempting to post...');
         console.log('Twitter: Message length:', message.length);
         console.log('Twitter: Has image:', !!imageData);
-        
+
         const client = new TwitterApi({
             appKey: apiKey,
             appSecret: apiSecret,
@@ -217,7 +223,7 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
         });
 
         let mediaId = null;
-        
+
         // Upload image if provided
         if (imageData) {
             console.log('Twitter: Uploading image...');
@@ -227,13 +233,13 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
             mediaId = await client.v1.uploadMedia(buffer, { mimeType: 'image/jpeg' });
             console.log('Twitter: Image uploaded, mediaId:', mediaId);
         }
-        
+
         // Create tweet with optional media
         const tweetData = { text: message };
         if (mediaId) {
             tweetData.media = { media_ids: [mediaId] };
         }
-        
+
         const result = await client.v2.tweet(tweetData);
         console.log('Twitter: Success!', result);
         const tweetUrl = `https://twitter.com/i/status/${result.data.id}`;
@@ -242,7 +248,7 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
         console.error('Twitter Error:', error);
         console.error('Twitter Error Code:', error.code);
         console.error('Twitter Error Data:', error.data);
-        
+
         // Return more detailed error message
         let errorMessage = error.message;
         if (error.data && error.data.detail) {
@@ -250,7 +256,7 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
         } else if (error.data && error.data.title) {
             errorMessage = error.data.title;
         }
-        
+
         return { success: false, error: errorMessage, code: error.code, details: error.data };
     }
 });
@@ -259,7 +265,7 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
 ipcMain.handle('fetch-twitter-notifications', async (event, { apiKey, apiSecret, accessToken, accessTokenSecret, lastSeenId }) => {
     try {
         console.log('Twitter: Fetching notifications...');
-        
+
         const client = new TwitterApi({
             appKey: apiKey,
             appSecret: apiSecret,
@@ -270,7 +276,7 @@ ipcMain.handle('fetch-twitter-notifications', async (event, { apiKey, apiSecret,
         // Get authenticated user ID
         const me = await client.v2.me();
         const userId = me.data.id;
-        
+
         // Fetch mentions - only newer than last seen to avoid old notifications
         const options = {
             max_results: 20,
@@ -278,16 +284,16 @@ ipcMain.handle('fetch-twitter-notifications', async (event, { apiKey, apiSecret,
             'user.fields': ['username', 'name'],
             expansions: ['author_id']
         };
-        
+
         if (lastSeenId) {
             options.since_id = lastSeenId;
         }
-        
+
         const mentions = await client.v2.userMentionTimeline(userId, options);
-        
+
         const notifications = [];
         let latestId = lastSeenId;
-        
+
         for await (const tweet of mentions) {
             const author = mentions.includes?.users?.find(u => u.id === tweet.author_id);
             notifications.push({
@@ -299,25 +305,25 @@ ipcMain.handle('fetch-twitter-notifications', async (event, { apiKey, apiSecret,
                 content: tweet.text,
                 url: `https://twitter.com/${author?.username}/status/${tweet.id}`
             });
-            
+
             // Track the latest (newest) mention ID
             if (!latestId || BigInt(tweet.id) > BigInt(latestId)) {
                 latestId = tweet.id;
             }
         }
-        
+
         console.log('Twitter: Found', notifications.length, 'notifications');
         return { success: true, data: notifications, latestId };
     } catch (error) {
         console.error('Twitter Notifications Error:', error);
-        
+
         let errorMessage = error.message;
         if (error.data && error.data.detail) {
             errorMessage = error.data.detail;
         } else if (error.data && error.data.title) {
             errorMessage = error.data.title;
         }
-        
+
         return { success: false, error: errorMessage, code: error.code, details: error.data };
     }
 });
@@ -465,7 +471,7 @@ ipcMain.handle('show-os-notification', (event, { title, body, platform }) => {
                 icon: appIconPath,
                 silent: false
             });
-            
+
             notification.on('click', () => {
                 const win = BrowserWindow.getAllWindows()[0];
                 if (win) {
@@ -476,7 +482,7 @@ ipcMain.handle('show-os-notification', (event, { title, body, platform }) => {
                     win.webContents.send('switch-to-notifications-tab');
                 }
             });
-            
+
             notification.show();
             return { success: true };
         } else {
@@ -515,6 +521,51 @@ ipcMain.handle('decrypt-credentials', async (event, encryptedData) => {
     }
     const buffer = Buffer.from(encryptedData, 'base64');
     return safeStorage.decryptString(buffer);
+});
+
+ipcMain.handle('get-assets-path', () => {
+    return (app && app.isPackaged)
+        ? path.join(process.resourcesPath, 'assets')
+        : path.join(__dirname, 'assets');
+});
+
+ipcMain.handle('read-notifications', async () => {
+    try {
+        const data = await fs.readFile(notificationsPath, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        return [];
+    }
+});
+
+ipcMain.handle('write-notifications', async (event, notifications) => {
+    try {
+        await fs.writeFile(notificationsPath, JSON.stringify(notifications, null, 2));
+        return true;
+    } catch (error) {
+        console.error('Failed to save notifications:', error);
+        return false;
+    }
+});
+
+ipcMain.handle('delete-notifications', async () => {
+    try {
+        await fs.unlink(notificationsPath);
+        return true;
+    } catch (error) {
+        // File doesn't exist or can't be deleted, that's ok
+        return true;
+    }
+});
+
+ipcMain.handle('delete-window-config', async () => {
+    try {
+        await fs.unlink(configPath);
+        return true;
+    } catch (error) {
+        // File doesn't exist or can't be deleted, that's ok
+        return true;
+    }
 });
 
 ipcMain.on('log', (event, message) => {

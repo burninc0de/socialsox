@@ -1,253 +1,127 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SocialSox - Multi-Platform Poster</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="./node_modules/lucide/dist/umd/lucide.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            500: '#667eea',
-                            600: '#5a67d8',
-                            700: '#4c51bf',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .title-bar {
-            -webkit-app-region: drag;
-        }
-        .window-controls {
-            -webkit-app-region: no-drag;
-        }
-        .bg-gradient-purple {
-            background: linear-gradient(135deg, #4c51bf 0%, #5a4d8f 100%);
-        }
-        .bg-gradient-dark {
-            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
-        }
-        .tab-content {
-            display: block;
-        }
-        .tab-content.hidden {
-            display: none;
-        }
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
-            }
-        }
-        
-        /* Custom Scrollbars */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f3f4f6; /* Light mode */
-        }
-        .dark ::-webkit-scrollbar-track {
-            background: #2d3748; /* Dark mode */
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #d1d5db; /* Light mode */
-            border-radius: 4px;
-        }
-        .dark ::-webkit-scrollbar-thumb {
-            background: #374151; /* Dark mode */
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af; /* Light mode hover */
-        }
-        .dark ::-webkit-scrollbar-thumb:hover {
-            background: #4b5563; /* Dark mode hover */
-        }
-        
-        /* Platform button active state icons */
-        .platform-toggle img {
-            transition: filter 300ms ease;
-        }
-        .platform-toggle.active img {
-            filter: brightness(0) invert(1);
-        }
-        
-        /* Dark Mode Toggle */
-        #darkModeToggle:checked + div,
-        #trayIconToggle:checked + div,
-        #externalLinksToggle:checked + div,
-        #excludeMastodonNotifications:checked + div,
-        #excludeTwitterNotifications:checked + div,
-        #excludeBlueskyNotifications:checked + div {
-            background-color: #4f46e5;
-        }
-        #darkModeToggle:checked + div + .dot,
-        #trayIconToggle:checked + div + .dot,
-        #externalLinksToggle:checked + div + .dot,
-        #excludeMastodonNotifications:checked + div + .dot,
-        #excludeTwitterNotifications:checked + div + .dot,
-        #excludeBlueskyNotifications:checked + div + .dot {
-            transform: translateX(20px);
-        }
-        
-        /* Toast Styles */
-        .toast {
-            padding: 12px 16px;
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-            font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            animation: slideIn 0.3s ease-out;
-            max-width: 300px;
-            word-wrap: break-word;
-        }
-        
-        .toast.success {
-            background-color: #10b981;
-        }
-        
-        .toast.error {
-            background-color: #ef4444;
-        }
-        
-        .toast.info {
-            background-color: #3b82f6;
-        }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        
-        .toast.fade-out {
-            animation: fadeOut 0.3s ease-out forwards;
-        }
-        
-        @keyframes fadeOut {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-        }
-        
-        /* Prevent text selection on buttons and tabs */
-        button, .tab-button {
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-    </style>
+    <link rel="stylesheet" href="./style.css">
 </head>
+
 <body class="bg-gradient-purple dark:bg-gradient-dark min-h-screen flex items-start justify-center pt-16 px-5 pb-5">
     <!-- Title Bar -->
-    <div class="title-bar fixed top-0 left-0 right-0 h-10 bg-white dark:bg-gray-800 flex items-center justify-between px-5 z-50">
+    <div
+        class="title-bar fixed top-0 left-0 right-0 h-10 bg-white dark:bg-gray-800 flex items-center justify-between px-5 z-50">
         <h1 class="text-base text-gray-800 dark:text-gray-200 m-0 flex items-center gap-2">
             <img src="appicon.png" alt="SocialSox" class="w-5 h-5">
             SocialSox
         </h1>
         <div class="window-controls flex gap-2.5">
-            <button class="w-3 h-3 rounded-full bg-yellow-400 hover:opacity-70 transition-opacity" onclick="window.electron.minimizeWindow()"></button>
-            <button class="w-3 h-3 rounded-full bg-green-500 hover:opacity-70 transition-opacity" onclick="window.electron.maximizeWindow()"></button>
-            <button class="w-3 h-3 rounded-full bg-red-500 hover:opacity-70 transition-opacity" onclick="window.electron.closeWindow()"></button>
+            <button class="w-3 h-3 rounded-full bg-yellow-400 hover:opacity-70 transition-opacity"
+                onclick="window.electron.minimizeWindow()"></button>
+            <button class="w-3 h-3 rounded-full bg-green-500 hover:opacity-70 transition-opacity"
+                onclick="window.electron.maximizeWindow()"></button>
+            <button class="w-3 h-3 rounded-full bg-red-500 hover:opacity-70 transition-opacity"
+                onclick="window.electron.closeWindow()"></button>
         </div>
     </div>
-    
+
     <!-- Toast Container -->
     <div id="toastContainer" class="fixed top-20 right-5 z-50 space-y-2"></div>
-    
+
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full p-10 min-h-[700px]">
         <!-- Tabs -->
         <div class="flex justify-between mb-6 border-b border-gray-200 dark:border-gray-700">
             <div class="flex">
-                <button id="postTab" class="tab-button px-4 py-2 text-sm font-medium text-primary-600 dark:text-primary-400 border-b-2 border-primary-600 dark:border-primary-400 bg-transparent cursor-pointer transition-colors flex items-center gap-2" data-tab="post">
+                <button id="postTab"
+                    class="tab-button px-4 py-2 text-sm font-medium text-primary-600 dark:text-primary-400 border-b-2 border-primary-600 dark:border-primary-400 bg-transparent cursor-pointer transition-colors flex items-center gap-2"
+                    data-tab="post">
                     <i data-lucide="pen-square" class="w-4 h-4"></i>
                     Post
                 </button>
-                <button id="historyTab" class="tab-button px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 border-b-2 border-transparent bg-transparent cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center gap-2" data-tab="history">
+                <button id="historyTab"
+                    class="tab-button px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 border-b-2 border-transparent bg-transparent cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center gap-2"
+                    data-tab="history">
                     <i data-lucide="history" class="w-4 h-4"></i>
                     History
                 </button>
-                <button id="notificationsTab" class="tab-button px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 border-b-2 border-transparent bg-transparent cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center gap-2" data-tab="notifications">
+                <button id="notificationsTab"
+                    class="tab-button px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 border-b-2 border-transparent bg-transparent cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center gap-2"
+                    data-tab="notifications">
                     <i data-lucide="bell" class="w-4 h-4"></i>
                     Notifications
                 </button>
             </div>
-            <button id="settingsTab" class="tab-button px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 border-b-2 border-transparent bg-transparent cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center gap-2" data-tab="settings">
+            <button id="settingsTab"
+                class="tab-button px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 border-b-2 border-transparent bg-transparent cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center gap-2"
+                data-tab="settings">
                 <i data-lucide="settings" class="w-4 h-4"></i>
                 Settings
             </button>
         </div>
-        
+
         <!-- Post Tab Content -->
         <div id="postContent" class="tab-content">
             <p class="text-gray-600 dark:text-gray-400 mb-8 text-sm">Choose your destination:</p>
-        
-        <!-- Platform Toggles -->
-        <div class="flex gap-2.5 mb-5">
-            <button class="platform-toggle flex-1 px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer transition-all duration-300 text-sm font-semibold hover:-translate-y-0.5" data-platform="mastodon">
-                <img src="assets/masto.svg" alt="Mastodon" class="w-5 h-5 mr-2 inline-block align-middle"> Mastodon
-            </button>
-            <button class="platform-toggle flex-1 px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer transition-all duration-300 text-sm font-semibold hover:-translate-y-0.5" data-platform="twitter">
-                <img src="assets/twit.svg" alt="Twitter" class="w-5 h-5 mr-2 inline-block align-middle"> Twitter
-            </button>
-            <button class="platform-toggle flex-1 px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer transition-all duration-300 text-sm font-semibold hover:-translate-y-0.5" data-platform="bluesky">
-                <img src="assets/bsky.svg" alt="Bluesky" class="w-5 h-5 mr-2 inline-block align-middle"> Bluesky
-            </button>
-        </div>
-        
-        <!-- Message Input -->
-        <textarea id="message" placeholder="What's on your mind?" 
-            class="w-full min-h-[150px] p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-base resize-y mb-4 transition-colors bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500"></textarea>
-        <div class="text-right text-gray-500 dark:text-gray-400 text-xs mb-5" id="charCount">0 characters</div>
-        
-        <!-- Image Upload -->
-        <div class="mb-5" id="imageUpload">
-            <div id="dropZone" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-10 text-center cursor-pointer transition-all bg-gray-50 dark:bg-gray-700 hover:border-primary-500 hover:bg-gray-100 dark:hover:bg-gray-600">
-                <div class="text-gray-600 dark:text-gray-400 text-sm flex items-center justify-center gap-2">
-                    <i data-lucide="camera" class="w-4 h-4"></i>
-                    Drag & drop an image here or click to select
+
+            <!-- Platform Toggles -->
+            <div class="flex gap-2.5 mb-5">
+                <button
+                    class="platform-toggle flex-1 px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer transition-all duration-300 text-sm font-semibold hover:-translate-y-0.5"
+                    data-platform="mastodon">
+                    <img src="assets/masto.svg" alt="Mastodon" class="w-5 h-5 mr-2 inline-block align-middle"> Mastodon
+                </button>
+                <button
+                    class="platform-toggle flex-1 px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer transition-all duration-300 text-sm font-semibold hover:-translate-y-0.5"
+                    data-platform="twitter">
+                    <img src="assets/twit.svg" alt="Twitter" class="w-5 h-5 mr-2 inline-block align-middle"> Twitter
+                </button>
+                <button
+                    class="platform-toggle flex-1 px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer transition-all duration-300 text-sm font-semibold hover:-translate-y-0.5"
+                    data-platform="bluesky">
+                    <img src="assets/bsky.svg" alt="Bluesky" class="w-5 h-5 mr-2 inline-block align-middle"> Bluesky
+                </button>
+            </div>
+
+            <!-- Message Input -->
+            <textarea id="message" placeholder="What's on your mind?"
+                class="w-full min-h-[150px] p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-base resize-y mb-4 transition-colors bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500"></textarea>
+            <div class="text-right text-gray-500 dark:text-gray-400 text-xs mb-5" id="charCount">0 characters</div>
+
+            <!-- Image Upload -->
+            <div class="mb-5" id="imageUpload">
+                <div id="dropZone"
+                    class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-10 text-center cursor-pointer transition-all bg-gray-50 dark:bg-gray-700 hover:border-primary-500 hover:bg-gray-100 dark:hover:bg-gray-600">
+                    <div class="text-gray-600 dark:text-gray-400 text-sm flex items-center justify-center gap-2">
+                        <i data-lucide="camera" class="w-4 h-4"></i>
+                        Drag & drop an image here or click to select
+                    </div>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                <div id="imagePreview"
+                    class="relative border-2 border-gray-300 dark:border-gray-600 rounded-lg p-2.5 bg-gray-50 dark:bg-gray-700 hidden">
+                    <img id="previewImg" src="" alt="Preview" class="max-w-full max-h-[300px] block mx-auto rounded">
+                    <button id="removeImage" onclick="removeImage()"
+                        class="absolute top-4 right-4 w-8 h-8 rounded-full bg-red-500 text-white border-0 cursor-pointer text-lg leading-none hover:bg-red-600 transition-colors">✕</button>
                 </div>
             </div>
-            <input type="file" id="fileInput" accept="image/*" style="display: none;">
-            <div id="imagePreview" class="relative border-2 border-gray-300 dark:border-gray-600 rounded-lg p-2.5 bg-gray-50 dark:bg-gray-700 hidden">
-                <img id="previewImg" src="" alt="Preview" class="max-w-full max-h-[300px] block mx-auto rounded">
-                <button id="removeImage" onclick="removeImage()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-red-500 text-white border-0 cursor-pointer text-lg leading-none hover:bg-red-600 transition-colors">✕</button>
-            </div>
+
+            <!-- Post Button -->
+            <button id="postBtn" onclick="postToAll()"
+                class="w-full py-3.5 px-4 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-lg text-base font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                Post to Selected Platforms
+            </button>
+
+            <!-- Status Message -->
+            <div id="status" class="mt-5 p-4 rounded-lg text-sm whitespace-pre-line hidden"></div>
         </div>
-        
-        <!-- Post Button -->
-        <button id="postBtn" onclick="postToAll()" class="w-full py-3.5 px-4 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-lg text-base font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-            Post to Selected Platforms
-        </button>
-        
-        <!-- Status Message -->
-        <div id="status" class="mt-5 p-4 rounded-lg text-sm whitespace-pre-line hidden"></div>
-        </div>
-        
+
         <!-- History Tab Content -->
         <div id="historyContent" class="tab-content hidden">
             <div class="flex items-center justify-between mb-8">
                 <p class="text-gray-600 dark:text-gray-400 text-sm">View your posting history</p>
-                <button onclick="clearHistory()" class="px-2 py-1 text-xs bg-gray-200 hover:bg-red-600 dark:bg-gray-600 dark:hover:bg-red-600 text-gray-600 hover:text-white dark:text-gray-400 dark:hover:text-white border-0 rounded cursor-pointer transition-colors flex items-center gap-1">
+                <button onclick="clearHistory()"
+                    class="px-2 py-1 text-xs bg-gray-200 hover:bg-red-600 dark:bg-gray-600 dark:hover:bg-red-600 text-gray-600 hover:text-white dark:text-gray-400 dark:hover:text-white border-0 rounded cursor-pointer transition-colors flex items-center gap-1">
                     <i data-lucide="trash-2" class="w-3 h-3"></i>
                     Clear History
                 </button>
@@ -259,28 +133,32 @@
                 No posts yet. Start posting to see your history here!
             </div>
         </div>
-        
+
         <!-- Notifications Tab Content -->
         <div id="notificationsContent" class="tab-content hidden">
             <div class="flex items-center justify-between mb-8">
-                <p class="text-gray-600 dark:text-gray-400 text-sm">Check your social media notifications (auto-checks at set intervals)</p>
-                <button onclick="clearNotificationsCache()" class="px-2 py-1 text-xs bg-gray-200 hover:bg-red-600 dark:bg-gray-600 dark:hover:bg-red-600 text-gray-600 hover:text-white dark:text-gray-400 dark:hover:text-white border-0 rounded cursor-pointer transition-colors flex items-center gap-1">
+                <p class="text-gray-600 dark:text-gray-400 text-sm">Check your social media notifications (auto-checks
+                    at set intervals)</p>
+                <button onclick="clearNotificationsCache()"
+                    class="px-2 py-1 text-xs bg-gray-200 hover:bg-red-600 dark:bg-gray-600 dark:hover:bg-red-600 text-gray-600 hover:text-white dark:text-gray-400 dark:hover:text-white border-0 rounded cursor-pointer transition-colors flex items-center gap-1">
                     <i data-lucide="trash-2" class="w-3 h-3"></i>
                     Clear Cache
                 </button>
             </div>
-            
+
             <div class="flex gap-2 mb-6">
-                <button id="loadNotificationsBtn" onclick="loadNotifications()" class="flex-1 py-3.5 px-4 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-lg text-base font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2">
+                <button id="loadNotificationsBtn" onclick="loadNotifications()"
+                    class="flex-1 py-3.5 px-4 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-lg text-base font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2">
                     <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                     Load Notifications
                 </button>
-                <button onclick="markAllAsRead()" class="py-3.5 px-4 bg-green-600 hover:bg-green-700 text-white border-0 rounded-lg text-base font-medium cursor-pointer transition-colors flex items-center justify-center gap-2">
+                <button onclick="markAllAsRead()"
+                    class="py-3.5 px-4 bg-green-600 hover:bg-green-700 text-white border-0 rounded-lg text-base font-medium cursor-pointer transition-colors flex items-center justify-center gap-2">
                     <i data-lucide="check-circle" class="w-4 h-4"></i>
                     Mark All as Read
                 </button>
             </div>
-            
+
             <div id="notificationsList" class="space-y-4 max-h-[500px] overflow-y-auto p-1">
                 <!-- Notifications will be inserted here -->
             </div>
@@ -288,113 +166,147 @@
                 Click "Load Notifications" to check for replies, likes, and mentions across your platforms.
             </div>
         </div>
-        
+
         <!-- Settings Tab Content -->
         <div id="settingsContent" class="tab-content hidden">
             <div class="flex justify-between items-center mb-8">
                 <p class="text-gray-600 dark:text-gray-400 text-sm">Configure your preferences and API credentials</p>
-                <span id="version" class="text-gray-600 dark:text-gray-400 text-sm"></span>
+                <button id="versionPill" class="version-pill px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer">
+                    v<span id="version"></span>
+                </button>
             </div>
-            
+
             <!-- General Settings -->
             <div class="mb-8">
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">General Settings</h2>
-                
+                <h2
+                    class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">
+                    General Settings</h2>
+
                 <!-- Dark Mode Toggle -->
                 <div class="mb-6">
                     <label class="flex items-center justify-between cursor-pointer">
                         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Dark Mode</span>
                         <div class="relative">
                             <input type="checkbox" id="darkModeToggle" class="sr-only" checked>
-                            <div class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors"></div>
-                            <div class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform"></div>
+                            <div
+                                class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
+                            </div>
+                            <div
+                                class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
+                            </div>
                         </div>
                     </label>
                 </div>
-                
+
                 <!-- Tray Icon Toggle -->
                 <div class="mb-6">
                     <label class="flex items-center justify-between cursor-pointer">
                         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Show Tray Icon</span>
                         <div class="relative">
                             <input type="checkbox" id="trayIconToggle" class="sr-only">
-                            <div class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors"></div>
-                            <div class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform"></div>
+                            <div
+                                class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
+                            </div>
+                            <div
+                                class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
+                            </div>
                         </div>
                     </label>
                 </div>
-                
+
                 <!-- Tray Icon Customization -->
                 <div id="trayIconSection" class="mb-6" style="display: none;">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Tray Icon:</span>
-                            <img id="trayIconPreview" src="tray.png" alt="Tray Icon" style="width: 22px; height: 22px;" class="rounded">
+                            <img id="trayIconPreview" src="tray.png" alt="Tray Icon" style="width: 22px; height: 22px;"
+                                class="rounded">
                         </div>
-                        <button onclick="chooseTrayIcon()" class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors">Choose</button>
+                        <button onclick="chooseTrayIcon()"
+                            class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors">Choose</button>
                     </div>
                 </div>
-                
+
                 <!-- Open Links Externally Toggle -->
                 <div class="mb-6">
                     <label class="flex items-center justify-between cursor-pointer">
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Open Links in External Browser</span>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Open Links in External
+                            Browser</span>
                         <div class="relative">
                             <input type="checkbox" id="externalLinksToggle" class="sr-only">
-                            <div class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors"></div>
-                            <div class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform"></div>
+                            <div
+                                class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
+                            </div>
+                            <div
+                                class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
+                            </div>
                         </div>
                     </label>
                 </div>
-                
+
                 <!-- Window Controls Style -->
                 <div class="mb-6">
                     <label class="flex items-center justify-between cursor-pointer">
                         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Window Controls Style</span>
                         <div class="relative">
-                            <select id="windowControlsStyle" class="appearance-none p-2 pr-8 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                            <select id="windowControlsStyle"
+                                class="appearance-none p-2 pr-8 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
                                 <option value="macos-circles">Traffic Light</option>
                                 <option value="lucide-icons">Basic</option>
                             </select>
-                            <i data-lucide="chevron-down" class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400 pointer-events-none"></i>
+                            <i data-lucide="chevron-down"
+                                class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400 pointer-events-none"></i>
                         </div>
                     </label>
                 </div>
             </div>
-            
+
             <!-- Notifications -->
             <div class="mb-8">
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">Notifications</h2>
-                
+                <h2
+                    class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">
+                    Notifications</h2>
+
                 <!-- Polling Intervals -->
                 <div class="mb-6">
-                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Auto-Polling Intervals (minutes)</h3>
-                    
+                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Auto-Polling Intervals
+                        (minutes)</h3>
+
                     <!-- Mastodon Polling -->
                     <div class="mb-4">
-                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-2">Mastodon: <span id="mastodonIntervalValue">5</span> minutes</label>
-                        <input type="range" id="mastodonInterval" min="1" max="60" value="5" step="1" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-2">Mastodon: <span
+                                id="mastodonIntervalValue">5</span> minutes</label>
+                        <input type="range" id="mastodonInterval" min="1" max="60" value="5" step="1"
+                            class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
                     </div>
-                    
+
                     <!-- Twitter Polling -->
                     <div class="mb-4">
-                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-2">Twitter: <span id="twitterIntervalValue">60</span> minutes</label>
-                        <input type="range" id="twitterInterval" min="1" max="60" value="60" step="1" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-xs text-red-600 dark:text-red-400 mt-1">⚠️ Default 60min to avoid Twitter's daily limits (25/day). Free: ≥15min. Paid: shorter OK. <a href="https://docs.x.com/x-api/fundamentals/rate-limits" target="_blank" class="underline hover:no-underline">More info</a></p>
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-2">Twitter: <span
+                                id="twitterIntervalValue">60</span> minutes</label>
+                        <input type="range" id="twitterInterval" min="1" max="60" value="60" step="1"
+                            class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                        <p class="text-xs text-red-600 dark:text-red-400 mt-1">⚠️ Default 60min to avoid Twitter's daily
+                            limits (25/day). Free: ≥15min. Paid: shorter OK. <a
+                                href="https://docs.x.com/x-api/fundamentals/rate-limits" target="_blank"
+                                class="underline hover:no-underline">More info</a></p>
                     </div>
-                    
+
                     <!-- Bluesky Polling -->
                     <div class="mb-4">
-                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-2">Bluesky: <span id="blueskyIntervalValue">5</span> minutes</label>
-                        <input type="range" id="blueskyInterval" min="1" max="60" value="5" step="1" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-2">Bluesky: <span
+                                id="blueskyIntervalValue">5</span> minutes</label>
+                        <input type="range" id="blueskyInterval" min="1" max="60" value="5" step="1"
+                            class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
                     </div>
                 </div>
-                
+
                 <!-- Notification Exclusions -->
                 <div class="mb-6">
                     <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Exclude Notifications</h3>
-                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-4">When enabled, no notifications will be checked for the selected platform (manual or auto-poll).</p>
-                    
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-4">When enabled, no notifications will be
+                        checked for the selected platform (manual or auto-poll).</p>
+
                     <!-- Mastodon Exclusion -->
                     <div class="mb-4">
                         <label class="flex items-center justify-between cursor-pointer">
@@ -403,12 +315,16 @@
                             </span>
                             <div class="relative">
                                 <input type="checkbox" id="excludeMastodonNotifications" class="sr-only">
-                                <div class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors"></div>
-                                <div class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform"></div>
+                                <div
+                                    class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
+                                </div>
+                                <div
+                                    class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
+                                </div>
                             </div>
                         </label>
                     </div>
-                    
+
                     <!-- Twitter Exclusion -->
                     <div class="mb-4">
                         <label class="flex items-center justify-between cursor-pointer">
@@ -417,12 +333,16 @@
                             </span>
                             <div class="relative">
                                 <input type="checkbox" id="excludeTwitterNotifications" class="sr-only">
-                                <div class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors"></div>
-                                <div class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform"></div>
+                                <div
+                                    class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
+                                </div>
+                                <div
+                                    class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
+                                </div>
                             </div>
                         </label>
                     </div>
-                    
+
                     <!-- Bluesky Exclusion -->
                     <div class="mb-4">
                         <label class="flex items-center justify-between cursor-pointer">
@@ -431,103 +351,159 @@
                             </span>
                             <div class="relative">
                                 <input type="checkbox" id="excludeBlueskyNotifications" class="sr-only">
-                                <div class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors"></div>
-                                <div class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform"></div>
+                                <div
+                                    class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
+                                </div>
+                                <div
+                                    class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
+                                </div>
                             </div>
                         </label>
                     </div>
                 </div>
-                
+
                 <!-- Test Notification Button -->
                 <div class="mb-6">
-                    <button type="button" onclick="testNotification()" class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                    <button type="button" onclick="testNotification()"
+                        class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors flex items-center justify-center gap-2">
                         <i data-lucide="bell" class="w-4 h-4"></i>
                         Test Notification
                     </button>
                 </div>
             </div>
-            
+
             <!-- API Credentials -->
             <div class="mb-8">
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">API Credentials</h2>
-                
+                <h2
+                    class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">
+                    API Credentials</h2>
+
                 <!-- Mastodon Section -->
-                <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div
+                    class="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                     <h4 class="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
                         <img src="assets/masto.svg" alt="Mastodon" class="w-4 h-4"> Mastodon
                     </h4>
                     <div class="space-y-3">
                         <div>
-                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Instance URL:</label>
-                            <input type="text" id="mastodon-instance" placeholder="https://mastodon.social" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Instance
+                                URL:</label>
+                            <input type="text" id="mastodon-instance" placeholder="https://mastodon.social"
+                                class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
                         </div>
                         <div>
-                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Access Token:</label>
-                            <input type="password" id="mastodon-token" placeholder="Your access token" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Access
+                                Token:</label>
+                            <input type="password" id="mastodon-token" placeholder="Your access token"
+                                class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Twitter Section -->
-                <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div
+                    class="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                     <h4 class="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
                         <img src="assets/twit.svg" alt="Twitter" class="w-4 h-4"> Twitter
                     </h4>
                     <div class="space-y-3">
                         <div>
-                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">API Key:</label>
-                            <input type="password" id="twitter-key" placeholder="Your API key" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">API
+                                Key:</label>
+                            <input type="password" id="twitter-key" placeholder="Your API key"
+                                class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
                         </div>
                         <div>
-                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">API Secret:</label>
-                            <input type="password" id="twitter-secret" placeholder="Your API secret" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">API
+                                Secret:</label>
+                            <input type="password" id="twitter-secret" placeholder="Your API secret"
+                                class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
                         </div>
                         <div>
-                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Access Token:</label>
-                            <input type="password" id="twitter-token" placeholder="Your access token" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Access
+                                Token:</label>
+                            <input type="password" id="twitter-token" placeholder="Your access token"
+                                class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
                         </div>
                         <div>
-                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Access Token Secret:</label>
-                            <input type="password" id="twitter-token-secret" placeholder="Your token secret" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Access
+                                Token Secret:</label>
+                            <input type="password" id="twitter-token-secret" placeholder="Your token secret"
+                                class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Bluesky Section -->
-                <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div
+                    class="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                     <h4 class="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
                         <img src="assets/bsky.svg" alt="Bluesky" class="w-4 h-4"> Bluesky
                     </h4>
                     <div class="space-y-3">
                         <div>
-                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Handle:</label>
-                            <input type="text" id="bluesky-handle" placeholder="username.bsky.social" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                            <label
+                                class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Handle:</label>
+                            <input type="text" id="bluesky-handle" placeholder="username.bsky.social"
+                                class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
                         </div>
                         <div>
-                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">App Password:</label>
-                            <input type="password" id="bluesky-password" placeholder="Your app password" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">App
+                                Password:</label>
+                            <input type="password" id="bluesky-password" placeholder="Your app password"
+                                class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Import/Export Buttons -->
             <div class="flex gap-2.5 mt-5">
-                <button type="button" onclick="resetAllData()" class="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                <button type="button" onclick="resetAllData()"
+                    class="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors flex items-center justify-center gap-2">
                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                     Reset All Data
                 </button>
-                <button type="button" onclick="exportCredentials()" class="flex-1 py-2.5 px-4 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                <button type="button" onclick="exportCredentials()"
+                    class="flex-1 py-2.5 px-4 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors flex items-center justify-center gap-2">
                     <i data-lucide="download" class="w-4 h-4"></i>
                     Export Credentials
                 </button>
-                <button type="button" onclick="importCredentials()" class="flex-1 py-2.5 px-4 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                <button type="button" onclick="importCredentials()"
+                    class="flex-1 py-2.5 px-4 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer text-sm font-medium transition-colors flex items-center justify-center gap-2">
                     <i data-lucide="upload" class="w-4 h-4"></i>
                     Import Credentials
                 </button>
             </div>
         </div>
-    
-    <script type="module" src="app.js"></script>
+
+        <!-- About Modal -->
+        <div id="aboutModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-8">
+                <div class="text-center">
+                    <img src="appicon.png" alt="SocialSox" class="w-20 h-20 mx-auto mb-6 rounded-xl">
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">SocialSox</h2>
+                    <p class="text-gray-600 dark:text-gray-400 mb-6">v<span id="modalVersion"></span></p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+                        A simple, local-only web application for posting short messages to Mastodon, Twitter, and Bluesky simultaneously.
+                    </p>
+                    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Technical Information</h3>
+                        <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                            <p><strong>Developer:</strong> André Klein</p>
+                            <p><strong>GitHub:</strong> <a href="https://github.com/burninc0de/socialsox" class="text-primary-600 dark:text-primary-400 hover:underline" target="_blank">burninc0de/socialsox</a></p>
+                            <p><strong>License:</strong> MIT</p>
+                            <p><strong>Built with:</strong> Electron, Vite, Tailwind CSS</p>
+                        </div>
+                    </div>
+                    <button onclick="closeAboutModal()" class="mt-8 px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script type="module" src="app.js"></script>
 </body>
+
 </html>

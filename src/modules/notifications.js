@@ -6,17 +6,25 @@ export let notificationPollingIntervals = {
     bluesky: null
 };
 
-export function getAllCachedNotifications() {
-    const cached = localStorage.getItem('allNotifications');
-    return cached ? JSON.parse(cached) : [];
+export async function getAllCachedNotifications() {
+    try {
+        return await window.electron.readNotifications();
+    } catch (error) {
+        console.error('Failed to read notifications:', error);
+        return [];
+    }
 }
 
-export function saveAllNotifications(notifications) {
-    localStorage.setItem('allNotifications', JSON.stringify(notifications));
+export async function saveAllNotifications(notifications) {
+    try {
+        await window.electron.writeNotifications(notifications);
+    } catch (error) {
+        console.error('Failed to save notifications:', error);
+    }
 }
 
-export function clearNotificationsCache() {
-    localStorage.removeItem('allNotifications');
+export async function clearNotificationsCache() {
+    await saveAllNotifications([]);
     localStorage.removeItem('mastodonLastNotificationId');
     localStorage.removeItem('twitterLastMentionId');
     localStorage.removeItem('blueskyLastNotificationTimestamp');
@@ -108,7 +116,7 @@ export async function loadPlatformNotifications(platform, silent = true) {
             }
         }
         
-        const cachedNotifications = getAllCachedNotifications();
+        const cachedNotifications = await getAllCachedNotifications();
         const cachedIds = new Set(cachedNotifications.map(n => n.id));
         
         const uniqueNewNotifications = newNotifications
@@ -117,7 +125,7 @@ export async function loadPlatformNotifications(platform, silent = true) {
         
         if (uniqueNewNotifications.length > 0) {
             const updatedCache = [...cachedNotifications, ...uniqueNewNotifications];
-            localStorage.setItem('allNotifications', JSON.stringify(updatedCache));
+            await saveAllNotifications(updatedCache);
             
             displayNotifications(updatedCache);
             
@@ -142,12 +150,12 @@ export async function loadPlatformNotifications(platform, silent = true) {
                 message: error.message,
                 timestamp: new Date().toISOString()
             };
-            const allNotifs = getAllCachedNotifications();
+            const allNotifs = await getAllCachedNotifications();
             allNotifs.push(errorNotif);
-            saveAllNotifications(allNotifs);
+            await saveAllNotifications(allNotifs);
             displayNotifications(allNotifs);
-            setTimeout(() => {
-                markAsSeen(errorNotif.id);
+            setTimeout(async () => {
+                await markAsSeen(errorNotif.id);
             }, 10000);
         } else if (!silent) {
             window.showStatus(`Failed to load ${platform} notifications: ${error.message}`, 'error');
@@ -163,7 +171,9 @@ export async function loadNotifications(silent = false) {
     if (!silent) {
         btn.disabled = true;
         btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Loading...';
-        lucide.createIcons();
+        if (typeof lucide !== 'undefined' && typeof window.lucideIcons !== 'undefined') {
+            lucide.createIcons({icons: window.lucideIcons});
+        }
     }
     
     noNotifications.style.display = 'none';
@@ -179,7 +189,7 @@ export async function loadNotifications(silent = false) {
         
         await Promise.all(loadPromises);
         
-        const allNotifications = getAllCachedNotifications();
+        const allNotifications = await getAllCachedNotifications();
         displayNotifications(allNotifications);
         
         if (!silent) {
@@ -195,24 +205,31 @@ export async function loadNotifications(silent = false) {
         if (!silent) {
             btn.disabled = false;
             btn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i> Load Notifications';
-            lucide.createIcons();
+            if (typeof lucide !== 'undefined' && typeof window.lucideIcons !== 'undefined') {
+                lucide.createIcons({icons: window.lucideIcons});
+            }
         }
     }
 }
 
-export function markAsSeen(notificationId) {
-    const allNotifs = getAllCachedNotifications();
+export async function markAsSeen(notificationId) {
+    const allNotifs = await getAllCachedNotifications();
     const notif = allNotifs.find(n => n.id === notificationId);
     if (notif) {
         notif.dismissed = true;
         notif.isNew = false;
-        saveAllNotifications(allNotifs);
+        await saveAllNotifications(allNotifs);
         displayNotifications(allNotifs);
     }
 }
 
-export function markAllAsRead() {
-    const allNotifs = getAllCachedNotifications();
+export async function loadCachedNotifications() {
+    const allNotifications = await getAllCachedNotifications();
+    displayNotifications(allNotifications);
+}
+
+export async function markAllAsRead() {
+    const allNotifs = await getAllCachedNotifications();
     let hasChanges = false;
     
     allNotifs.forEach(notif => {
@@ -224,7 +241,7 @@ export function markAllAsRead() {
     });
     
     if (hasChanges) {
-        saveAllNotifications(allNotifs);
+        await saveAllNotifications(allNotifs);
         displayNotifications(allNotifs);
         window.showToast('All notifications marked as read', 'success');
     } else {
@@ -522,7 +539,7 @@ async function fetchBlueskyNotifications(handle, password) {
     return processedNotifications;
 }
 
-function displayNotifications(notifications) {
+async function displayNotifications(notifications) {
     const notificationsList = document.getElementById('notificationsList');
     const noNotifications = document.getElementById('noNotifications');
     
@@ -539,10 +556,11 @@ function displayNotifications(notifications) {
     
     noNotifications.style.display = 'none';
     
+    const assetsPath = await window.electron.getAssetsPath();
     const platformIcons = {
-        mastodon: '<img src="assets/masto.svg" alt="M" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">',
-        twitter: '<img src="assets/twit.svg" alt="X" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">',
-        bluesky: '<img src="assets/bsky.svg" alt="B" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">'
+        mastodon: `<img src="file://${assetsPath}/masto.svg" alt="M" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`,
+        twitter: `<img src="file://${assetsPath}/twit.svg" alt="X" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`,
+        bluesky: `<img src="file://${assetsPath}/bsky.svg" alt="B" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`
     };
     
     const typeLabels = {
@@ -588,7 +606,7 @@ function displayNotifications(notifications) {
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="text-xs text-gray-500 dark:text-gray-400">${timeString}</span>
-                        <button onclick="markAsSeen('${notif.id}'); event.stopPropagation();" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm leading-none w-4 h-4 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Dismiss">×</button>
+                        <button onclick="(async () => { await markAsSeen('${notif.id}'); })(); event.stopPropagation();" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm leading-none w-4 h-4 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Dismiss">×</button>
                     </div>
                 </div>
                 <div class="mb-2">

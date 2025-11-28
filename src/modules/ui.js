@@ -54,6 +54,9 @@ export function updateCharCount() {
 }
 
 export function switchTab(tab) {
+    // Save current tab to localStorage
+    localStorage.setItem('socialSoxActiveTab', tab);
+    
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.add('hidden');
     });
@@ -67,6 +70,11 @@ export function switchTab(tab) {
     
     document.getElementById(tab + 'Tab').classList.remove('text-gray-500', 'dark:text-gray-400', 'border-transparent');
     document.getElementById(tab + 'Tab').classList.add('text-primary-600', 'dark:text-primary-400', 'border-b-2', 'border-primary-600', 'dark:border-primary-400');
+    
+    // Load cached notifications when switching to notifications tab
+    if (tab === 'notifications' && window.loadCachedNotifications) {
+        window.loadCachedNotifications();
+    }
     
     // Clear status message when switching tabs
     const status = document.getElementById('status');

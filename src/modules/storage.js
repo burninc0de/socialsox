@@ -295,7 +295,7 @@ export function updateWindowControlsStyle(style) {
     }
     
     // Re-create Lucide icons if available
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
+    if (typeof lucide !== 'undefined' && typeof window.lucideIcons !== 'undefined') {
+        lucide.createIcons({icons: window.lucideIcons});
     }
 }

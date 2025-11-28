@@ -1,23 +1,31 @@
-# 🧦 SocialSox
+# <img src="appicon.png" alt="🧦" width="32" /> SocialSox
 
-A simple, local Electron app for posting short messages to Mastodon, X (aka Twitter), and Bluesky simultaneously.
+A simple, open source cross-platform desktop app for posting short messages to Mastodon, X (aka Twitter), and Bluesky separately or simultaneously.
+
+## Why SocialSox?
+
+Today's social media landscape is fragmented. Your audience is scattered across Mastodon, Bluesky, and X, but existing tools are either browser-based tab juggling, overpriced SaaS, or complex self-hosted setups. SocialSox gives you a simple, free desktop app that does one thing well: post your message everywhere at once.
 
 ## Features
 
-- 📝 Post to multiple platforms at once
-- 🔒 Credentials securely encrypted using Electron's safeStorage
-- 🎨 Clean, modern interface with native dark mode support
-- 🔄 Toggle platforms on/off
-- 📊 Character counter
-- ✅ Per-platform status feedback
-- 📤📥 Export/Import credentials for portability
-- 🖥️ Desktop app - no browser or server needed!
-- 📦 Cross-platform distributable builds
-- 📋 Tabbed interface: Post, History, Notifications, Settings
-- 🖼️ Image upload support
-- 📜 Posting history with status tracking
-- 🎛️ Dedicated settings tab for API configuration
-- 🌙 Custom dark scrollbars and theme
+**Core Posting**
+- 📝 Post to one or all platforms simultaneously
+- 🖼️ Single image uploads with drag-and-drop
+- 📊 Real-time character counter per platform
+
+**Management & History**
+- 📜 View posting history with status tracking
+- 🔔 Monitor replies, likes, and reposts
+- ✅ Per-platform delivery status
+
+**Privacy & Security**
+- 🔒 Credentials encrypted using OS-level security
+- 🖥️ Runs entirely on your machine—no cloud required
+- 📥 Export/import credentials for backup
+
+**Customization**
+- 🎨 Native dark mode support
+- ⚙️ Customizable tray icons and window decorations
 
 ## Screenshots
 
@@ -39,14 +47,15 @@ A simple, local Electron app for posting short messages to Mastodon, X (aka Twit
 ## Project Notes
 
 > [!NOTE]
-> **This is a basic vanilla JavaScript proof of concept** built for a simple need. [Read the blog post about how and why I built it](https://andreklein.net/i-built-my-own-damn-crossposter-because-2025-social-media-is-a-fragmented-hellscape/). It may benefit from refactoring to React/TypeScript in the future.
+> **This is a small focused vanilla JavaScript project with Tailwind and Lucide Icons** built for a simple need. [Read the blog post about how and why I built it](https://andreklein.net/i-built-my-own-damn-crossposter-because-2025-social-media-is-a-fragmented-hellscape/). It may benefit from refactoring to React/TypeScript in the future.
 
 > [!TIP]
 > **Minimalist by design** - I have no plans to turn this into a super-app with endless features. For more advanced social media management tools, check out [Postiz](https://github.com/gitroomhq/postiz-app).
 
 > [!IMPORTANT]
 > **Current implementation details:**
-> - Tailwind CSS and Lucide icons are loaded via CDN for simplicity
+> - Tailwind CSS and Lucide icons are bundled with the app
+> - Only essential Lucide icons are imported to minimize bundle size
 > - Tested on Linux (Arch CachyOS) and Windows 11
 > - Mac builds need testing
 
@@ -69,23 +78,23 @@ This modular approach allows for easy maintenance and future extensions.
 
 ## Quick Start
 
-### Option 1: Run as Electron App (Recommended)
+### Option 1: Download Pre-built App (Recommended)
+
+Download the latest [release](https://github.com/burninc0de/socialsox/releases/) for your platform:
+- **Windows**: `.exe` installer
+- **macOS**: `.dmg` file
+- **Linux**: `.AppImage` file
+
+### Option 2: Run from Source (Developers)
 
 ```bash
 npm install
-npm start
-```
-
-For development (with hot-reload):
-```bash
-# Terminal 1: Start Vite dev server
 npm run dev
-
-# Terminal 2: Launch Electron app
-npm start
 ```
 
-### Option 2: Build Distributable Packages
+This starts the Vite dev server with hot-reload and automatically launches the Electron app for development.
+
+### Option 3: Build Distributable Packages
 
 ```bash
 npm run build
@@ -117,21 +126,17 @@ This creates platform-specific packages in the `dist/` folder:
 3. Create a new app password
 4. Use your handle (e.g., `username.bsky.social`) and the app password
 
-#### X
+#### X (aka Twitter)
 
 1. Go to [X Developer Portal](https://developer.X.com/en/portal/dashboard)
 2. Create a project and app (or use existing)
-3. **IMPORTANT: Configure OAuth 1.0a permissions:**
-   - Click on your app → **Settings** tab
-   - Scroll to "User authentication settings"
+3. **Configure OAuth 1.0a permissions:**
+   - Click on your app → **Settings** tab → "User authentication settings"
    - Click **"Set up"** or **"Edit"**
-   - Enable **OAuth 1.0a** by choosing "Web App, Automated App or Bot"
-   - Set **App permissions** to **"Read and Write"** (not just "Read")
-   - For **Callback URL**: Enter your GitHub repository URL (e.g., `https://github.com/yourusername/socialsox`) or any valid URL - it's not actually used but required by X
-   - For **Website URL**: Enter the same GitHub repository URL or any valid URL like `https://github.com/yourusername/socialsox`
+   - Enable **OAuth 1.0a** (choose "Web App, Automated App or Bot")
+   - Set **App permissions** to **"Read and Write"**
+   - Add any valid URL for Callback/Website (your GitHub repo works fine—these won't be used but X requires them)
    - Click **Save**
-   
-   > **Note**: We're using OAuth 1.0a with your own Access Tokens (not the 3-legged OAuth flow), so the callback URL won't actually be used. X just requires these fields to be filled in.
 4. Go to **"Keys and Tokens"** tab
 5. **Regenerate** your Access Token and Access Token Secret (important after changing permissions!)
 6. Copy all 4 credentials:
@@ -160,9 +165,9 @@ Check the **History** tab to view your past posts and their status.
 > **Security Features:**
 > - ✅ Everything runs locally on your computer
 > - ✅ Credentials are encrypted using Electron's safeStorage (OS-level encryption)
-> - ✅ Settings stored securely in localStorage
 > - ✅ X OAuth handled securely in Electron backend
 > - ✅ No external servers involved (except the social media APIs)
+> - ✅ Notifications cache stored in notifications.json
 
 > [!WARNING]
 > **Security Considerations:**
@@ -185,6 +190,8 @@ For security-related concerns, please see our [Security Policy](SECURITY.md).
 ## Troubleshooting
 
 **App won't start or icons don't load**: Try running with debug console: `DEBUG=1 ./SocialSox.exe` (Windows) or `DEBUG=1 ./SocialSox` (Linux/Mac) to see error messages.
+
+**Having issues with notifications, settings, or credentials?** Use the red "CLEAR ALL DATA" button in Settings for a complete reset - it wipes everything for a fresh start!
 
 > [!IMPORTANT]
 > **X Errors**:
@@ -222,14 +229,14 @@ npm install
 ### Development Commands
 
 ```bash
-# Start the Vite dev server (for hot-reloading the web app)
+# Development mode (Vite dev server + Electron with hot-reload)
 npm run dev
 
-# Launch the Electron app (loads from Vite dev server in dev mode)
-npm start
-
-# Build for production
+# Build production distributables
 npm run build
+
+# Run the pre-built production app (after building)
+npm start
 ```
 
 ### Debugging Built App
