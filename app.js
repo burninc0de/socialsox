@@ -52,6 +52,7 @@ window.resetAllData = resetAllData;
 
 // Page load
 window.addEventListener('DOMContentLoaded', () => {
+    loadCredentials();
     loadHistory();
 
     // Restore active tab from localStorage
