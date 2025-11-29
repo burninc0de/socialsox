@@ -123,6 +123,11 @@ export function switchTab(tab) {
         window.loadAndDisplayHistory();
     }
     
+    // Load and display scheduled posts when switching to scheduled tab
+    if (tab === 'scheduled' && window.loadAndDisplayScheduled) {
+        window.loadAndDisplayScheduled();
+    }
+    
     // Clear status message when switching tabs
     const status = document.getElementById('status');
     status.classList.add('hidden');
