@@ -2,7 +2,6 @@
 
 let scheduledData = [];
 let schedulePollingInterval = null;
-let displayRefreshInterval = null;
 
 export async function loadScheduled() {
     try {
@@ -40,9 +39,9 @@ export async function addScheduledPost(message, platforms, scheduledTime, images
         scheduledData = scheduled;
         displayScheduled();
 
-        // Start display refresh if this is the first scheduled post
+        // Start polling if this is the first scheduled post
         if (scheduled.length === 1) {
-            startDisplayRefresh();
+            startSchedulePolling();
         }
 
         window.showToast('Post scheduled successfully', 'success');
@@ -60,9 +59,9 @@ export async function deleteScheduledPost(id) {
         scheduledData = filteredScheduled;
         displayScheduled();
 
-        // Stop display refresh if no posts remain
+        // Stop polling if no posts remain
         if (filteredScheduled.length === 0) {
-            stopDisplayRefresh();
+            stopSchedulePolling();
         }
 
         window.showToast('Scheduled post deleted', 'success');
@@ -78,7 +77,7 @@ export async function clearScheduled() {
             await window.electron.deleteScheduled();
             scheduledData = [];
             displayScheduled();
-            stopDisplayRefresh();
+            stopSchedulePolling();
             window.showToast('Scheduled posts cleared', 'success');
         } catch (error) {
             console.error('Failed to clear scheduled posts:', error);
@@ -126,11 +125,11 @@ export function displayScheduled() {
         if (isPast) {
             timeRemaining = 'Sending soon...';
         } else if (hours > 0) {
-            timeRemaining = `in ${hours}h ${minutes}m`;
+            timeRemaining = `in ${hours}h ${minutes} m`;
         } else if (minutes > 0) {
-            timeRemaining = `in ${minutes}m ${seconds}s`;
+            timeRemaining = `in ${minutes}m ${seconds} s`;
         } else {
-            timeRemaining = `in ${seconds}s`;
+            timeRemaining = `in ${seconds} s`;
         }
 
         return `
@@ -151,9 +150,10 @@ export function displayScheduled() {
                     <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
                         📎 ${entry.images.length} image${entry.images.length > 1 ? 's' : ''} attached
                     </div>
-                ` : ''}
+                ` : ''
+            }
             </div>
-        `;
+    `;
     }).join('');
 }
 
@@ -165,6 +165,23 @@ export async function loadAndDisplayScheduled() {
 export async function checkAndSendDuePosts() {
     try {
         const scheduled = await window.electron.readScheduled();
+
+        // Stop polling if no posts remain (safety check)
+        if (scheduled.length === 0) {
+            stopSchedulePolling();
+            return;
+        }
+
+        // Always refresh display if on scheduled tab to update countdowns
+        const scheduledContent = document.getElementById('scheduledContent');
+        if (scheduledContent && !scheduledContent.classList.contains('hidden')) {
+            // We need to update scheduledData before displaying
+            scheduledData = scheduled;
+            // Sort by scheduled time (earliest first)
+            scheduledData.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
+            displayScheduled();
+        }
+
         const now = new Date();
         const duePosts = scheduled.filter(entry => new Date(entry.scheduledTime) <= now);
 
@@ -201,6 +218,7 @@ export async function checkAndSendDuePosts() {
                     const blob = await response.blob();
                     const file = new File([blob], `scheduled-image-${i}.jpg`, { type: 'image/jpeg' });
                     imageFiles.push(file);
+
                 }
 
                 // Set images in the upload module
@@ -227,10 +245,10 @@ export async function checkAndSendDuePosts() {
         // Refresh the display
         await loadAndDisplayScheduled();
 
-        // Stop display refresh if no posts remain
+        // Stop polling if no posts remain
         const remainingPosts = await window.electron.readScheduled();
         if (remainingPosts.length === 0) {
-            stopDisplayRefresh();
+            stopSchedulePolling();
         }
 
     } catch (error) {
@@ -254,27 +272,5 @@ export function stopSchedulePolling() {
         clearInterval(schedulePollingInterval);
         schedulePollingInterval = null;
         console.log('Schedule polling stopped');
-    }
-}
-
-export function startDisplayRefresh() {
-    // Refresh display every 10 seconds to update countdown timers
-    if (!displayRefreshInterval) {
-        displayRefreshInterval = setInterval(() => {
-            // Only refresh if we're on the scheduled tab
-            const scheduledContent = document.getElementById('scheduledContent');
-            if (scheduledContent && !scheduledContent.classList.contains('hidden')) {
-                displayScheduled();
-            }
-        }, 10000);
-        console.log('Display refresh started (10s interval)');
-    }
-}
-
-export function stopDisplayRefresh() {
-    if (displayRefreshInterval) {
-        clearInterval(displayRefreshInterval);
-        displayRefreshInterval = null;
-        console.log('Display refresh stopped');
     }
 }

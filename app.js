@@ -34,9 +34,7 @@ import {
     addScheduledPost,
     deleteScheduledPost,
     startSchedulePolling,
-    stopSchedulePolling,
-    startDisplayRefresh,
-    stopDisplayRefresh
+    stopSchedulePolling
 } from './src/modules/scheduled.js';
 
 // Global state
@@ -187,7 +185,17 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     startNotificationPolling();
-    startSchedulePolling();
+    startNotificationPolling();
+
+    // Check for scheduled posts and start polling if needed
+    try {
+        const scheduled = await window.electron.readScheduled();
+        if (scheduled && scheduled.length > 0) {
+            startSchedulePolling();
+        }
+    } catch (error) {
+        console.error('Failed to check scheduled posts on startup:', error);
+    }
 
     if (window.electron && window.electron.onSwitchToNotificationsTab) {
         window.electron.onSwitchToNotificationsTab(() => {
