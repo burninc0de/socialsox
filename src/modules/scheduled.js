@@ -238,8 +238,10 @@ export async function checkAndSendDuePosts() {
         // Show toast notification for sent posts
         if (duePosts.length === 1) {
             window.showToast('✓ Scheduled post sent successfully!', 'success');
+            window.electron.showOSNotification('Scheduled Post Sent', 'Your scheduled post has been sent successfully.');
         } else {
             window.showToast(`✓ ${duePosts.length} scheduled posts sent successfully!`, 'success');
+            window.electron.showOSNotification('Scheduled Posts Sent', `${duePosts.length} scheduled posts have been sent successfully.`);
         }
 
         // Refresh the display
