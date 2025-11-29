@@ -565,10 +565,13 @@ async function displayNotifications(notifications) {
     noNotifications.style.display = 'none';
     
     const assetsPath = await window.electron.getAssetsPath();
+    const mastodonIcon = await window.electron.readFileAsDataURL(`${assetsPath}/masto.svg`);
+    const twitterIcon = await window.electron.readFileAsDataURL(`${assetsPath}/twit.svg`);
+    const blueskyIcon = await window.electron.readFileAsDataURL(`${assetsPath}/bsky.svg`);
     const platformIcons = {
-        mastodon: `<img src="file://${assetsPath}/masto.svg" alt="M" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`,
-        twitter: `<img src="file://${assetsPath}/twit.svg" alt="X" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`,
-        bluesky: `<img src="file://${assetsPath}/bsky.svg" alt="B" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`
+        mastodon: `<img src="${mastodonIcon}" alt="M" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`,
+        twitter: `<img src="${twitterIcon}" alt="X" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`,
+        bluesky: `<img src="${blueskyIcon}" alt="B" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`
     };
     
     const typeLabels = {
