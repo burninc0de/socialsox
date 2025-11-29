@@ -40,6 +40,11 @@ export async function addScheduledPost(message, platforms, scheduledTime, images
         scheduledData = scheduled;
         displayScheduled();
 
+        // Start display refresh if this is the first scheduled post
+        if (scheduled.length === 1) {
+            startDisplayRefresh();
+        }
+
         window.showToast('Post scheduled successfully', 'success');
     } catch (error) {
         console.error('Failed to add scheduled post:', error);
@@ -54,6 +59,12 @@ export async function deleteScheduledPost(id) {
         await saveScheduled(filteredScheduled);
         scheduledData = filteredScheduled;
         displayScheduled();
+
+        // Stop display refresh if no posts remain
+        if (filteredScheduled.length === 0) {
+            stopDisplayRefresh();
+        }
+
         window.showToast('Scheduled post deleted', 'success');
     } catch (error) {
         console.error('Failed to delete scheduled post:', error);
@@ -67,6 +78,7 @@ export async function clearScheduled() {
             await window.electron.deleteScheduled();
             scheduledData = [];
             displayScheduled();
+            stopDisplayRefresh();
             window.showToast('Scheduled posts cleared', 'success');
         } catch (error) {
             console.error('Failed to clear scheduled posts:', error);
@@ -94,13 +106,32 @@ export function displayScheduled() {
         const timeString = scheduledDate.toLocaleString();
         const platformsString = entry.platforms.join(', ');
 
+        // Debug logging
+        console.log('Scheduled post debug:', JSON.stringify({
+            id: entry.id,
+            scheduledTime: entry.scheduledTime,
+            scheduledDate: scheduledDate.toString(),
+            now: now.toString(),
+            isPast: isPast,
+            diff: scheduledDate - now
+        }, null, 2));
+
         // Calculate time remaining
         const diff = scheduledDate - now;
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const timeRemaining = isPast
-            ? 'Sending soon...'
-            : `in ${hours}h ${minutes}m`;
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        let timeRemaining;
+        if (isPast) {
+            timeRemaining = 'Sending soon...';
+        } else if (hours > 0) {
+            timeRemaining = `in ${hours}h ${minutes}m`;
+        } else if (minutes > 0) {
+            timeRemaining = `in ${minutes}m ${seconds}s`;
+        } else {
+            timeRemaining = `in ${seconds}s`;
+        }
 
         return `
             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
@@ -186,8 +217,21 @@ export async function checkAndSendDuePosts() {
             await saveScheduled(remainingScheduled);
         }
 
+        // Show toast notification for sent posts
+        if (duePosts.length === 1) {
+            window.showToast('✓ Scheduled post sent successfully!', 'success');
+        } else {
+            window.showToast(`✓ ${duePosts.length} scheduled posts sent successfully!`, 'success');
+        }
+
         // Refresh the display
         await loadAndDisplayScheduled();
+
+        // Stop display refresh if no posts remain
+        const remainingPosts = await window.electron.readScheduled();
+        if (remainingPosts.length === 0) {
+            stopDisplayRefresh();
+        }
 
     } catch (error) {
         console.error('Error checking/sending due posts:', error);

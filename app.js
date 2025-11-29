@@ -188,7 +188,6 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     startNotificationPolling();
     startSchedulePolling();
-    startDisplayRefresh();
 
     if (window.electron && window.electron.onSwitchToNotificationsTab) {
         window.electron.onSwitchToNotificationsTab(() => {
@@ -500,9 +499,16 @@ async function postToAll() {
 
     if (scheduleValue !== 'now') {
         // Schedule the post
-        const hours = parseInt(scheduleValue);
+        const hours = parseFloat(scheduleValue);
         const scheduledTime = new Date();
-        scheduledTime.setHours(scheduledTime.getHours() + hours);
+        // Add time in milliseconds for accurate fractional hours
+        scheduledTime.setTime(scheduledTime.getTime() + (hours * 60 * 60 * 1000));
+
+        console.log('Scheduling post:', JSON.stringify({
+            hoursToAdd: hours,
+            currentTime: new Date().toISOString(),
+            scheduledTime: scheduledTime.toISOString()
+        }, null, 2));
 
         // Get images if any
         const selectedImages = getSelectedImages();
