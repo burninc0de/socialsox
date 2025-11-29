@@ -333,11 +333,11 @@ window.editScheduledPost = (id) => {
     const seconds = scheduledDate.getSeconds().toString().padStart(2, '0');
     const originalTimeString = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     
-    timeDisplay.innerHTML = `<input type="text" value="${originalTimeString}" class="scheduled-time-input bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded px-2 py-1 text-xs w-full">`;
+    timeDisplay.innerHTML = `<input type="text" value="${originalTimeString}" class="scheduled-time-input bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded px-2 py-1 text-xs w-full text-gray-800 dark:text-gray-200">`;
 
     // Replace message display with a textarea
     const messageDisplay = postCard.querySelector('.message-display');
-    messageDisplay.innerHTML = `<textarea class="scheduled-message-input bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded px-2 py-1 text-sm w-full h-24">${entry.message}</textarea>`;
+    messageDisplay.innerHTML = `<textarea class="scheduled-message-input bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded px-2 py-1 text-sm w-full h-24 text-gray-800 dark:text-gray-200">${entry.message}</textarea>`;
 
     // Replace edit button with save button
     const editButton = postCard.querySelector('.edit-btn');
