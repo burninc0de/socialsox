@@ -22,7 +22,7 @@ export async function optimizeTweet(apiKey, message) {
                     content: `optimize this tweet for maximum engagement. Add relevant hashtags. return only the optimized message: "${message}"`
                 }
             ],
-            model: 'grok-4',
+            model: 'grok-4-fast-non-reasoning',
             stream: false,
             temperature: 0.7
         })
