@@ -7,7 +7,8 @@ export async function saveCredentials() {
         twitterSecret: document.getElementById('twitter-secret').value,
         twitterToken: document.getElementById('twitter-token').value,
         twitterTokenSecret: document.getElementById('twitter-token-secret').value,
-        blueskyPassword: document.getElementById('bluesky-password').value
+        blueskyPassword: document.getElementById('bluesky-password').value,
+        grokApiKey: document.getElementById('grok-api-key').value
     };
 
     const settings = {
@@ -24,7 +25,8 @@ export async function saveCredentials() {
             twitter: document.getElementById('excludeTwitterNotifications').checked,
             bluesky: document.getElementById('excludeBlueskyNotifications').checked
         },
-        windowControlsStyle: document.getElementById('windowControlsStyle').value || 'macos-circles'
+        windowControlsStyle: document.getElementById('windowControlsStyle').value || 'macos-circles',
+        aiOptimizationEnabled: document.getElementById('aiOptimizationToggle').checked
     };
 
     try {
@@ -77,7 +79,8 @@ export async function loadCredentials() {
                         twitterSecret: creds.twitterSecret || '',
                         twitterToken: creds.twitterToken || '',
                         twitterTokenSecret: creds.twitterTokenSecret || '',
-                        blueskyPassword: creds.blueskyPassword || ''
+                        blueskyPassword: creds.blueskyPassword || '',
+                        grokApiKey: creds.grokApiKey || ''
                     };
                     settings = {
                         mastodonInstance: creds.mastodonInstance || '',
@@ -103,6 +106,7 @@ export async function loadCredentials() {
         document.getElementById('twitter-token-secret').value = sensitiveCreds.twitterTokenSecret || '';
         document.getElementById('bluesky-handle').value = settings.blueskyHandle || '';
         document.getElementById('bluesky-password').value = sensitiveCreds.blueskyPassword || '';
+        document.getElementById('grok-api-key').value = sensitiveCreds.grokApiKey || '';
         
         if (settings.platforms) {
             Object.assign(window.platforms, settings.platforms);
@@ -139,6 +143,12 @@ export async function loadCredentials() {
         // Apply window controls style
         updateWindowControlsStyle(settings.windowControlsStyle || 'macos-circles');
         
+        // Load AI optimization settings
+        const aiOptimizationEnabled = settings.aiOptimizationEnabled || false;
+        document.getElementById('aiOptimizationToggle').checked = aiOptimizationEnabled;
+        document.getElementById('aiApiKeySection').style.display = aiOptimizationEnabled ? 'block' : 'none';
+        document.getElementById('optimizeBtn').style.display = aiOptimizationEnabled ? 'block' : 'none';
+        
         document.querySelectorAll('.platform-toggle').forEach(btn => {
             const platform = btn.dataset.platform;
             const isActive = window.platforms[platform];
@@ -160,7 +170,9 @@ export async function exportCredentials() {
             twitterToken: document.getElementById('twitter-token').value,
             twitterTokenSecret: document.getElementById('twitter-token-secret').value,
             blueskyHandle: document.getElementById('bluesky-handle').value,
-            blueskyPassword: document.getElementById('bluesky-password').value
+            blueskyPassword: document.getElementById('bluesky-password').value,
+            grokApiKey: document.getElementById('grok-api-key').value,
+            aiOptimizationEnabled: document.getElementById('aiOptimizationToggle').checked
         };
 
         if (window.electron && window.electron.exportCredentials) {
@@ -202,6 +214,10 @@ export async function importCredentials() {
                 document.getElementById('twitter-token-secret').value = creds.twitterTokenSecret || '';
                 document.getElementById('bluesky-handle').value = creds.blueskyHandle || '';
                 document.getElementById('bluesky-password').value = creds.blueskyPassword || '';
+                document.getElementById('grok-api-key').value = creds.grokApiKey || '';
+                document.getElementById('aiOptimizationToggle').checked = creds.aiOptimizationEnabled || false;
+                document.getElementById('aiApiKeySection').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                document.getElementById('optimizeBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
                 
                 await saveCredentials();
                 window.showStatus('Credentials imported successfully!', 'success');
@@ -227,6 +243,10 @@ export async function importCredentials() {
                         document.getElementById('twitter-token-secret').value = creds.twitterTokenSecret || '';
                         document.getElementById('bluesky-handle').value = creds.blueskyHandle || '';
                         document.getElementById('bluesky-password').value = creds.blueskyPassword || '';
+                        document.getElementById('grok-api-key').value = creds.grokApiKey || '';
+                        document.getElementById('aiOptimizationToggle').checked = creds.aiOptimizationEnabled || false;
+                        document.getElementById('aiApiKeySection').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                        document.getElementById('optimizeBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
                         
                         await saveCredentials();
                         window.showStatus('Credentials imported successfully!', 'success');

@@ -121,6 +121,11 @@
 
             <!-- Post Button with Time Dropdown -->
             <div class="flex gap-2">
+                <button id="optimizeBtn" onclick="optimizeMessage()" style="display: none;"
+                    class="py-3.5 px-4 bg-purple-600 hover:bg-purple-700 text-white border-0 rounded-lg text-base font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    Optimize
+                </button>
                 <button id="postBtn" onclick="postToAll()"
                     class="flex-1 py-3.5 px-4 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-lg text-base font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                     Post to Selected Platforms
@@ -554,6 +559,36 @@
                             <i data-lucide="check-circle" class="w-3 h-3"></i>
                             Test Configuration
                         </button>
+                    </div>
+                </div>
+
+                <!-- AI Optimization Section -->
+                <div
+                    class="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <h4 class="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i> AI Optimization
+                    </h4>
+                    <div class="space-y-3">
+                        <div class="mb-4">
+                            <label class="flex items-center justify-between cursor-pointer">
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Enable AI Optimization</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="aiOptimizationToggle" class="sr-only">
+                                    <div class="toggle-switch"></div>
+                                    <div class="toggle-dot"></div>
+                                </div>
+                            </label>
+                        </div>
+                        <div id="aiApiKeySection" style="display: none;">
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Grok API Key:</label>
+                            <input type="password" id="grok-api-key" placeholder="Your Grok API key"
+                                class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                            <button type="button" id="testGrokBtn" onclick="testGrok()"
+                                class="w-full mt-3 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2">
+                                <i data-lucide="check-circle" class="w-3 h-3"></i>
+                                Test Configuration
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

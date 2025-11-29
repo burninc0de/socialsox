@@ -1,8 +1,8 @@
 
 // Import lucide icons
-import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote } from 'lucide';
+import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, Sparkles } from 'lucide';
 
-const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote };
+const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, Sparkles };
 
 // Make icons and createIcons globally available for modules
 window.lucide = { createIcons };
@@ -12,6 +12,7 @@ window.lucideIcons = icons;
 // Import modules
 import { saveCredentials, loadCredentials, exportCredentials, importCredentials } from './src/modules/storage.js';
 import { postToMastodon, postToTwitter, postToBluesky, testMastodonConfig, testTwitterConfig, testBlueskyConfig } from './src/modules/platforms.js';
+import { optimizeTweet, testGrokApi } from './src/modules/ai.js';
 import { showStatus, showToast, updateCharCount, switchTab, toggleCollapsible, showPlatformStatus, clearPlatformStatuses } from './src/modules/ui.js';
 import { loadHistory, loadAndDisplayHistory, clearHistory, addHistoryEntry, deleteHistoryEntry } from './src/modules/history.js';
 import { setupImageUpload, removeImage, getSelectedImages, setSelectedImages } from './src/modules/imageUpload.js';
@@ -76,6 +77,40 @@ window.setSelectedImages = setSelectedImages;
 window.selectSyncDir = selectSyncDir;
 window.setSyncEnabled = setSyncEnabled;
 window.manualSync = manualSync;
+
+// AI optimization function
+window.optimizeMessage = async function() {
+    const message = document.getElementById('message').value.trim();
+    if (!message) {
+        window.showToast('Please enter a message to optimize', 'error');
+        return;
+    }
+
+    const apiKey = document.getElementById('grok-api-key').value.trim();
+    if (!apiKey) {
+        window.showToast('Please enter your Grok API key in Settings', 'error');
+        return;
+    }
+
+    const optimizeBtn = document.getElementById('optimizeBtn');
+    const originalText = optimizeBtn.innerHTML;
+    optimizeBtn.disabled = true;
+    optimizeBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Optimizing...';
+
+    try {
+        const optimizedMessage = await optimizeTweet(apiKey, message);
+        document.getElementById('message').value = optimizedMessage;
+        updateCharCount();
+        window.showToast('Message optimized successfully!', 'success');
+    } catch (error) {
+        console.error('AI optimization error:', error);
+        window.showToast(`Optimization failed: ${error.message}`, 'error');
+    } finally {
+        optimizeBtn.disabled = false;
+        optimizeBtn.innerHTML = originalText;
+        createIcons({ icons: { Sparkles: icons.Sparkles, Loader2: icons.Loader2 } });
+    }
+};
 
 // Update debug mode styling
 function updateDebugModeStyling(isDebug) {
@@ -274,6 +309,13 @@ window.addEventListener('DOMContentLoaded', async () => {
         setSyncEnabled(isEnabled);
     });
 
+    document.getElementById('aiOptimizationToggle').addEventListener('change', function () {
+        const isEnabled = this.checked;
+        document.getElementById('aiApiKeySection').style.display = isEnabled ? 'block' : 'none';
+        document.getElementById('optimizeBtn').style.display = isEnabled ? 'block' : 'none';
+        saveCredentials();
+    });
+
     document.querySelectorAll('.platform-toggle').forEach(btn => {
         btn.addEventListener('click', async function () {
             const platform = this.dataset.platform;
@@ -333,6 +375,8 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('bluesky-handle').addEventListener('input', () => resetTestButtonColor('testBlueskyBtn'));
     document.getElementById('bluesky-password').addEventListener('input', () => resetTestButtonColor('testBlueskyBtn'));
+
+    document.getElementById('grok-api-key').addEventListener('input', () => resetTestButtonColor('testGrokBtn'));
 
     setupImageUpload();
 
@@ -763,6 +807,10 @@ function resetAllData() {
     document.getElementById('twitter-token-secret').value = '';
     document.getElementById('bluesky-handle').value = '';
     document.getElementById('bluesky-password').value = '';
+    document.getElementById('grok-api-key').value = '';
+    document.getElementById('aiOptimizationToggle').checked = false;
+    document.getElementById('aiApiKeySection').style.display = 'none';
+    document.getElementById('optimizeBtn').style.display = 'none';
 
     Object.keys(window.platforms).forEach(platform => {
         window.platforms[platform] = false;
@@ -843,3 +891,117 @@ window.closeAboutModal = closeAboutModal;
 
 // Make postToAll globally available
 window.postToAll = postToAll;
+
+// Test functions
+window.testMastodon = async function() {
+    const instance = document.getElementById('mastodon-instance').value.trim();
+    const token = document.getElementById('mastodon-token').value.trim();
+    if (!instance || !token) {
+        window.showToast('Please fill in all Mastodon credentials', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('testMastodonBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Testing...';
+
+    try {
+        const result = await testMastodonConfig(instance, token);
+        window.showToast(`✓ Connected as @${result.username} (${result.displayName})`, 'success');
+        btn.className = 'w-full py-2 px-3 bg-green-600 hover:bg-green-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
+    } catch (error) {
+        console.error('Mastodon test failed:', error);
+        window.showToast(`✗ Mastodon test failed: ${error.message}`, 'error');
+        btn.className = 'w-full py-2 px-3 bg-red-600 hover:bg-red-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        createIcons({ icons });
+    }
+};
+
+window.testTwitter = async function() {
+    const apiKey = document.getElementById('twitter-key').value.trim();
+    const apiSecret = document.getElementById('twitter-secret').value.trim();
+    const accessToken = document.getElementById('twitter-token').value.trim();
+    const accessTokenSecret = document.getElementById('twitter-token-secret').value.trim();
+    if (!apiKey || !apiSecret || !accessToken || !accessTokenSecret) {
+        window.showToast('Please fill in all Twitter credentials', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('testTwitterBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Testing...';
+
+    try {
+        const result = await testTwitterConfig(apiKey, apiSecret, accessToken, accessTokenSecret);
+        window.showToast(`✓ Connected as @${result.username}`, 'success');
+        btn.className = 'w-full py-2 px-3 bg-green-600 hover:bg-green-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
+    } catch (error) {
+        console.error('Twitter test failed:', error);
+        window.showToast(`✗ Twitter test failed: ${error.message}`, 'error');
+        btn.className = 'w-full py-2 px-3 bg-red-600 hover:bg-red-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        createIcons({ icons });
+    }
+};
+
+window.testBluesky = async function() {
+    const handle = document.getElementById('bluesky-handle').value.trim();
+    const password = document.getElementById('bluesky-password').value.trim();
+    if (!handle || !password) {
+        window.showToast('Please fill in all Bluesky credentials', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('testBlueskyBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Testing...';
+
+    try {
+        const result = await testBlueskyConfig(handle, password);
+        window.showToast(`✓ Connected as @${result.username}`, 'success');
+        btn.className = 'w-full py-2 px-3 bg-green-600 hover:bg-green-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
+    } catch (error) {
+        console.error('Bluesky test failed:', error);
+        window.showToast(`✗ Bluesky test failed: ${error.message}`, 'error');
+        btn.className = 'w-full py-2 px-3 bg-red-600 hover:bg-red-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        createIcons({ icons });
+    }
+};
+
+window.testGrok = async function() {
+    const apiKey = document.getElementById('grok-api-key').value.trim();
+    if (!apiKey) {
+        window.showToast('Please enter your Grok API key', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('testGrokBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Testing...';
+
+    try {
+        const result = await testGrokApi(apiKey);
+        window.showToast(`✓ API test successful: ${result.message}`, 'success');
+        btn.className = 'w-full py-2 px-3 bg-green-600 hover:bg-green-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
+    } catch (error) {
+        console.error('Grok test failed:', error);
+        window.showToast(`✗ Grok test failed: ${error.message}`, 'error');
+        btn.className = 'w-full py-2 px-3 bg-red-600 hover:bg-red-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        createIcons({ icons });
+    }
+};
