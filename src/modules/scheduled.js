@@ -163,9 +163,14 @@ export function displayScheduled() {
                             <span class="text-xs text-gray-500 dark:text-gray-400">${timeRemaining}</span>
                         </div>
                     </div>
-                    <button onclick="deleteScheduledPost('${entry.id}')" class="text-gray-400 hover:text-red-600 dark:hover:text-red-500 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Delete scheduled post">
-                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                    </button>
+                    <div class="flex gap-1">
+                        <button onclick="window.editScheduledPost('${entry.id}')" class="edit-btn text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Edit scheduled post">
+                            <i data-lucide="pen" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button onclick="deleteScheduledPost('${entry.id}')" class="text-gray-400 hover:text-red-600 dark:hover:text-red-500 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Delete scheduled post">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="message-display text-sm text-gray-800 dark:text-gray-200 mb-2 whitespace-pre-wrap">${entry.message}</div>
                 <div class="flex items-center gap-2">
@@ -178,11 +183,6 @@ export function displayScheduled() {
                     </div>
                 ` : ''
             }
-                <div class="absolute bottom-2 right-2 flex gap-1">
-                     <button onclick="window.editScheduledPost('${entry.id}')" class="edit-btn text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Edit scheduled post">
-                        <i data-lucide="pen" class="w-3.5 h-3.5"></i>
-                    </button>
-                </div>
             </div>
     `;
     }).join('');
