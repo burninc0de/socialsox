@@ -1,4 +1,4 @@
-# <img src="appicon.png" alt="🧦" width="32" /> SocialSox
+# <img src="tray.png" alt="🧦" width="32" /> SocialSox
 
 A simple, open source cross-platform desktop app for posting short messages to Mastodon, X (aka Twitter), and Bluesky separately or simultaneously.
 
@@ -10,8 +10,10 @@ Today's social media landscape is fragmented. Your audience is scattered across 
 
 **Core Posting**
 - 📝 Post to one or all platforms simultaneously
-- 🖼️ Single image uploads with drag-and-drop
+- 🖼️ Multiple image uploads (up to 4) with drag-and-drop
+- 🔄 Drag to reorder images before posting
 - 📊 Real-time character counter per platform
+- 🧪 Debug mode: Test your posts without actually publishing them
 
 **Management & History**
 - 📜 View posting history with status tracking
@@ -107,6 +109,8 @@ This creates platform-specific packages in the `dist/` folder:
 
 ## Setup
 
+Use the **Settings** tab to configure your API credentials. They're encrypted locally using Electron's safeStorage for security.
+
 ### Get Your API Credentials
 
 #### Mastodon
@@ -145,16 +149,17 @@ This creates platform-specific packages in the `dist/` folder:
    - **Access Token** (newly regenerated)
    - **Access Token Secret** (newly regenerated)
 
-### Enter Credentials & Post
+### Test Credentials & Post
 
-Use the **Settings** tab to configure your API credentials. They're encrypted locally using Electron's safeStorage for security.
+Use the "Test Configuration" buttons in Settings to conveniently verify your credentials are working correctly.
 
 **Portability**: Use the "📤 Export Credentials" button to save your credentials to a JSON file for backup or transfer to another device. Use "📥 Import Credentials" to load them back.
 
 Switch to the **Post** tab to:
 - Select platforms to post to
 - Type your message (with character counter)
-- Upload an image (drag & drop or click)
+- Upload images (drag & drop or click, max 4)
+- Reorder images by dragging them
 - Click "Post to Selected Platforms"!
 
 Check the **History** tab to view your past posts and their status.
@@ -181,10 +186,10 @@ For security-related concerns, please see our [Security Policy](SECURITY.md).
 
 > [!CAUTION]
 > **Current Limitations:**
-> - No multiple image support (single image only)
+> - Maximum 4 images per post (platform API limits)
 > - No thread/reply support
 > - Character limits: X 280 chars, Mastodon 500+ (varies by instance), Bluesky 300 chars
-> - Image size limit: 5MB
+> - Image size limit: 5MB per image
 > - Image format support: PNG, JPG, GIF, WebP
 
 ## Troubleshooting
@@ -209,7 +214,40 @@ For security-related concerns, please see our [Security Policy](SECURITY.md).
 > - **Instance URL Errors**: Use only the domain (e.g., `https://mastodon.social`), not your profile URL
 > - **Mastodon Errors**: Make sure your instance URL is correct and includes `https://`
 > - **Bluesky Errors**: Use your full handle including the domain (e.g., `user.bsky.social`)
-> - **Image Upload Issues**: Ensure your image is under 5MB and in a supported format (PNG, JPG, GIF, WebP)
+> - **Image Upload Issues**: Ensure each image is under 5MB and in a supported format (PNG, JPG, GIF, WebP)
+> - **Image Order**: Drag and drop images to reorder them - the order in the preview is the order they'll appear in your post
+
+## Data Storage & Clearing Saved Data
+
+SocialSox stores your data locally on your computer. Here's where to find and manage it:
+
+### Windows
+**Location**: `%APPDATA%\socialsox\`  
+**Full path**: `C:\Users\[YourUsername]\AppData\Roaming\socialsox\`
+
+### macOS
+**Location**: `~/Library/Application Support/socialsox/`
+
+### Linux
+**Location**: `~/.config/socialsox/`
+
+### Files Stored
+- `notifications.json` - Cached notifications from platforms
+- `history.json` - Your posting history and status tracking
+- `window-config.json` - Window position and size preferences
+
+### Clearing Data Manually
+If you need to clear data manually (or the in-app "Clear All Data" button doesn't work):
+1. Close SocialSox completely
+2. Navigate to the folder above for your platform
+3. Delete the files you want to clear:
+   - Delete `notifications.json` to clear notification cache
+   - Delete `history.json` to clear posting history
+   - Delete `window-config.json` to reset window preferences
+4. Restart SocialSox
+
+> [!NOTE]
+> Your encrypted API credentials are stored separately using your operating system's secure storage and won't be in these folders.
 
 ## Data Storage & Clearing Saved Data
 
@@ -276,7 +314,8 @@ npm start
 To run the built app with developer console:
 
 - Windows: `DEBUG=1 && dist\win-unpacked\SocialSox.exe`
-- Linux/Mac: `DEBUG=1 ./dist/win-unpacked/SocialSox`
+- Linux: `DEBUG=1 ./dist/linux-unpacked/SocialSox`
+- macOS: `DEBUG=1 ./dist/mac/SocialSox.app/Contents/MacOS/SocialSox`
 
 ## License
 

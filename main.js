@@ -2,14 +2,18 @@ const { app, BrowserWindow, ipcMain, dialog, clipboard, Tray, Menu, Notification
 const path = require('path');
 const fs = require('fs').promises;
 
+app.setAppUserModelId('com.socialsox.app');
+
 let tray = null;
 let isQuiting = false;
 let trayEnabled = false;
 
 // Handle both development and production paths for tray icon
+// Use tray-mac.png on macOS for better system tray appearance
+const trayIconFile = process.platform === 'darwin' ? 'tray-mac.png' : 'tray.png';
 let trayIconPath = (app && app.isPackaged)
-    ? path.join(process.resourcesPath, 'tray.png')
-    : path.join(__dirname, 'tray.png');
+    ? path.join(process.resourcesPath, trayIconFile)
+    : path.join(__dirname, trayIconFile);
 
 // Handle both development and production paths for app icon
 let appIconPath = (app && app.isPackaged)
@@ -74,7 +78,7 @@ async function createWindow() {
             colorScheme: 'system',
             preload: path.join(__dirname, 'preload.js')
         },
-        icon: trayIconPath,
+        icon: appIconPath,
         title: 'SocialSox',
         autoHideMenuBar: true,
         frame: false,
@@ -159,11 +163,12 @@ ipcMain.on('set-tray-enabled', (event, enabled) => {
 
 // Handle tray icon setting
 ipcMain.on('set-tray-icon', (event, iconPath) => {
-    // If it's the default tray.png, use the correct path for packaged/dev mode
+    // If it's the default tray.png, use the correct platform-specific path
     if (iconPath === 'tray.png') {
+        const trayIconFile = process.platform === 'darwin' ? 'tray-mac.png' : 'tray.png';
         trayIconPath = app.isPackaged
-            ? path.join(process.resourcesPath, 'tray.png')
-            : path.join(__dirname, 'tray.png');
+            ? path.join(process.resourcesPath, trayIconFile)
+            : path.join(__dirname, trayIconFile);
     } else {
         trayIconPath = path.resolve(iconPath);
     }
@@ -174,9 +179,10 @@ ipcMain.on('set-tray-icon', (event, iconPath) => {
 
 // Handle getting the default tray icon path
 ipcMain.handle('get-default-tray-icon-path', () => {
+    const trayIconFile = process.platform === 'darwin' ? 'tray-mac.png' : 'tray.png';
     return app.isPackaged
-        ? path.join(process.resourcesPath, 'tray.png')
-        : path.join(__dirname, 'tray.png');
+        ? path.join(process.resourcesPath, trayIconFile)
+        : path.join(__dirname, trayIconFile);
 });
 
 // Handle file dialog for tray icon
@@ -214,7 +220,7 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
     try {
         console.log('Twitter: Attempting to post...');
         console.log('Twitter: Message length:', message.length);
-        console.log('Twitter: Has image:', !!imageData);
+        console.log('Twitter: Has images:', Array.isArray(imageData) ? imageData.length : (imageData ? 1 : 0));
 
         const client = new TwitterApi({
             appKey: apiKey,
@@ -223,22 +229,26 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
             accessSecret: accessTokenSecret,
         });
 
-        let mediaId = null;
+        let mediaIds = [];
 
-        // Upload image if provided
+        // Upload images if provided
         if (imageData) {
-            console.log('Twitter: Uploading image...');
-            // Convert base64 to buffer
-            const base64Data = imageData.split(',')[1];
-            const buffer = Buffer.from(base64Data, 'base64');
-            mediaId = await client.v1.uploadMedia(buffer, { mimeType: 'image/jpeg' });
-            console.log('Twitter: Image uploaded, mediaId:', mediaId);
+            const imageArray = Array.isArray(imageData) ? imageData : [imageData];
+            
+            for (const imgData of imageArray.slice(0, 4)) {
+                console.log('Twitter: Uploading image...');
+                const base64Data = imgData.split(',')[1];
+                const buffer = Buffer.from(base64Data, 'base64');
+                const mediaId = await client.v1.uploadMedia(buffer, { mimeType: 'image/jpeg' });
+                console.log('Twitter: Image uploaded, mediaId:', mediaId);
+                mediaIds.push(mediaId);
+            }
         }
 
         // Create tweet with optional media
         const tweetData = { text: message };
-        if (mediaId) {
-            tweetData.media = { media_ids: [mediaId] };
+        if (mediaIds.length > 0) {
+            tweetData.media = { media_ids: mediaIds };
         }
 
         const result = await client.v2.tweet(tweetData);
@@ -259,6 +269,33 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
         }
 
         return { success: false, error: errorMessage, code: error.code, details: error.data };
+    }
+});
+
+// Handle Twitter configuration test
+ipcMain.handle('test-twitter-config', async (event, { apiKey, apiSecret, accessToken, accessTokenSecret }) => {
+    try {
+        console.log('Twitter: Testing configuration...');
+
+        const client = new TwitterApi({
+            appKey: apiKey,
+            appSecret: apiSecret,
+            accessToken: accessToken,
+            accessSecret: accessTokenSecret,
+        });
+
+        const user = await client.v2.me();
+        console.log('Twitter: Configuration valid for user:', user.data.username);
+        return { success: true, username: user.data.username };
+    } catch (error) {
+        console.error('Twitter Test Error:', error);
+        let errorMessage = error.message;
+        if (error.data && error.data.detail) {
+            errorMessage = error.data.detail;
+        } else if (error.data && error.data.title) {
+            errorMessage = error.data.title;
+        }
+        return { success: false, error: errorMessage };
     }
 });
 

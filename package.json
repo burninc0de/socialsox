@@ -1,6 +1,6 @@
 {
   "name": "socialsox",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "A simple, local-only web application for posting short messages to Mastodon, Twitter, and Bluesky simultaneously.",
   "main": "main.js",
   "scripts": {
@@ -47,6 +47,7 @@
     "files": [
       "**/*",
       "tray.png",
+      "tray-mac.png",
       "appicon.png",
       "!dist/**/*",
       "!dist-electron/**/*",
@@ -61,6 +62,14 @@
       {
         "from": "tray.png",
         "to": "tray.png"
+      },
+      {
+        "from": "tray-mac.png",
+        "to": "tray-mac.png"
+      },
+      {
+        "from": "appicon.png",
+        "to": "appicon.png"
       },
       {
         "from": "assets",

@@ -17,6 +17,48 @@ export function showStatus(message, type) {
     }
 }
 
+export function showPlatformStatus(platform, message, type) {
+    const platformStatuses = document.getElementById('platformStatuses');
+    const statusElement = document.getElementById(`${platform.toLowerCase()}Status`);
+    
+    if (!statusElement) return;
+    
+    statusElement.textContent = message;
+    statusElement.className = 'p-3 rounded-lg text-sm block';
+    
+    if (type === 'success') {
+        statusElement.classList.add('bg-green-100', 'dark:bg-green-900', 'text-green-800', 'dark:text-green-200', 'border', 'border-green-300', 'dark:border-green-600');
+    } else if (type === 'error') {
+        statusElement.classList.add('bg-red-100', 'dark:bg-red-900', 'text-red-800', 'dark:text-red-200', 'border', 'border-red-300', 'dark:border-red-600');
+    } else if (type === 'info') {
+        statusElement.classList.add('bg-blue-100', 'dark:bg-blue-900', 'text-blue-800', 'dark:text-blue-200', 'border', 'border-blue-300', 'dark:border-blue-600');
+    }
+    
+    // Show the platform statuses container
+    platformStatuses.classList.remove('hidden');
+    statusElement.classList.remove('hidden');
+    
+    // Auto-hide success messages after 5 seconds
+    if (type === 'success') {
+        setTimeout(() => {
+            statusElement.classList.add('hidden');
+            // Hide container if all statuses are hidden
+            const allStatuses = platformStatuses.querySelectorAll('div[id$="Status"]');
+            const visibleStatuses = Array.from(allStatuses).filter(s => !s.classList.contains('hidden'));
+            if (visibleStatuses.length === 0) {
+                platformStatuses.classList.add('hidden');
+            }
+        }, 5000);
+    }
+}
+
+export function clearPlatformStatuses() {
+    const platformStatuses = document.getElementById('platformStatuses');
+    const allStatuses = platformStatuses.querySelectorAll('div[id$="Status"]');
+    allStatuses.forEach(status => status.classList.add('hidden'));
+    platformStatuses.classList.add('hidden');
+}
+
 export function showToast(message, type = 'info', duration = 3000) {
     const toastContainer = document.getElementById('toastContainer');
     const toast = document.createElement('div');
