@@ -211,11 +211,15 @@ export async function checkAndSendDuePosts() {
         // Always refresh display if on scheduled tab to update countdowns
         const scheduledContent = document.getElementById('scheduledContent');
         if (scheduledContent && !scheduledContent.classList.contains('hidden')) {
-            // We need to update scheduledData before displaying
-            scheduledData = scheduled;
-            // Sort by scheduled time (earliest first)
-            scheduledData.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
-            displayScheduled();
+            // Skip refresh if any post is in edit mode
+            const isEditing = document.querySelector('.scheduled-time-input') !== null;
+            if (!isEditing) {
+                // We need to update scheduledData before displaying
+                scheduledData = scheduled;
+                // Sort by scheduled time (earliest first)
+                scheduledData.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
+                displayScheduled();
+            }
         }
 
         const now = new Date();
