@@ -33,6 +33,9 @@ export async function saveScheduled(scheduled) {
 
 export async function addScheduledPost(message, platforms, scheduledTime, images = []) {
     try {
+        // Unescape the message to ensure newlines are actual newlines
+        message = message.replace(/\\n/g, '\n').replace(/\\r/g, '\r').replace(/\\t/g, '\t');
+
         const scheduled = await window.electron.readScheduled();
         const entry = {
             id: Date.now().toString(),
@@ -66,6 +69,11 @@ export async function updateScheduledPost(id, newValues) {
         const postIndex = scheduled.findIndex(entry => entry.id === id);
 
         if (postIndex > -1) {
+            // Unescape the message if provided
+            if (newValues.message) {
+                newValues.message = newValues.message.replace(/\\n/g, '\n').replace(/\\r/g, '\r').replace(/\\t/g, '\t');
+            }
+
             // Update only provided values
             Object.assign(scheduled[postIndex], newValues);
 
@@ -251,6 +259,9 @@ export async function checkAndSendDuePosts() {
                     btn.classList.add('active');
                 }
             });
+
+            // Unescape the message to ensure newlines are actual newlines
+            post.message = post.message.replace(/\\n/g, '\n').replace(/\\r/g, '\r').replace(/\\t/g, '\t');
 
             // Set the message
             document.getElementById('message').value = post.message;
