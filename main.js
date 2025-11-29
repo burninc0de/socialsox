@@ -9,9 +9,11 @@ let isQuiting = false;
 let trayEnabled = false;
 
 // Handle both development and production paths for tray icon
+// Use tray-mac.png on macOS for better system tray appearance
+const trayIconFile = process.platform === 'darwin' ? 'tray-mac.png' : 'tray.png';
 let trayIconPath = (app && app.isPackaged)
-    ? path.join(process.resourcesPath, 'tray.png')
-    : path.join(__dirname, 'tray.png');
+    ? path.join(process.resourcesPath, trayIconFile)
+    : path.join(__dirname, trayIconFile);
 
 // Handle both development and production paths for app icon
 let appIconPath = (app && app.isPackaged)
@@ -161,11 +163,12 @@ ipcMain.on('set-tray-enabled', (event, enabled) => {
 
 // Handle tray icon setting
 ipcMain.on('set-tray-icon', (event, iconPath) => {
-    // If it's the default tray.png, use the correct path for packaged/dev mode
+    // If it's the default tray.png, use the correct platform-specific path
     if (iconPath === 'tray.png') {
+        const trayIconFile = process.platform === 'darwin' ? 'tray-mac.png' : 'tray.png';
         trayIconPath = app.isPackaged
-            ? path.join(process.resourcesPath, 'tray.png')
-            : path.join(__dirname, 'tray.png');
+            ? path.join(process.resourcesPath, trayIconFile)
+            : path.join(__dirname, trayIconFile);
     } else {
         trayIconPath = path.resolve(iconPath);
     }
@@ -176,9 +179,10 @@ ipcMain.on('set-tray-icon', (event, iconPath) => {
 
 // Handle getting the default tray icon path
 ipcMain.handle('get-default-tray-icon-path', () => {
+    const trayIconFile = process.platform === 'darwin' ? 'tray-mac.png' : 'tray.png';
     return app.isPackaged
-        ? path.join(process.resourcesPath, 'tray.png')
-        : path.join(__dirname, 'tray.png');
+        ? path.join(process.resourcesPath, trayIconFile)
+        : path.join(__dirname, trayIconFile);
 });
 
 // Handle file dialog for tray icon

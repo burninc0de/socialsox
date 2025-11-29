@@ -47,6 +47,7 @@
     "files": [
       "**/*",
       "tray.png",
+      "tray-mac.png",
       "appicon.png",
       "!dist/**/*",
       "!dist-electron/**/*",
@@ -61,6 +62,10 @@
       {
         "from": "tray.png",
         "to": "tray.png"
+      },
+      {
+        "from": "tray-mac.png",
+        "to": "tray-mac.png"
       },
       {
         "from": "appicon.png",
