@@ -73,17 +73,17 @@
             <!-- Platform Toggles -->
             <div class="flex gap-2.5 mb-5">
                 <button
-                    class="platform-toggle flex-1 px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer transition-all duration-300 text-sm font-semibold hover:-translate-y-0.5"
+                    class="platform-toggle"
                     data-platform="mastodon">
                     <img src="assets/masto.svg" alt="Mastodon" class="w-5 h-5 mr-2 inline-block align-middle"> Mastodon
                 </button>
                 <button
-                    class="platform-toggle flex-1 px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer transition-all duration-300 text-sm font-semibold hover:-translate-y-0.5"
+                    class="platform-toggle"
                     data-platform="twitter">
                     <img src="assets/twit.svg" alt="Twitter" class="w-5 h-5 mr-2 inline-block align-middle"> Twitter
                 </button>
                 <button
-                    class="platform-toggle flex-1 px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer transition-all duration-300 text-sm font-semibold hover:-translate-y-0.5"
+                    class="platform-toggle"
                     data-platform="bluesky">
                     <img src="assets/bsky.svg" alt="Bluesky" class="w-5 h-5 mr-2 inline-block align-middle"> Bluesky
                 </button>
@@ -240,12 +240,8 @@
                         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Dark Mode</span>
                         <div class="relative">
                             <input type="checkbox" id="darkModeToggle" class="sr-only" checked>
-                            <div
-                                class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
-                            </div>
-                            <div
-                                class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
-                            </div>
+                            <div class="toggle-switch"></div>
+                            <div class="toggle-dot"></div>
                         </div>
                     </label>
                 </div>
@@ -256,12 +252,8 @@
                         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Show Tray Icon</span>
                         <div class="relative">
                             <input type="checkbox" id="trayIconToggle" class="sr-only">
-                            <div
-                                class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
-                            </div>
-                            <div
-                                class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
-                            </div>
+                            <div class="toggle-switch"></div>
+                            <div class="toggle-dot"></div>
                         </div>
                     </label>
                 </div>
@@ -291,12 +283,8 @@
                             Browser</span>
                         <div class="relative">
                             <input type="checkbox" id="externalLinksToggle" class="sr-only">
-                            <div
-                                class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
-                            </div>
-                            <div
-                                class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
-                            </div>
+                            <div class="toggle-switch"></div>
+                            <div class="toggle-dot"></div>
                         </div>
                     </label>
                 </div>
@@ -308,12 +296,8 @@
                             Posting)</span>
                         <div class="relative">
                             <input type="checkbox" id="debugModeToggle" class="sr-only">
-                            <div
-                                class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
-                            </div>
-                            <div
-                                class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
-                            </div>
+                            <div class="toggle-switch"></div>
+                            <div class="toggle-dot"></div>
                         </div>
                     </label>
                 </div>
@@ -345,12 +329,8 @@
                             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Enable Sync</span>
                             <div class="relative">
                                 <input type="checkbox" id="syncEnabledToggle" class="sr-only">
-                                <div
-                                    class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
-                                </div>
-                                <div
-                                    class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
-                                </div>
+                                <div class="toggle-switch"></div>
+                                <div class="toggle-dot"></div>
                             </div>
                         </label>
                     </div>
@@ -432,12 +412,8 @@
                             </span>
                             <div class="relative">
                                 <input type="checkbox" id="excludeMastodonNotifications" class="sr-only">
-                                <div
-                                    class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
-                                </div>
-                                <div
-                                    class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
-                                </div>
+                                <div class="toggle-switch"></div>
+                                <div class="toggle-dot"></div>
                             </div>
                         </label>
                     </div>
@@ -450,12 +426,8 @@
                             </span>
                             <div class="relative">
                                 <input type="checkbox" id="excludeTwitterNotifications" class="sr-only">
-                                <div
-                                    class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
-                                </div>
-                                <div
-                                    class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
-                                </div>
+                                <div class="toggle-switch"></div>
+                                <div class="toggle-dot"></div>
                             </div>
                         </label>
                     </div>
@@ -468,12 +440,8 @@
                             </span>
                             <div class="relative">
                                 <input type="checkbox" id="excludeBlueskyNotifications" class="sr-only">
-                                <div
-                                    class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
-                                </div>
-                                <div
-                                    class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
-                                </div>
+                                <div class="toggle-switch"></div>
+                                <div class="toggle-dot"></div>
                             </div>
                         </label>
                     </div>

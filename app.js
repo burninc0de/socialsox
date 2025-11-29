@@ -271,19 +271,6 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('syncEnabledToggle').addEventListener('change', function () {
         const isEnabled = this.checked;
-        const toggleBg = this.nextElementSibling;
-        const dot = toggleBg.nextElementSibling;
-
-        if (isEnabled) {
-            toggleBg.classList.remove('bg-gray-300', 'dark:bg-gray-600');
-            toggleBg.classList.add('bg-primary-500');
-            dot.style.transform = 'translateX(16px)';
-        } else {
-            toggleBg.classList.add('bg-gray-300', 'dark:bg-gray-600');
-            toggleBg.classList.remove('bg-primary-500');
-            dot.style.transform = 'translateX(0)';
-        }
-
         setSyncEnabled(isEnabled);
     });
 
@@ -292,14 +279,6 @@ window.addEventListener('DOMContentLoaded', async () => {
             const platform = this.dataset.platform;
             window.platforms[platform] = !window.platforms[platform];
             this.classList.toggle('active');
-
-            if (window.platforms[platform]) {
-                this.classList.remove('border-gray-300', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
-                this.classList.add('border-primary-500', 'bg-primary-500', 'text-white');
-            } else {
-                this.classList.add('border-gray-300', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
-                this.classList.remove('border-primary-500', 'bg-primary-500', 'text-white');
-            }
 
             await saveCredentials();
         });

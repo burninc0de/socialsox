@@ -248,8 +248,7 @@ export async function checkAndSendDuePosts() {
                 window.platforms[platform] = true;
                 const btn = document.querySelector(`.platform-toggle[data-platform="${platform}"]`);
                 if (btn) {
-                    btn.classList.add('active', 'border-primary-500', 'bg-primary-500', 'text-white');
-                    btn.classList.remove('border-gray-300', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
+                    btn.classList.add('active');
                 }
             });
 

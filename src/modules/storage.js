@@ -143,13 +143,6 @@ export async function loadCredentials() {
             const platform = btn.dataset.platform;
             const isActive = window.platforms[platform];
             btn.classList.toggle('active', isActive);
-            if (isActive) {
-                btn.classList.remove('border-gray-300', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
-                btn.classList.add('border-primary-500', 'bg-primary-500', 'text-white');
-            } else {
-                btn.classList.add('border-gray-300', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
-                btn.classList.remove('border-primary-500', 'bg-primary-500', 'text-white');
-            }
         });
     } catch (error) {
         console.error('Error loading credentials from localStorage:', error);
