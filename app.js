@@ -1,8 +1,8 @@
 
 // Import lucide icons
-import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2 } from 'lucide';
+import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock } from 'lucide';
 
-const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2 };
+const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock };
 
 // Make icons and createIcons globally available for modules
 window.lucide = { createIcons };
@@ -27,6 +27,15 @@ import {
     loadCachedNotifications,
     testNotification
 } from './src/modules/notifications.js';
+import {
+    loadScheduled,
+    loadAndDisplayScheduled,
+    clearScheduled,
+    addScheduledPost,
+    deleteScheduledPost,
+    startSchedulePolling,
+    stopSchedulePolling
+} from './src/modules/scheduled.js';
 
 // Global state
 window.platforms = {
@@ -58,6 +67,9 @@ window.resetAllData = resetAllData;
 window.testMastodonConfig = testMastodonConfig;
 window.testTwitterConfig = testTwitterConfig;
 window.testBlueskyConfig = testBlueskyConfig;
+window.clearScheduled = clearScheduled;
+window.loadAndDisplayScheduled = loadAndDisplayScheduled;
+window.deleteScheduledPost = deleteScheduledPost;
 
 // Update debug mode styling
 function updateDebugModeStyling(isDebug) {
@@ -94,13 +106,22 @@ window.addEventListener('DOMContentLoaded', async () => {
             console.error('Failed to load cached notifications:', error);
         }
     }
-    
+
     // Load and display history if history tab is active
     if (savedTab === 'history') {
         try {
             await loadAndDisplayHistory();
         } catch (error) {
             console.error('Failed to load and display history:', error);
+        }
+    }
+
+    // Load and display scheduled posts if scheduled tab is active
+    if (savedTab === 'scheduled') {
+        try {
+            await loadAndDisplayScheduled();
+        } catch (error) {
+            console.error('Failed to load and display scheduled posts:', error);
         }
     }
 
@@ -151,7 +172,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         });
         document.getElementById('resetTrayIconBtn').style.display = 'block';
     }
-    window.electron.setTrayIcon(trayIconPathStored);    const externalLinksStored = localStorage.getItem('socialSoxExternalLinks');
+    window.electron.setTrayIcon(trayIconPathStored); const externalLinksStored = localStorage.getItem('socialSoxExternalLinks');
     const externalLinks = externalLinksStored !== null ? externalLinksStored === 'true' : false;
     document.getElementById('externalLinksToggle').checked = externalLinks;
 
@@ -164,6 +185,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     startNotificationPolling();
+    startSchedulePolling();
 
     if (window.electron && window.electron.onSwitchToNotificationsTab) {
         window.electron.onSwitchToNotificationsTab(() => {
@@ -172,7 +194,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Initialize lucide icons
-createIcons({icons});
+    createIcons({ icons });
     // Event listeners
     document.getElementById('message').addEventListener('input', updateCharCount);
 
@@ -283,12 +305,12 @@ createIcons({icons});
 
     document.getElementById('mastodon-instance').addEventListener('input', () => resetTestButtonColor('testMastodonBtn'));
     document.getElementById('mastodon-token').addEventListener('input', () => resetTestButtonColor('testMastodonBtn'));
-    
+
     document.getElementById('twitter-key').addEventListener('input', () => resetTestButtonColor('testTwitterBtn'));
     document.getElementById('twitter-secret').addEventListener('input', () => resetTestButtonColor('testTwitterBtn'));
     document.getElementById('twitter-token').addEventListener('input', () => resetTestButtonColor('testTwitterBtn'));
     document.getElementById('twitter-token-secret').addEventListener('input', () => resetTestButtonColor('testTwitterBtn'));
-    
+
     document.getElementById('bluesky-handle').addEventListener('input', () => resetTestButtonColor('testBlueskyBtn'));
     document.getElementById('bluesky-password').addEventListener('input', () => resetTestButtonColor('testBlueskyBtn'));
 
@@ -340,7 +362,7 @@ createIcons({icons});
     window.testMastodon = async function () {
         const instance = document.getElementById('mastodon-instance').value.trim();
         const token = document.getElementById('mastodon-token').value.trim();
-        
+
         if (!instance || !token) {
             showToast('Please fill in all Mastodon credentials', 'error');
             return;
@@ -350,7 +372,7 @@ createIcons({icons});
         const originalText = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Testing...';
-        createIcons({icons});
+        createIcons({ icons });
 
         try {
             const result = await testMastodonConfig(instance, token);
@@ -363,7 +385,7 @@ createIcons({icons});
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalText;
-            createIcons({icons});
+            createIcons({ icons });
         }
     };
 
@@ -372,7 +394,7 @@ createIcons({icons});
         const apiSecret = document.getElementById('twitter-secret').value.trim();
         const accessToken = document.getElementById('twitter-token').value.trim();
         const tokenSecret = document.getElementById('twitter-token-secret').value.trim();
-        
+
         if (!apiKey || !apiSecret || !accessToken || !tokenSecret) {
             showToast('Please fill in all Twitter credentials', 'error');
             return;
@@ -382,7 +404,7 @@ createIcons({icons});
         const originalText = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Testing...';
-        createIcons({icons});
+        createIcons({ icons });
 
         try {
             const result = await testTwitterConfig(apiKey, apiSecret, accessToken, tokenSecret);
@@ -395,14 +417,14 @@ createIcons({icons});
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalText;
-            createIcons({icons});
+            createIcons({ icons });
         }
     };
 
     window.testBluesky = async function () {
         const handle = document.getElementById('bluesky-handle').value.trim();
         const password = document.getElementById('bluesky-password').value.trim();
-        
+
         if (!handle || !password) {
             showToast('Please fill in all Bluesky credentials', 'error');
             return;
@@ -412,7 +434,7 @@ createIcons({icons});
         const originalText = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Testing...';
-        createIcons({icons});
+        createIcons({ icons });
 
         try {
             const result = await testBlueskyConfig(handle, password);
@@ -425,7 +447,7 @@ createIcons({icons});
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalText;
-            createIcons({icons});
+            createIcons({ icons });
         }
     };
 });
@@ -451,7 +473,7 @@ async function postToAll() {
     clearPlatformStatuses();
     const status = document.getElementById('status');
     status.classList.add('hidden');
-    
+
     let message = document.getElementById('message').value.trim();
 
     // Decode URLs to handle encoded characters better
@@ -469,38 +491,78 @@ async function postToAll() {
         return;
     }
 
+    // Check if scheduling is selected
+    const scheduleTimeSelect = document.getElementById('scheduleTimeSelect');
+    const scheduleValue = scheduleTimeSelect.value;
+
+    if (scheduleValue !== 'now') {
+        // Schedule the post
+        const hours = parseInt(scheduleValue);
+        const scheduledTime = new Date();
+        scheduledTime.setHours(scheduledTime.getHours() + hours);
+
+        // Get images if any
+        const selectedImages = getSelectedImages();
+        let imageDataArray = [];
+        if (selectedImages.length > 0) {
+            for (const image of selectedImages) {
+                const reader = new FileReader();
+                const imageData = await new Promise((resolve) => {
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(image);
+                });
+                imageDataArray.push(imageData);
+            }
+        }
+
+        // Add to scheduled posts
+        await addScheduledPost(message, selectedPlatforms, scheduledTime.toISOString(), imageDataArray);
+
+        // Clear the form
+        document.getElementById('message').value = '';
+        updateCharCount();
+        removeImage();
+
+        // Reset dropdown to "Now"
+        scheduleTimeSelect.value = 'now';
+
+        return;
+    }
+
+    // Continue with immediate posting...
+
     const btn = document.getElementById('postBtn');
     btn.disabled = true;
     btn.textContent = 'Posting...';
 
     const loadingMessages = [
-"sacrificing a byte to the API gods …",
-"negotiating with rate limits …",
-"arguing with OAuth again …",
-"launching message into the void …",
-"bribing the API with snacks …",
-"spinning up the content hamster …",
-"duct-taping the timelines together …",
-"delivering your post via carrier pigeon …",
-"compressing your hot take …",
-"duct-taping your thoughts together …",
-"debugging reality … please wait …",
-"brewing fresh latency …",
-"hand-carving your post in ASCII …",
-"teaching the server to cope …",
-"whispering sweet nothings to the API …",
-"smuggling your post past the algorithm …",
-"loading… because social media is a mistake …",
-"poking the timeline with a stick …",
-"wrangling APIs like feral cats …",
-"compressing existential dread …",
-"ignoring the ‘touch grass’ alert …",
-"warming up the doomscroll engines …",
-"converting your thoughts to 280p …",
-"wrapping your content in bubble wrap …",
-"firing message through the tubes …",
-"packing your post’s parachute …",
-"convincing the server this isn’t spam …",
+        "sacrificing a byte to the API gods …",
+        "negotiating with rate limits …",
+        "arguing with OAuth again …",
+        "launching message into the void …",
+        "bribing the API with snacks …",
+        "spinning up the content hamster …",
+        "duct-taping the timelines together …",
+        "delivering your post via carrier pigeon …",
+        "compressing your hot take …",
+        "duct-taping your thoughts together …",
+        "debugging reality … please wait …",
+        "brewing fresh latency …",
+        "hand-carving your post in ASCII …",
+        "teaching the server to cope …",
+        "whispering sweet nothings to the API …",
+        "smuggling your post past the algorithm …",
+        "loading… because social media is a mistake …",
+        "poking the timeline with a stick …",
+        "wrangling APIs like feral cats …",
+        "compressing existential dread …",
+        "ignoring the ‘touch grass’ alert …",
+        "warming up the doomscroll engines …",
+        "converting your thoughts to 280p …",
+        "wrapping your content in bubble wrap …",
+        "firing message through the tubes …",
+        "packing your post’s parachute …",
+        "convincing the server this isn’t spam …",
     ];
 
     let messageInterval;

@@ -26,6 +26,7 @@ const sharp = require('sharp');
 const configPath = path.join(app.getPath('userData'), 'window-config.json');
 const notificationsPath = path.join(app.getPath('userData'), 'notifications.json');
 const historyPath = path.join(app.getPath('userData'), 'history.json');
+const schedulePath = path.join(app.getPath('userData'), 'schedule.json');
 
 async function getWindowBounds() {
     try {
@@ -234,7 +235,7 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
         // Upload images if provided
         if (imageData) {
             const imageArray = Array.isArray(imageData) ? imageData : [imageData];
-            
+
             for (const imgData of imageArray.slice(0, 4)) {
                 console.log('Twitter: Uploading image...');
                 const base64Data = imgData.split(',')[1];
@@ -628,6 +629,35 @@ ipcMain.handle('write-history', async (event, history) => {
 ipcMain.handle('delete-history', async () => {
     try {
         await fs.unlink(historyPath);
+        return true;
+    } catch (error) {
+        // File doesn't exist or can't be deleted, that's ok
+        return true;
+    }
+});
+
+ipcMain.handle('read-scheduled', async () => {
+    try {
+        const data = await fs.readFile(schedulePath, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        return [];
+    }
+});
+
+ipcMain.handle('write-scheduled', async (event, scheduled) => {
+    try {
+        await fs.writeFile(schedulePath, JSON.stringify(scheduled, null, 2));
+        return true;
+    } catch (error) {
+        console.error('Failed to save scheduled posts:', error);
+        return false;
+    }
+});
+
+ipcMain.handle('delete-scheduled', async () => {
+    try {
+        await fs.unlink(schedulePath);
         return true;
     } catch (error) {
         // File doesn't exist or can't be deleted, that's ok

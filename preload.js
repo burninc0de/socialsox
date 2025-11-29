@@ -5,24 +5,24 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld(
     'electron',
     {
-        postToTwitter: (message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData) => 
+        postToTwitter: (message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData) =>
             ipcRenderer.invoke('post-to-twitter', { message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData }),
-        testTwitterConfig: (apiKey, apiSecret, accessToken, accessTokenSecret) => 
+        testTwitterConfig: (apiKey, apiSecret, accessToken, accessTokenSecret) =>
             ipcRenderer.invoke('test-twitter-config', { apiKey, apiSecret, accessToken, accessTokenSecret }),
-        fetchTwitterNotifications: (apiKey, apiSecret, accessToken, accessTokenSecret, lastSeenId) => 
+        fetchTwitterNotifications: (apiKey, apiSecret, accessToken, accessTokenSecret, lastSeenId) =>
             ipcRenderer.invoke('fetch-twitter-notifications', { apiKey, apiSecret, accessToken, accessTokenSecret, lastSeenId }),
-        exportCredentials: (credentials) => 
+        exportCredentials: (credentials) =>
             ipcRenderer.invoke('export-credentials', credentials),
-        importCredentials: () => 
+        importCredentials: () =>
             ipcRenderer.invoke('import-credentials'),
         minimizeWindow: () => ipcRenderer.send('minimize-window'),
         maximizeWindow: () => ipcRenderer.send('maximize-window'),
         closeWindow: () => ipcRenderer.send('close-window'),
         readClipboardImage: () => ipcRenderer.invoke('read-clipboard-image'),
         fetchOgPreview: (url) => ipcRenderer.invoke('fetch-og-preview', url),
-        showOSNotification: (title, body, platform) => 
+        showOSNotification: (title, body, platform) =>
             ipcRenderer.invoke('show-os-notification', { title, body, platform }),
-        onSwitchToNotificationsTab: (callback) => 
+        onSwitchToNotificationsTab: (callback) =>
             ipcRenderer.on('switch-to-notifications-tab', callback),
         setTrayEnabled: (enabled) => ipcRenderer.send('set-tray-enabled', enabled),
         setTrayIcon: (iconPath) => ipcRenderer.send('set-tray-icon', iconPath),
@@ -40,6 +40,9 @@ contextBridge.exposeInMainWorld(
         deleteWindowConfig: () => ipcRenderer.invoke('delete-window-config'),
         readHistory: () => ipcRenderer.invoke('read-history'),
         writeHistory: (history) => ipcRenderer.invoke('write-history', history),
-        deleteHistory: () => ipcRenderer.invoke('delete-history')
+        deleteHistory: () => ipcRenderer.invoke('delete-history'),
+        readScheduled: () => ipcRenderer.invoke('read-scheduled'),
+        writeScheduled: (scheduled) => ipcRenderer.invoke('write-scheduled', scheduled),
+        deleteScheduled: () => ipcRenderer.invoke('delete-scheduled')
     }
 );
