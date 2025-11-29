@@ -76,7 +76,8 @@ async function createWindow() {
             nodeIntegration: false,
             contextIsolation: true,
             enableRemoteModule: false,
-            webSecurity: app.isPackaged,
+            webSecurity: true,
+            allowRunningInsecureContent: false,
             colorScheme: 'system',
             preload: path.join(__dirname, 'preload.js')
         },
@@ -109,7 +110,8 @@ async function createWindow() {
                 nodeIntegration: false,
                 contextIsolation: true,
                 enableRemoteModule: false,
-                webSecurity: app.isPackaged,
+                webSecurity: true,
+                allowRunningInsecureContent: false,
                 preload: path.join(__dirname, 'preload.js')
             },
             icon: trayIconPath,
