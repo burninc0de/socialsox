@@ -2,6 +2,7 @@
 
 let scheduledData = [];
 let schedulePollingInterval = null;
+let displayRefreshInterval = null;
 
 export async function loadScheduled() {
     try {
@@ -209,5 +210,27 @@ export function stopSchedulePolling() {
         clearInterval(schedulePollingInterval);
         schedulePollingInterval = null;
         console.log('Schedule polling stopped');
+    }
+}
+
+export function startDisplayRefresh() {
+    // Refresh display every 10 seconds to update countdown timers
+    if (!displayRefreshInterval) {
+        displayRefreshInterval = setInterval(() => {
+            // Only refresh if we're on the scheduled tab
+            const scheduledContent = document.getElementById('scheduledContent');
+            if (scheduledContent && !scheduledContent.classList.contains('hidden')) {
+                displayScheduled();
+            }
+        }, 10000);
+        console.log('Display refresh started (10s interval)');
+    }
+}
+
+export function stopDisplayRefresh() {
+    if (displayRefreshInterval) {
+        clearInterval(displayRefreshInterval);
+        displayRefreshInterval = null;
+        console.log('Display refresh stopped');
     }
 }

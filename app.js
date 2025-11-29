@@ -34,7 +34,9 @@ import {
     addScheduledPost,
     deleteScheduledPost,
     startSchedulePolling,
-    stopSchedulePolling
+    stopSchedulePolling,
+    startDisplayRefresh,
+    stopDisplayRefresh
 } from './src/modules/scheduled.js';
 
 // Global state
@@ -186,6 +188,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     startNotificationPolling();
     startSchedulePolling();
+    startDisplayRefresh();
 
     if (window.electron && window.electron.onSwitchToNotificationsTab) {
         window.electron.onSwitchToNotificationsTab(() => {
