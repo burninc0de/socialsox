@@ -51,6 +51,28 @@ export async function addScheduledPost(message, platforms, scheduledTime, images
     }
 }
 
+export async function updateScheduledPost(id, newValues) {
+    try {
+        const scheduled = await window.electron.readScheduled();
+        const postIndex = scheduled.findIndex(entry => entry.id === id);
+
+        if (postIndex > -1) {
+            // Update only provided values
+            Object.assign(scheduled[postIndex], newValues);
+
+            await saveScheduled(scheduled);
+            scheduledData = scheduled;
+            displayScheduled(); // Refresh the view
+            window.showToast('Scheduled post updated successfully', 'success');
+        } else {
+            window.showToast('Could not find the scheduled post to update.', 'error');
+        }
+    } catch (error) {
+        console.error('Failed to update scheduled post:', error);
+        window.showToast('An error occurred while updating the post.', 'error');
+    }
+}
+
 export async function deleteScheduledPost(id) {
     try {
         const scheduled = await window.electron.readScheduled();
@@ -102,46 +124,49 @@ export function displayScheduled() {
         const scheduledDate = new Date(entry.scheduledTime);
         const now = new Date();
         const isPast = scheduledDate < now;
-        const timeString = scheduledDate.toLocaleString();
+        
+        const year = scheduledDate.getFullYear();
+        const month = (scheduledDate.getMonth() + 1).toString().padStart(2, '0');
+        const day = scheduledDate.getDate().toString().padStart(2, '0');
+        const hours = scheduledDate.getHours().toString().padStart(2, '0');
+        const minutes = scheduledDate.getMinutes().toString().padStart(2, '0');
+        const seconds = scheduledDate.getSeconds().toString().padStart(2, '0');
+        const timeString = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        
         const platformsString = entry.platforms.join(', ');
-
-        // Debug logging
-        console.log('Scheduled post debug:', JSON.stringify({
-            id: entry.id,
-            scheduledTime: entry.scheduledTime,
-            scheduledDate: scheduledDate.toString(),
-            now: now.toString(),
-            isPast: isPast,
-            diff: scheduledDate - now
-        }, null, 2));
 
         // Calculate time remaining
         const diff = scheduledDate - now;
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        const remainingHours = Math.floor(diff / (1000 * 60 * 60));
+        const remainingMinutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const remainingSeconds = Math.floor((diff % (1000 * 60)) / 1000);
 
         let timeRemaining;
         if (isPast) {
             timeRemaining = 'Sending soon...';
-        } else if (hours > 0) {
-            timeRemaining = `in ${hours}h ${minutes} m`;
-        } else if (minutes > 0) {
-            timeRemaining = `in ${minutes}m ${seconds} s`;
+        } else if (remainingHours > 0) {
+            timeRemaining = `in ${remainingHours}h ${remainingMinutes} m`;
+        } else if (remainingMinutes > 0) {
+            timeRemaining = `in ${remainingMinutes}m ${remainingSeconds} s`;
         } else {
-            timeRemaining = `in ${seconds} s`;
+            timeRemaining = `in ${remainingSeconds} s`;
         }
 
         return `
-            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+            <div id="scheduled-post-${entry.id}" class="relative bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
                 <div class="flex justify-between items-start mb-2">
                     <div class="flex flex-col gap-1">
-                        <span class="text-xs font-semibold ${isPast ? 'text-orange-600 dark:text-orange-400' : 'text-blue-600 dark:text-blue-400'}">${timeString}</span>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">${timeRemaining}</span>
+                         <div class="time-display">
+                            <span class="text-xs font-semibold ${isPast ? 'text-orange-600 dark:text-orange-400' : 'text-blue-600 dark:text-blue-400'}">${timeString}</span>
+                            <br>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">${timeRemaining}</span>
+                        </div>
                     </div>
-                    <button onclick="(async () => { await deleteScheduledPost('${entry.id}'); })(); event.stopPropagation();" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm leading-none w-4 h-4 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Delete scheduled post">×</button>
+                    <button onclick="deleteScheduledPost('${entry.id}')" class="text-gray-400 hover:text-red-600 dark:hover:text-red-500 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Delete scheduled post">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
                 </div>
-                <p class="text-sm text-gray-800 dark:text-gray-200 mb-2 whitespace-pre-wrap">${entry.message}</p>
+                <div class="message-display text-sm text-gray-800 dark:text-gray-200 mb-2 whitespace-pre-wrap">${entry.message}</div>
                 <div class="flex items-center gap-2">
                     <span class="text-xs text-gray-600 dark:text-gray-300">Platforms:</span>
                     <span class="text-xs text-gray-600 dark:text-gray-400">${platformsString}</span>
@@ -152,9 +177,19 @@ export function displayScheduled() {
                     </div>
                 ` : ''
             }
+                <div class="absolute bottom-2 right-2 flex gap-1">
+                     <button onclick="window.editScheduledPost('${entry.id}')" class="edit-btn text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Edit scheduled post">
+                        <i data-lucide="pen" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
             </div>
     `;
     }).join('');
+
+    // After rendering, replace icons
+    if (window.lucide) {
+        window.lucide.createIcons({ icons: window.lucideIcons });
+    }
 }
 
 export async function loadAndDisplayScheduled() {
@@ -276,3 +311,69 @@ export function stopSchedulePolling() {
         console.log('Schedule polling stopped');
     }
 }
+
+// --- Edit Functionality ---
+
+window.editScheduledPost = (id) => {
+    const postCard = document.getElementById(`scheduled-post-${id}`);
+    if (!postCard) return;
+
+    const entry = scheduledData.find(p => p.id === id);
+    if (!entry) return;
+
+    // Replace time display with a text input
+    const timeDisplay = postCard.querySelector('.time-display');
+    
+    const scheduledDate = new Date(entry.scheduledTime);
+    const year = scheduledDate.getFullYear();
+    const month = (scheduledDate.getMonth() + 1).toString().padStart(2, '0');
+    const day = scheduledDate.getDate().toString().padStart(2, '0');
+    const hours = scheduledDate.getHours().toString().padStart(2, '0');
+    const minutes = scheduledDate.getMinutes().toString().padStart(2, '0');
+    const seconds = scheduledDate.getSeconds().toString().padStart(2, '0');
+    const originalTimeString = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    
+    timeDisplay.innerHTML = `<input type="text" value="${originalTimeString}" class="scheduled-time-input bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded px-2 py-1 text-xs w-full">`;
+
+    // Replace message display with a textarea
+    const messageDisplay = postCard.querySelector('.message-display');
+    messageDisplay.innerHTML = `<textarea class="scheduled-message-input bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded px-2 py-1 text-sm w-full h-24">${entry.message}</textarea>`;
+
+    // Replace edit button with save button
+    const editButton = postCard.querySelector('.edit-btn');
+    editButton.innerHTML = `<i data-lucide="save" class="w-3.5 h-3.5"></i>`;
+    editButton.title = 'Save Changes';
+    editButton.onclick = () => window.saveScheduledPost(id);
+
+    // Re-render Lucide icons
+    if (window.lucide) {
+        window.lucide.createIcons({ icons: window.lucideIcons });
+    }
+};
+
+window.saveScheduledPost = async (id) => {
+    const postCard = document.getElementById(`scheduled-post-${id}`);
+    if (!postCard) return;
+
+    const timeInput = postCard.querySelector('.scheduled-time-input');
+    const messageInput = postCard.querySelector('.scheduled-message-input');
+
+    const newScheduledTime = new Date(timeInput.value);
+    const newMessage = messageInput.value;
+
+    // Basic validation
+    if (isNaN(newScheduledTime.getTime())) {
+        window.showToast('Invalid date format. Please use a valid date string.', 'error');
+        return;
+    }
+
+    if (!newMessage.trim()) {
+        window.showToast('Message cannot be empty.', 'error');
+        return;
+    }
+
+    await updateScheduledPost(id, {
+        message: newMessage,
+        scheduledTime: newScheduledTime.toISOString()
+    });
+};

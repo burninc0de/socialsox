@@ -1,8 +1,8 @@
 
 // Import lucide icons
-import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock } from 'lucide';
+import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save } from 'lucide';
 
-const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock };
+const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save };
 
 // Make icons and createIcons globally available for modules
 window.lucide = { createIcons };
@@ -14,7 +14,7 @@ import { saveCredentials, loadCredentials, exportCredentials, importCredentials 
 import { postToMastodon, postToTwitter, postToBluesky, testMastodonConfig, testTwitterConfig, testBlueskyConfig } from './src/modules/platforms.js';
 import { showStatus, showToast, updateCharCount, switchTab, toggleCollapsible, showPlatformStatus, clearPlatformStatuses } from './src/modules/ui.js';
 import { loadHistory, loadAndDisplayHistory, clearHistory, addHistoryEntry, deleteHistoryEntry } from './src/modules/history.js';
-import { setupImageUpload, removeImage, getSelectedImages } from './src/modules/imageUpload.js';
+import { setupImageUpload, removeImage, getSelectedImages, setSelectedImages } from './src/modules/imageUpload.js';
 import {
     getAllCachedNotifications,
     clearNotificationsCache,
@@ -70,6 +70,7 @@ window.testBlueskyConfig = testBlueskyConfig;
 window.clearScheduled = clearScheduled;
 window.loadAndDisplayScheduled = loadAndDisplayScheduled;
 window.deleteScheduledPost = deleteScheduledPost;
+window.setSelectedImages = setSelectedImages;
 
 // Update debug mode styling
 function updateDebugModeStyling(isDebug) {
