@@ -108,7 +108,7 @@ window.optimizeMessage = async function() {
     } finally {
         optimizeBtn.disabled = false;
         optimizeBtn.innerHTML = originalText;
-        createIcons({ icons: { Sparkles: icons.Sparkles, Loader2: icons.Loader2 } });
+        createIcons({ icons });
     }
 };
 
