@@ -20,6 +20,14 @@ export async function loadAndDisplayHistory() {
 export async function saveHistory(history) {
     try {
         await window.electron.writeHistory(history);
+        // Trigger sync if enabled
+        if (window.syncEnabled && window.syncDirPath) {
+            try {
+                await window.manualSync();
+            } catch (syncError) {
+                console.error('Failed to sync after saving history:', syncError);
+            }
+        }
     } catch (error) {
         console.error('Failed to save history:', error);
     }

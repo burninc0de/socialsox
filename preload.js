@@ -43,6 +43,10 @@ contextBridge.exposeInMainWorld(
         deleteHistory: () => ipcRenderer.invoke('delete-history'),
         readScheduled: () => ipcRenderer.invoke('read-scheduled'),
         writeScheduled: (scheduled) => ipcRenderer.invoke('write-scheduled', scheduled),
-        deleteScheduled: () => ipcRenderer.invoke('delete-scheduled')
+        deleteScheduled: () => ipcRenderer.invoke('delete-scheduled'),
+        selectSyncDir: () => ipcRenderer.invoke('select-sync-dir'),
+        readSyncSettings: () => ipcRenderer.invoke('read-sync-settings'),
+        writeSyncSettings: (settings) => ipcRenderer.invoke('write-sync-settings', settings),
+        manualSync: (syncDirPath) => ipcRenderer.invoke('manual-sync', syncDirPath)
     }
 );

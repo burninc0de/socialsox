@@ -37,6 +37,7 @@ import {
     stopSchedulePolling
 } from './src/modules/scheduled.js';
 import { makeResizable } from './src/modules/resize.js';
+import { selectSyncDir, setSyncEnabled, manualSync } from './src/modules/sync.js';
 
 // Global state
 window.platforms = {
@@ -72,6 +73,9 @@ window.clearScheduled = clearScheduled;
 window.loadAndDisplayScheduled = loadAndDisplayScheduled;
 window.deleteScheduledPost = deleteScheduledPost;
 window.setSelectedImages = setSelectedImages;
+window.selectSyncDir = selectSyncDir;
+window.setSyncEnabled = setSyncEnabled;
+window.manualSync = manualSync;
 
 // Update debug mode styling
 function updateDebugModeStyling(isDebug) {
@@ -263,6 +267,24 @@ window.addEventListener('DOMContentLoaded', async () => {
         import('./src/modules/storage.js').then(module => {
             module.updateWindowControlsStyle(style);
         });
+    });
+
+    document.getElementById('syncEnabledToggle').addEventListener('change', function () {
+        const isEnabled = this.checked;
+        const toggleBg = this.nextElementSibling;
+        const dot = toggleBg.nextElementSibling;
+
+        if (isEnabled) {
+            toggleBg.classList.remove('bg-gray-300', 'dark:bg-gray-600');
+            toggleBg.classList.add('bg-primary-500');
+            dot.style.transform = 'translateX(16px)';
+        } else {
+            toggleBg.classList.add('bg-gray-300', 'dark:bg-gray-600');
+            toggleBg.classList.remove('bg-primary-500');
+            dot.style.transform = 'translateX(0)';
+        }
+
+        setSyncEnabled(isEnabled);
     });
 
     document.querySelectorAll('.platform-toggle').forEach(btn => {

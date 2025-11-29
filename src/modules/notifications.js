@@ -18,6 +18,14 @@ export async function getAllCachedNotifications() {
 export async function saveAllNotifications(notifications) {
     try {
         await window.electron.writeNotifications(notifications);
+        // Trigger sync if enabled
+        if (window.syncEnabled && window.syncDirPath) {
+            try {
+                await window.manualSync();
+            } catch (syncError) {
+                console.error('Failed to sync after saving notifications:', syncError);
+            }
+        }
     } catch (error) {
         console.error('Failed to save notifications:', error);
     }

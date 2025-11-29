@@ -18,6 +18,14 @@ export async function loadScheduled() {
 export async function saveScheduled(scheduled) {
     try {
         await window.electron.writeScheduled(scheduled);
+        // Trigger sync if enabled
+        if (window.syncEnabled && window.syncDirPath) {
+            try {
+                await window.manualSync();
+            } catch (syncError) {
+                console.error('Failed to sync after saving scheduled posts:', syncError);
+            }
+        }
     } catch (error) {
         console.error('Failed to save scheduled posts:', error);
     }

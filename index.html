@@ -333,6 +333,49 @@
                         </div>
                     </label>
                 </div>
+
+                <!-- Data Sync -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Data Synchronization</h3>
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-4">Sync history, notifications, and scheduled posts across devices using a shared folder (e.g., Dropbox, OneDrive).</p>
+
+                    <!-- Enable Sync Toggle -->
+                    <div class="mb-4">
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Enable Sync</span>
+                            <div class="relative">
+                                <input type="checkbox" id="syncEnabledToggle" class="sr-only">
+                                <div
+                                    class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
+                                </div>
+                                <div
+                                    class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Sync Directory -->
+                    <div id="syncDirSection" class="mb-4" style="display: none;">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sync Directory</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="syncDirPath" placeholder="Select a directory..." readonly
+                                class="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                            <button type="button" onclick="selectSyncDir()"
+                                class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors">Browse</button>
+                        </div>
+                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Choose a folder accessible from all your devices.</p>
+                    </div>
+
+                    <!-- Manual Sync Button -->
+                    <div id="manualSyncSection" class="mb-4" style="display: none;">
+                        <button type="button" onclick="manualSync()"
+                            class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                            Sync Now
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- Notifications -->
