@@ -1,4 +1,5 @@
 // Scheduled posts management
+import { makeResizable } from './resize.js';
 
 let scheduledData = [];
 let schedulePollingInterval = null;
@@ -337,7 +338,11 @@ window.editScheduledPost = (id) => {
 
     // Replace message display with a textarea
     const messageDisplay = postCard.querySelector('.message-display');
-    messageDisplay.innerHTML = `<textarea class="scheduled-message-input bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded px-2 py-1 text-sm w-full h-24 text-gray-800 dark:text-gray-200">${entry.message}</textarea>`;
+    messageDisplay.innerHTML = `<div class="relative pr-8 pb-6"><textarea class="scheduled-message-input bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded px-2 py-1 text-sm w-full h-24 text-gray-800 dark:text-gray-200 resize-none">${entry.message.trim()}</textarea><div class="scheduled-resize-handle absolute bottom-8 right-9 cursor-ns-resize z-10 text-gray-400 dark:text-gray-500"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M12 6L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M12 10L10 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div>`;
+
+    const textarea = messageDisplay.querySelector('.scheduled-message-input');
+    const resizeHandle = messageDisplay.querySelector('.scheduled-resize-handle');
+    makeResizable(textarea, resizeHandle);
 
     // Replace edit button with save button
     const editButton = postCard.querySelector('.edit-btn');

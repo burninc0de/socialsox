@@ -36,6 +36,7 @@ import {
     startSchedulePolling,
     stopSchedulePolling
 } from './src/modules/scheduled.js';
+import { makeResizable } from './src/modules/resize.js';
 
 // Global state
 window.platforms = {
@@ -206,8 +207,15 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // Initialize lucide icons
     createIcons({ icons });
+
+    // Make main textarea resizable
+    const messageTextarea = document.getElementById('message');
+    const resizeHandle = document.getElementById('message-resize-handle');
+    makeResizable(messageTextarea, resizeHandle);
+
     // Event listeners
     document.getElementById('message').addEventListener('input', updateCharCount);
+
 
     document.querySelectorAll('.tab-button').forEach(btn => {
         btn.addEventListener('click', function () {
