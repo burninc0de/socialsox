@@ -138,8 +138,8 @@ function handleDrop(e) {
         selectedImages.splice(draggedIndex, 1);
         selectedImages.splice(dropIndex, 0, draggedImage);
         
-        // Refresh the preview
-        refreshImagePreviews();
+        // Reorder the DOM elements smoothly
+        reorderImagePreviews(draggedIndex, dropIndex);
     }
 }
 
@@ -151,8 +151,30 @@ function handleDragEnd(e) {
     draggedIndex = null;
 }
 
+function reorderImagePreviews(fromIndex, toIndex) {
+    const container = document.getElementById('imagePreviewContainer');
+    const children = Array.from(container.children);
+    
+    // Move the dragged element to the new position
+    const draggedElement = children[fromIndex];
+    container.removeChild(draggedElement);
+    
+    // Insert at the drop position
+    const insertIndex = toIndex;
+    const referenceElement = container.children[insertIndex] || null;
+    container.insertBefore(draggedElement, referenceElement);
+    
+    // Update all dataset.imageIndex after DOM change
+    const updatedChildren = Array.from(container.children);
+    updatedChildren.forEach((child, index) => {
+        child.dataset.imageIndex = index;
+    });
+}
+
 function refreshImagePreviews() {
     const container = document.getElementById('imagePreviewContainer');
+    const scrollTop = container.scrollTop; // Save scroll position
+    
     container.innerHTML = '';
     
     selectedImages.forEach((file, i) => {
@@ -162,6 +184,11 @@ function refreshImagePreviews() {
         };
         reader.readAsDataURL(file);
     });
+    
+    // Restore scroll position after a short delay to ensure DOM is updated
+    setTimeout(() => {
+        container.scrollTop = scrollTop;
+    }, 0);
 }
 
 function updateImageUploadUI() {
