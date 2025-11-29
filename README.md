@@ -87,6 +87,11 @@ Download the latest [release](https://github.com/burninc0de/socialsox/releases/)
 - **macOS**: `.dmg` file
 - **Linux**: `.AppImage` file
 
+> [!TIP]
+> **Linux GPU Acceleration**: For better performance on Linux, run the AppImage with GPU flags:  
+> `./SocialSox.AppImage --enable-gpu-rasterization --enable-zero-copy --ozone-platform=wayland`  
+> (Use `x11` instead of `wayland` if you're on X11)
+
 ### Option 2: Run from Source (Developers)
 
 ```bash
