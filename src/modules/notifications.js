@@ -582,6 +582,17 @@ async function displayNotifications(notifications) {
         quote: 'Quoted you'
     };
     
+    const typeIcons = {
+        mention: '<i data-lucide="message-circle" class="w-3 h-3 inline-block text-primary-600 dark:text-gray-200"></i>',
+        reply: '<i data-lucide="message-circle" class="w-3 h-3 inline-block text-primary-600 dark:text-gray-200"></i>',
+        reblog: '<i data-lucide="repeat-2" class="w-3 h-3 inline-block text-primary-600 dark:text-gray-200"></i>',
+        favourite: '<i data-lucide="heart" class="w-3 h-3 inline-block text-primary-600 dark:text-gray-200"></i>',
+        like: '<i data-lucide="heart" class="w-3 h-3 inline-block text-primary-600 dark:text-gray-200"></i>',
+        repost: '<i data-lucide="repeat-2" class="w-3 h-3 inline-block text-primary-600 dark:text-gray-200"></i>',
+        follow: '<i data-lucide="user-plus" class="w-3 h-3 inline-block text-primary-600 dark:text-gray-200"></i>',
+        quote: '<i data-lucide="quote" class="w-3 h-3 inline-block text-primary-600 dark:text-gray-200"></i>'
+    };
+    
     notificationsList.innerHTML = visibleNotifications.map(notif => {
         if (notif.error) {
             return `
@@ -609,7 +620,8 @@ async function displayNotifications(notifications) {
                         ${platformIcons[notif.platform] || ''}
                         <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">${notif.platform.toUpperCase()}</span>
                         <span class="text-xs text-gray-500 dark:text-gray-400">•</span>
-                        <span class="text-xs text-primary-600 dark:text-primary-400">${typeLabel}</span>
+                        ${typeIcons[notif.type] || ''}
+                        <span class="text-xs text-primary-600 dark:text-gray-200 ml-1">${typeLabel}</span>
                         ${unseenBadge}
                     </div>
                     <div class="flex items-center gap-2">
@@ -635,8 +647,13 @@ async function displayNotifications(notifications) {
                 })()}
                 ${notif.replyingTo ? `<div class="mb-2 p-2 bg-gray-100 dark:bg-gray-600 rounded text-xs text-gray-600 dark:text-gray-400"><strong>Replying to:</strong> ${notif.replyingTo.substring(0, 150)}${notif.replyingTo.length > 150 ? '...' : ''}</div>` : ''}
                 ${notif.quotingTo ? `<div class="mb-2 p-2 bg-gray-100 dark:bg-gray-600 rounded text-xs text-gray-600 dark:text-gray-400"><strong>Quoting:</strong> ${notif.quotingTo.substring(0, 150)}${notif.quotingTo.length > 150 ? '...' : ''}</div>` : ''}
-                ${notif.url ? `<a href="${notif.url}" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">View on ${notif.platform}</a>` : ''}
+                ${notif.url ? `<a href="${notif.url}" class="text-xs text-primary-600 dark:text-gray-200 hover:underline">View on ${notif.platform}</a>` : ''}
             </div>
         `;
     }).join('');
+    
+    // Initialize Lucide icons for newly added elements
+    if (window.lucide && window.lucide.createIcons && window.lucideIcons) {
+        window.lucide.createIcons({ icons: window.lucideIcons });
+    }
 }
