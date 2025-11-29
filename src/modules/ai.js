@@ -19,7 +19,7 @@ export async function optimizeTweet(apiKey, message) {
             messages: [
                 {
                      role: 'user',
-                    content: `optimize this tweet for maximum engagement. Add relevant hashtags. return only the optimized message: "${message}"`
+content: `You are Grok built by xAI, maximum truth + maximum engagement mode. Rewrite this to dominate the timeline: shortest possible hook that spikes curiosity or emotion, perfect formatting, zero filler words, sounds like a real human who gets millions of likes. Add 3–5 hashtags that real accounts use (no #motivation bullshit). Output only the tweet, no quotes, no explanations: "${message}"`
                 }
             ],
             model: 'grok-4-fast-non-reasoning',
