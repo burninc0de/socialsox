@@ -151,6 +151,8 @@ export async function updateScheduledPost(id, newValues) {
 
             await saveScheduled(scheduled);
             scheduledData = scheduled;
+            // Sort by scheduled time after update (earliest first)
+            scheduledData.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
             displayScheduled(); // Refresh the view
             window.showToast('Scheduled post updated successfully', 'success');
         } else {
