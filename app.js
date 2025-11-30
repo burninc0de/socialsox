@@ -1,8 +1,8 @@
 
 // Import lucide icons
-import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles, BarChart3 } from 'lucide';
+import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify } from 'lucide';
 
-const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles, BarChart3 };
+const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify };
 
 // Import Chart.js
 import Chart from 'chart.js/auto';
@@ -39,6 +39,7 @@ import {
     loadScheduled,
     loadAndDisplayScheduled,
     clearScheduled,
+    normalizeScheduled,
     addScheduledPost,
     deleteScheduledPost,
     startSchedulePolling,
@@ -80,6 +81,7 @@ window.testMastodonConfig = testMastodonConfig;
 window.testTwitterConfig = testTwitterConfig;
 window.testBlueskyConfig = testBlueskyConfig;
 window.clearScheduled = clearScheduled;
+window.normalizeScheduled = normalizeScheduled;
 window.loadAndDisplayScheduled = loadAndDisplayScheduled;
 window.deleteScheduledPost = deleteScheduledPost;
 window.setSelectedImages = setSelectedImages;

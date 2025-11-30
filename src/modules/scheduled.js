@@ -125,6 +125,48 @@ export async function clearScheduled() {
     }
 }
 
+export async function normalizeScheduled() {
+    try {
+        const scheduled = await window.electron.readScheduled();
+        
+        if (scheduled.length < 2) {
+            window.showToast('Need at least 2 scheduled posts to normalize', 'info');
+            return;
+        }
+
+        // Sort by scheduled time (earliest first)
+        scheduled.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
+
+        let previousTime = new Date(scheduled[0].scheduledTime);
+        let changed = false;
+
+        for (let i = 1; i < scheduled.length; i++) {
+            const currentTime = new Date(scheduled[i].scheduledTime);
+            const minTime = new Date(previousTime.getTime() + 3 * 60 * 60 * 1000); // 3 hours later
+
+            if (currentTime < minTime) {
+                scheduled[i].scheduledTime = minTime.toISOString();
+                previousTime = minTime;
+                changed = true;
+            } else {
+                previousTime = currentTime;
+            }
+        }
+
+        if (changed) {
+            await saveScheduled(scheduled);
+            scheduledData = scheduled;
+            displayScheduled();
+            window.showToast('Scheduled posts normalized successfully', 'success');
+        } else {
+            window.showToast('All posts already have at least 3 hours spacing', 'info');
+        }
+    } catch (error) {
+        console.error('Failed to normalize scheduled posts:', error);
+        window.showToast('Failed to normalize scheduled posts', 'error');
+    }
+}
+
 export function displayScheduled() {
     const scheduledList = document.getElementById('scheduledList');
     const noScheduled = document.getElementById('noScheduled');
