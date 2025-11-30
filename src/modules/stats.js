@@ -6,9 +6,9 @@ export function showStats() {
     const modal = document.getElementById('statsModal');
     modal.classList.remove('hidden');
 
-    // Load history data
-    loadHistoryForStats().then(history => {
-        const stats = calculateStats(history);
+    // Load history and notification data
+    loadHistoryForStats().then(data => {
+        const stats = calculateStats(data.history, data.notifications);
         renderStats(stats);
     });
 }
@@ -26,19 +26,36 @@ export function closeStatsModal() {
 
 async function loadHistoryForStats() {
     try {
-        return await window.electron.readHistory();
+        const history = await window.electron.readHistory();
+        const notifications = await window.electron.readNotifications();
+        return { history, notifications };
     } catch (error) {
         console.error('Failed to load history for stats:', error);
-        return [];
+        return { history: [], notifications: [] };
     }
 }
 
-function calculateStats(history) {
+function calculateStats(history, notifications) {
     const dailyStats = {};
     let totalPosts = 0;
     const platformCounts = { mastodon: 0, twitter: 0, bluesky: 0 };
     const hourlyStats = Array(24).fill(0);
     const weeklyStats = Array(7).fill(0);
+    
+    // Additional metrics
+    let failedPosts = 0;
+    let totalMessageLength = 0;
+    let totalHashtags = 0;
+    let totalImages = 0;
+    let messagesWithLength = 0;
+
+    // Notification stats
+    let totalNotifications = 0;
+    const notificationPlatformCounts = { mastodon: 0, twitter: 0, bluesky: 0 };
+    const notificationTypeCounts = {};
+    const notificationDailyStats = {};
+    const notificationHourlyStats = Array(24).fill(0);
+    const notificationWeeklyStats = Array(7).fill(0);
 
     history.forEach(entry => {
         const date = new Date(entry.timestamp);
@@ -53,6 +70,9 @@ function calculateStats(history) {
 
         // Count only successful posts
         let hasSuccessfulPost = false;
+        let entryHashtags = 0;
+        let entryImages = 0;
+        
         entry.results.forEach(result => {
             if (result.success) {
                 const platformKey = result.platform.toLowerCase();
@@ -61,8 +81,30 @@ function calculateStats(history) {
                     dailyStats[dateStr][platformKey]++;
                     hasSuccessfulPost = true;
                 }
+            } else {
+                failedPosts++;
             }
         });
+
+        // Count hashtags and images for successful posts
+        if (hasSuccessfulPost) {
+            // Count hashtags in message
+            const hashtagMatches = entry.message.match(/#\w+/g);
+            if (hashtagMatches) {
+                entryHashtags = hashtagMatches.length;
+            }
+            
+            // Count images (assuming images are stored in some way)
+            // For now, we'll use a placeholder - this could be enhanced
+            entryImages = 0; // TODO: implement image counting
+            
+            totalHashtags += entryHashtags;
+            totalImages += entryImages;
+            
+            // Message length
+            totalMessageLength += entry.message.length;
+            messagesWithLength++;
+        }
 
         // Only count this entry if it had at least one successful post
         if (hasSuccessfulPost) {
@@ -73,6 +115,11 @@ function calculateStats(history) {
             weeklyStats[dayOfWeek]++;
         }
     });
+
+    // Calculate averages
+    const avgMessageLength = messagesWithLength > 0 ? Math.round(totalMessageLength / messagesWithLength) : 0;
+    const avgHashtags = totalPosts > 0 ? (totalHashtags / totalPosts).toFixed(1) : 0;
+    const successRate = (totalPosts + failedPosts) > 0 ? Math.round((totalPosts / (totalPosts + failedPosts)) * 100) : 100;
 
     // Sort dates
     const sortedDates = Object.keys(dailyStats).sort();
@@ -88,11 +135,66 @@ function calculateStats(history) {
         }
     });
 
+    // Process notifications
+    notifications.forEach(notification => {
+        totalNotifications++;
+        
+        // Platform counts
+        const platformKey = notification.platform?.toLowerCase();
+        if (platformKey && notificationPlatformCounts[platformKey] !== undefined) {
+            notificationPlatformCounts[platformKey]++;
+        }
+        
+        // Type counts
+        const typeKey = notification.type || notification.reason;
+        if (typeKey) {
+            notificationTypeCounts[typeKey] = (notificationTypeCounts[typeKey] || 0) + 1;
+        }
+        
+        // Time-based stats
+        const notifDate = new Date(notification.timestamp);
+        const notifDateStr = notifDate.toISOString().split('T')[0];
+        const notifHour = notifDate.getHours();
+        const notifDayOfWeek = notifDate.getDay();
+        
+        // Daily notification stats
+        if (!notificationDailyStats[notifDateStr]) {
+            notificationDailyStats[notifDateStr] = { mastodon: 0, twitter: 0, bluesky: 0 };
+        }
+        if (platformKey && notificationDailyStats[notifDateStr][platformKey] !== undefined) {
+            notificationDailyStats[notifDateStr][platformKey]++;
+        }
+        
+        // Hourly and weekly notification stats
+        notificationHourlyStats[notifHour]++;
+        notificationWeeklyStats[notifDayOfWeek]++;
+    });
+
+    // Sort notification dates
+    const sortedNotificationDates = Object.keys(notificationDailyStats).sort();
+
     return {
         totalPosts,
         platformCounts,
         mostActiveDay,
         maxPosts,
+        failedPosts,
+        avgMessageLength,
+        avgHashtags,
+        successRate,
+        notifications: {
+            total: totalNotifications,
+            platformCounts: notificationPlatformCounts,
+            typeCounts: notificationTypeCounts,
+            daily: {
+                dates: sortedNotificationDates,
+                mastodon: sortedNotificationDates.map(date => notificationDailyStats[date]?.mastodon || 0),
+                twitter: sortedNotificationDates.map(date => notificationDailyStats[date]?.twitter || 0),
+                bluesky: sortedNotificationDates.map(date => notificationDailyStats[date]?.bluesky || 0)
+            },
+            hourly: notificationHourlyStats,
+            weekly: notificationWeeklyStats
+        },
         daily: {
             dates: sortedDates,
             mastodon: sortedDates.map(date => dailyStats[date].mastodon),
@@ -109,6 +211,7 @@ function renderStats(stats) {
     renderDailyChart(stats.daily);
     renderHourlyChart(stats.hourly);
     renderWeeklyChart(stats.weekly);
+    renderNotificationsChart(stats.notifications);
 }
 
 function renderSummaryStats(stats) {
@@ -116,7 +219,7 @@ function renderSummaryStats(stats) {
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
     summaryEl.innerHTML = `
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
                 <div class="text-2xl font-bold text-primary-600 dark:text-primary-400">${stats.totalPosts}</div>
                 <div class="text-sm text-gray-600 dark:text-gray-400">Total Posts</div>
@@ -126,27 +229,31 @@ function renderSummaryStats(stats) {
                     <img src="assets/masto.svg" alt="Mastodon" class="w-5 h-5">
                     <span class="text-2xl font-bold text-indigo-600">${stats.platformCounts.mastodon}</span>
                 </div>
-                <div class="text-sm text-gray-600 dark:text-gray-400">Mastodon</div>
+                <div class="text-sm text-gray-700 dark:text-white font-medium">Mastodon</div>
             </div>
             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
                 <div class="flex items-center justify-center gap-2 mb-1">
                     <img src="assets/twit.svg" alt="Twitter" class="w-5 h-5">
                     <span class="text-2xl font-bold text-blue-500">${stats.platformCounts.twitter}</span>
                 </div>
-                <div class="text-sm text-gray-600 dark:text-gray-400">Twitter</div>
+                <div class="text-sm text-gray-700 dark:text-white font-medium">Twitter</div>
             </div>
             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
                 <div class="flex items-center justify-center gap-2 mb-1">
                     <img src="assets/bsky.svg" alt="Bluesky" class="w-5 h-5">
                     <span class="text-2xl font-bold text-sky-500">${stats.platformCounts.bluesky}</span>
                 </div>
-                <div class="text-sm text-gray-600 dark:text-gray-400">Bluesky</div>
+                <div class="text-sm text-gray-700 dark:text-white font-medium">Bluesky</div>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
+                <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">${stats.notifications.total}</div>
+                <div class="text-sm text-gray-700 dark:text-white font-medium">Notifications</div>
             </div>
         </div>
         <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
             <div class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">Most Active Day</div>
             <div class="text-xl text-primary-600 dark:text-primary-400">${stats.mostActiveDay ? new Date(stats.mostActiveDay).toLocaleDateString() : 'No data'}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">${stats.maxPosts} posts</div>
+            <div class="text-sm text-gray-700 dark:text-white">${stats.maxPosts} posts</div>
         </div>
     `;
 }
@@ -226,7 +333,16 @@ function renderDailyChart(dailyStats) {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: false
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true,
+                        font: {
+                            size: 12,
+                            color: document.body.classList.contains('dark') ? '#ffffff' : '#374151'
+                        }
+                    }
                 },
                 tooltip: {
                     mode: 'index',
@@ -244,10 +360,10 @@ function renderDailyChart(dailyStats) {
                     title: {
                         display: true,
                         text: 'Date',
-                        color: document.body.classList.contains('dark') ? '#e5e7eb' : '#374151'
+                        color: document.body.classList.contains('dark') ? '#ffffff' : '#374151'
                     },
                     ticks: {
-                        color: document.body.classList.contains('dark') ? '#d1d5db' : '#6b7280'
+                        color: document.body.classList.contains('dark') ? '#9ca3af' : '#6b7280'
                     },
                     grid: {
                         color: document.body.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
@@ -258,12 +374,12 @@ function renderDailyChart(dailyStats) {
                     title: {
                         display: true,
                         text: 'Posts',
-                        color: document.body.classList.contains('dark') ? '#e5e7eb' : '#374151'
+                        color: document.body.classList.contains('dark') ? '#ffffff' : '#374151'
                     },
                     beginAtZero: true,
                     ticks: {
                         stepSize: 1,
-                        color: document.body.classList.contains('dark') ? '#d1d5db' : '#6b7280'
+                        color: document.body.classList.contains('dark') ? '#9ca3af' : '#6b7280'
                     },
                     grid: {
                         color: document.body.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
@@ -301,10 +417,10 @@ function renderHourlyChart(hourlyStats) {
                     title: {
                         display: true,
                         text: 'Hour of Day',
-                        color: document.body.classList.contains('dark') ? '#e5e7eb' : '#374151'
+                        color: document.body.classList.contains('dark') ? '#ffffff' : '#374151'
                     },
                     ticks: {
-                        color: document.body.classList.contains('dark') ? '#d1d5db' : '#6b7280'
+                        color: document.body.classList.contains('dark') ? '#9ca3af' : '#6b7280'
                     },
                     grid: {
                         color: document.body.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
@@ -315,16 +431,81 @@ function renderHourlyChart(hourlyStats) {
                     title: {
                         display: true,
                         text: 'Posts',
-                        color: document.body.classList.contains('dark') ? '#e5e7eb' : '#374151'
+                        color: document.body.classList.contains('dark') ? '#ffffff' : '#374151'
                     },
                     beginAtZero: true,
                     ticks: {
                         stepSize: 1,
-                        color: document.body.classList.contains('dark') ? '#d1d5db' : '#6b7280'
+                        color: document.body.classList.contains('dark') ? '#9ca3af' : '#6b7280'
                     },
                     grid: {
                         color: document.body.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
                     }
+                }
+            }
+        }
+    });
+}
+
+function renderNotificationsChart(notifications) {
+    const ctx = document.getElementById('metricsChart').getContext('2d');
+
+    // Create data for notification types
+    const typeLabels = Object.keys(notifications.typeCounts);
+    const typeData = Object.values(notifications.typeCounts);
+
+    // Color mapping for notification types
+    const typeColors = {
+        mention: '#3b82f6',
+        reply: '#06b6d4',
+        reblog: '#22c55e',
+        favourite: '#ef4444',
+        like: '#f59e0b',
+        repost: '#8b5cf6',
+        follow: '#ec4899',
+        quote: '#64748b'
+    };
+
+    const backgroundColors = typeLabels.map(type => typeColors[type] || '#6b7280');
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: typeLabels.map(type => type.charAt(0).toUpperCase() + type.slice(1)),
+            datasets: [{
+                data: typeData,
+                backgroundColor: backgroundColors,
+                borderWidth: 2,
+                borderColor: document.body.classList.contains('dark') ? '#374151' : '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true,
+                        font: {
+                            color: document.body.classList.contains('dark') ? '#ffffff' : '#374151'
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = Math.round((context.parsed / total) * 100);
+                            return `${context.label}: ${context.parsed} (${percentage}%)`;
+                        }
+                    },
+                    backgroundColor: document.body.classList.contains('dark') ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+                    titleColor: document.body.classList.contains('dark') ? '#fff' : '#000',
+                    bodyColor: document.body.classList.contains('dark') ? '#fff' : '#000',
+                    borderColor: document.body.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    borderWidth: 1
                 }
             }
         }

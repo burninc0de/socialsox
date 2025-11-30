@@ -213,11 +213,22 @@
                         </div>
                     </div>
 
-                    <!-- Weekly Distribution -->
-                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Posts by Day of Week</h3>
-                        <div class="h-64 max-w-md mx-auto">
-                            <canvas id="weeklyChart"></canvas>
+                    <!-- Bottom Charts Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Weekly Distribution -->
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Posts by Day of Week</h3>
+                            <div class="h-64 max-w-md mx-auto">
+                                <canvas id="weeklyChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Notifications -->
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Notifications</h3>
+                            <div class="h-64">
+                                <canvas id="metricsChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
