@@ -268,19 +268,22 @@ export function displayScheduled() {
 
         // Calculate time remaining
         const diff = scheduledDate - now;
-        const remainingHours = Math.floor(diff / (1000 * 60 * 60));
+        const remainingDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const remainingHours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const remainingMinutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const remainingSeconds = Math.floor((diff % (1000 * 60)) / 1000);
 
         let timeRemaining;
         if (isPast) {
             timeRemaining = 'Sending soon...';
+        } else if (remainingDays > 0) {
+            timeRemaining = `in ${remainingDays}d ${remainingHours}h`;
         } else if (remainingHours > 0) {
-            timeRemaining = `in ${remainingHours}h ${remainingMinutes} m`;
+            timeRemaining = `in ${remainingHours}h ${remainingMinutes}m`;
         } else if (remainingMinutes > 0) {
-            timeRemaining = `in ${remainingMinutes}m ${remainingSeconds} s`;
+            timeRemaining = `in ${remainingMinutes}m ${remainingSeconds}s`;
         } else {
-            timeRemaining = `in ${remainingSeconds} s`;
+            timeRemaining = `in ${remainingSeconds}s`;
         }
 
         return `
