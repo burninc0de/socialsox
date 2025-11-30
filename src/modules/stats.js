@@ -1,4 +1,5 @@
 // Stats and analytics module
+import Chart from 'chart.js/auto';
 
 let statsChart = null;
 
@@ -242,17 +243,22 @@ function calculateStats(history, notifications) {
     };
 }
 
-function renderStats(stats) {
-    renderSummaryStats(stats);
-    renderDailyChart(stats.daily);
+async function renderStats(stats) {
+    await renderSummaryStats(stats);
+    await renderDailyChart(stats.daily);
     renderHourlyChart(stats.hourly);
     renderWeeklyChart(stats.weekly);
     renderNotificationsChart(stats.notifications);
 }
 
-function renderSummaryStats(stats) {
+async function renderSummaryStats(stats) {
     const summaryEl = document.getElementById('statsSummary');
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+    const assetsPath = await window.electron.getAssetsPath();
+    const mastodonIcon = await window.electron.readFileAsDataURL(`${assetsPath}/masto.svg`);
+    const twitterIcon = await window.electron.readFileAsDataURL(`${assetsPath}/twit.svg`);
+    const blueskyIcon = await window.electron.readFileAsDataURL(`${assetsPath}/bsky.svg`);
 
     summaryEl.innerHTML = `
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
@@ -262,21 +268,21 @@ function renderSummaryStats(stats) {
             </div>
             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
                 <div class="flex items-center justify-center gap-2 mb-1">
-                    <img src="assets/masto.svg" alt="Mastodon" class="w-5 h-5">
+                    <img src="${mastodonIcon}" alt="Mastodon" class="w-5 h-5">
                     <span class="text-2xl font-bold text-indigo-600">${stats.platformCounts.mastodon}</span>
                 </div>
                 <div class="text-sm text-gray-700 dark:text-white font-medium">Mastodon</div>
             </div>
             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
                 <div class="flex items-center justify-center gap-2 mb-1">
-                    <img src="assets/twit.svg" alt="Twitter" class="w-5 h-5">
+                    <img src="${twitterIcon}" alt="Twitter" class="w-5 h-5">
                     <span class="text-2xl font-bold text-blue-500">${stats.platformCounts.twitter}</span>
                 </div>
                 <div class="text-sm text-gray-700 dark:text-white font-medium">Twitter</div>
             </div>
             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
                 <div class="flex items-center justify-center gap-2 mb-1">
-                    <img src="assets/bsky.svg" alt="Bluesky" class="w-5 h-5">
+                    <img src="${blueskyIcon}" alt="Bluesky" class="w-5 h-5">
                     <span class="text-2xl font-bold text-sky-500">${stats.platformCounts.bluesky}</span>
                 </div>
                 <div class="text-sm text-gray-700 dark:text-white font-medium">Bluesky</div>
@@ -294,7 +300,7 @@ function renderSummaryStats(stats) {
     `;
 }
 
-function renderDailyChart(dailyStats) {
+async function renderDailyChart(dailyStats) {
     const ctx = document.getElementById('dailyChart').getContext('2d');
 
     if (statsChart) statsChart.destroy();
@@ -308,21 +314,34 @@ function renderDailyChart(dailyStats) {
         return;
     }
 
+    // Load images as data URLs
+    const assetsPath = await window.electron.getAssetsPath();
+    const mastodonDataUrl = await window.electron.readFileAsDataURL(`${assetsPath}/masto.svg`);
+    const twitterDataUrl = await window.electron.readFileAsDataURL(`${assetsPath}/twit.svg`);
+    const blueskyDataUrl = await window.electron.readFileAsDataURL(`${assetsPath}/bsky.svg`);
+
     // Create image objects for platform SVGs
     const mastodonIcon = new Image();
-    mastodonIcon.src = 'assets/masto.svg';
+    mastodonIcon.src = mastodonDataUrl;
     mastodonIcon.width = 16;
     mastodonIcon.height = 16;
 
     const twitterIcon = new Image();
-    twitterIcon.src = 'assets/twit.svg';
+    twitterIcon.src = twitterDataUrl;
     twitterIcon.width = 16;
     twitterIcon.height = 16;
 
     const blueskyIcon = new Image();
-    blueskyIcon.src = 'assets/bsky.svg';
+    blueskyIcon.src = blueskyDataUrl;
     blueskyIcon.width = 16;
     blueskyIcon.height = 16;
+
+    // Wait for all images to load
+    await Promise.all([
+        new Promise((resolve) => { mastodonIcon.onload = resolve; }),
+        new Promise((resolve) => { twitterIcon.onload = resolve; }),
+        new Promise((resolve) => { blueskyIcon.onload = resolve; })
+    ]);
 
     statsChart = new Chart(ctx, {
         type: 'line',
