@@ -28,6 +28,7 @@
     "vite-plugin-electron-renderer": "^0.14.6"
   },
   "dependencies": {
+    "chart.js": "^4.5.1",
     "copilot": "^0.0.2",
     "lucide": "^0.554.0",
     "sharp": "^0.34.5",

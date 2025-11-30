@@ -1,8 +1,14 @@
 
 // Import lucide icons
-import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles } from 'lucide';
+import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles, BarChart3 } from 'lucide';
 
-const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles };
+const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles, BarChart3 };
+
+// Import Chart.js
+import Chart from 'chart.js/auto';
+
+// Make Chart.js globally available
+window.Chart = Chart;
 
 // Make icons and createIcons globally available for modules
 window.lucide = { createIcons };
@@ -15,6 +21,7 @@ import { postToMastodon, postToTwitter, postToBluesky, testMastodonConfig, testT
 import { optimizeTweet, testGrokApi } from './src/modules/ai.js';
 import { showStatus, showToast, updateCharCount, switchTab, toggleCollapsible, showPlatformStatus, clearPlatformStatuses } from './src/modules/ui.js';
 import { loadHistory, loadAndDisplayHistory, clearHistory, addHistoryEntry, deleteHistoryEntry } from './src/modules/history.js';
+import { showStats, closeStatsModal } from './src/modules/stats.js';
 import { setupImageUpload, removeImage, getSelectedImages, setSelectedImages } from './src/modules/imageUpload.js';
 import {
     getAllCachedNotifications,
@@ -58,6 +65,8 @@ window.importCredentials = importCredentials;
 window.clearHistory = clearHistory;
 window.loadAndDisplayHistory = loadAndDisplayHistory;
 window.deleteHistoryEntry = deleteHistoryEntry;
+window.showStats = showStats;
+window.closeStatsModal = closeStatsModal;
 window.clearNotificationsCache = clearNotificationsCache;
 window.loadNotifications = loadNotifications;
 window.showPlatformStatus = showPlatformStatus;
