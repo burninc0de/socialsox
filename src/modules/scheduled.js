@@ -4,6 +4,78 @@ import { makeResizable } from './resize.js';
 let scheduledData = [];
 let schedulePollingInterval = null;
 
+function handleDragStart(e) {
+    // Prevent dragging if clicking on buttons
+    if (e.target.closest('button')) {
+        e.preventDefault();
+        return;
+    }
+    e.dataTransfer.setData('text/plain', e.target.id);
+    e.target.classList.add('opacity-50');
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+}
+
+function handleDragEnter(e) {
+    e.preventDefault();
+    if (e.target.closest('[id^="scheduled-post-"]')) {
+        e.target.closest('[id^="scheduled-post-"]').classList.add('border-primary-500');
+    }
+}
+
+function handleDragLeave(e) {
+    if (e.target.closest('[id^="scheduled-post-"]')) {
+        e.target.closest('[id^="scheduled-post-"]').classList.remove('border-primary-500');
+    }
+}
+
+async function handleDrop(e) {
+    e.preventDefault();
+    const draggedId = e.dataTransfer.getData('text/plain');
+    const targetElement = e.target.closest('[id^="scheduled-post-"]');
+    if (targetElement) {
+        targetElement.classList.remove('border-primary-500');
+        const targetId = targetElement.id;
+
+        if (draggedId !== targetId) {
+            await swapScheduledTimes(draggedId.replace('scheduled-post-', ''), targetId.replace('scheduled-post-', ''));
+        }
+    }
+
+    // Remove opacity
+    document.getElementById(draggedId).classList.remove('opacity-50');
+}
+
+function handleDragEnd(e) {
+    e.target.classList.remove('opacity-50');
+}
+
+async function swapScheduledTimes(id1, id2) {
+    try {
+        const scheduled = await window.electron.readScheduled();
+        const post1 = scheduled.find(p => p.id === id1);
+        const post2 = scheduled.find(p => p.id === id2);
+
+        if (post1 && post2) {
+            const tempTime = post1.scheduledTime;
+            post1.scheduledTime = post2.scheduledTime;
+            post2.scheduledTime = tempTime;
+
+            await saveScheduled(scheduled);
+            scheduledData = scheduled;
+            // Sort by scheduled time after swap
+            scheduledData.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
+            displayScheduled();
+            window.showToast('Scheduled times swapped successfully', 'success');
+        }
+    } catch (error) {
+        console.error('Failed to swap scheduled times:', error);
+        window.showToast('Failed to swap scheduled times', 'error');
+    }
+}
+
 export async function loadScheduled() {
     try {
         scheduledData = await window.electron.readScheduled();
@@ -212,7 +284,7 @@ export function displayScheduled() {
         }
 
         return `
-            <div id="scheduled-post-${entry.id}" class="relative bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+            <div id="scheduled-post-${entry.id}" class="relative bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600" draggable="true">
                 <div class="flex justify-between items-start mb-2">
                     <div class="flex flex-col gap-1">
                          <div class="time-display">
@@ -244,6 +316,17 @@ export function displayScheduled() {
             </div>
     `;
     }).join('');
+
+    // Add drag and drop functionality
+    const cards = scheduledList.querySelectorAll('[id^="scheduled-post-"]');
+    cards.forEach(card => {
+        card.addEventListener('dragstart', handleDragStart);
+        card.addEventListener('dragover', handleDragOver);
+        card.addEventListener('dragenter', handleDragEnter);
+        card.addEventListener('dragleave', handleDragLeave);
+        card.addEventListener('drop', handleDrop);
+        card.addEventListener('dragend', handleDragEnd);
+    });
 
     // After rendering, replace icons
     if (window.lucide) {
