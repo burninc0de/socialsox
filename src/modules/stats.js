@@ -210,6 +210,42 @@ function calculateStats(history, notifications) {
     // Sort notification dates
     const sortedNotificationDates = Object.keys(notificationDailyStats).sort();
 
+    // Calculate average posts per day
+    const totalDays = sortedDates.length;
+    const avgPostsPerDay = totalDays > 0 ? (totalPosts / totalDays).toFixed(1) : 0;
+
+    // Find most active hour
+    let mostActiveHour = 0;
+    let maxHourPosts = 0;
+    hourlyStats.forEach((count, hour) => {
+        if (count > maxHourPosts) {
+            maxHourPosts = count;
+            mostActiveHour = hour;
+        }
+    });
+
+    // Calculate posting streak (consecutive days with posts)
+    let currentStreak = 0;
+    let longestStreak = 0;
+    let lastDate = null;
+    
+    sortedDates.forEach(dateStr => {
+        const date = new Date(dateStr);
+        if (lastDate) {
+            const diffDays = Math.round((date - lastDate) / (1000 * 60 * 60 * 24));
+            if (diffDays === 1) {
+                currentStreak++;
+            } else {
+                longestStreak = Math.max(longestStreak, currentStreak);
+                currentStreak = 1;
+            }
+        } else {
+            currentStreak = 1;
+        }
+        lastDate = date;
+    });
+    longestStreak = Math.max(longestStreak, currentStreak);
+
     return {
         totalPosts,
         platformCounts,
@@ -219,6 +255,10 @@ function calculateStats(history, notifications) {
         avgMessageLength,
         avgHashtags,
         successRate,
+        avgPostsPerDay,
+        mostActiveHour,
+        longestStreak,
+        totalDays,
         notifications: {
             total: totalNotifications,
             platformCounts: notificationPlatformCounts,
@@ -292,10 +332,27 @@ async function renderSummaryStats(stats) {
                 <div class="text-sm text-gray-700 dark:text-white font-medium">Notifications</div>
             </div>
         </div>
-        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
-            <div class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">Most Active Day</div>
-            <div class="text-xl text-primary-600 dark:text-primary-400">${stats.mostActiveDay ? new Date(stats.mostActiveDay).toLocaleDateString() : 'No data'}</div>
-            <div class="text-sm text-gray-700 dark:text-white">${stats.maxPosts} posts</div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                <div class="text-sm text-gray-600 dark:text-gray-400 mb-1">Most Active Day</div>
+                <div class="text-lg font-bold text-primary-600 dark:text-primary-400">${stats.mostActiveDay ? new Date(stats.mostActiveDay).toLocaleDateString() : 'No data'}</div>
+                <div class="text-xs text-gray-700 dark:text-white">${stats.maxPosts} posts</div>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                <div class="text-sm text-gray-600 dark:text-gray-400 mb-1">Avg Posts/Day</div>
+                <div class="text-lg font-bold text-green-600 dark:text-green-400">${stats.avgPostsPerDay}</div>
+                <div class="text-xs text-gray-700 dark:text-white">over ${stats.totalDays} days</div>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                <div class="text-sm text-gray-600 dark:text-gray-400 mb-1">Most Active Hour</div>
+                <div class="text-lg font-bold text-orange-600 dark:text-orange-400">${stats.mostActiveHour}:00</div>
+                <div class="text-xs text-gray-700 dark:text-white">${stats.hourly[stats.mostActiveHour]} posts</div>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                <div class="text-sm text-gray-600 dark:text-gray-400 mb-1">Longest Streak</div>
+                <div class="text-lg font-bold text-pink-600 dark:text-pink-400">${stats.longestStreak}</div>
+                <div class="text-xs text-gray-700 dark:text-white">consecutive days</div>
+            </div>
         </div>
     `;
 }
