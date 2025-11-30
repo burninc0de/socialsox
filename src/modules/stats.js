@@ -6,6 +6,17 @@ export function showStats() {
     const modal = document.getElementById('statsModal');
     modal.classList.remove('hidden');
 
+    // Add click-outside-to-close functionality
+    const handleClickOutside = (event) => {
+        if (event.target === modal) {
+            closeStatsModal();
+        }
+    };
+    modal.addEventListener('click', handleClickOutside);
+    
+    // Store the event listener for cleanup
+    modal._clickOutsideHandler = handleClickOutside;
+
     // Load history and notification data
     loadHistoryForStats().then(data => {
         const stats = calculateStats(data.history, data.notifications);
@@ -16,6 +27,12 @@ export function showStats() {
 export function closeStatsModal() {
     const modal = document.getElementById('statsModal');
     modal.classList.add('hidden');
+
+    // Remove click-outside event listener
+    if (modal._clickOutsideHandler) {
+        modal.removeEventListener('click', modal._clickOutsideHandler);
+        delete modal._clickOutsideHandler;
+    }
 
     // Destroy existing chart if it exists
     if (statsChart && typeof statsChart.destroy === 'function') {
