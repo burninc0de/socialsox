@@ -131,6 +131,7 @@ function updateDebugModeStyling(isDebug) {
 // Page load
 window.addEventListener('DOMContentLoaded', async () => {
     loadCredentials();
+    updateCharCount(); // Update character count after loading platforms
     try {
         await loadHistory();
     } catch (error) {
@@ -325,6 +326,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             this.classList.toggle('active');
 
             await saveCredentials();
+            updateCharCount(); // Update character count when platforms change
         });
     });
 
