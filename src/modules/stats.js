@@ -394,18 +394,18 @@ async function renderDailyChart(dailyStats) {
                         padding: 15,
                         usePointStyle: true,
                         font: {
-                            size: 12,
-                            color: document.body.classList.contains('dark') ? '#ffffff' : '#374151'
-                        }
+                            size: 12
+                        },
+                        color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#374151'
                     }
                 },
                 tooltip: {
                     mode: 'index',
                     intersect: false,
-                    backgroundColor: document.body.classList.contains('dark') ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.9)',
-                    titleColor: document.body.classList.contains('dark') ? '#fff' : '#000',
-                    bodyColor: document.body.classList.contains('dark') ? '#fff' : '#000',
-                    borderColor: document.body.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    backgroundColor: document.documentElement.classList.contains('dark') ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+                    titleColor: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                    bodyColor: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                    borderColor: document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
                     borderWidth: 1
                 }
             },
@@ -415,13 +415,13 @@ async function renderDailyChart(dailyStats) {
                     title: {
                         display: true,
                         text: 'Date',
-                        color: document.body.classList.contains('dark') ? '#ffffff' : '#374151'
+                        color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#374151'
                     },
                     ticks: {
-                        color: document.body.classList.contains('dark') ? '#9ca3af' : '#6b7280'
+                        color: document.documentElement.classList.contains('dark') ? '#9ca3af' : '#6b7280'
                     },
                     grid: {
-                        color: document.body.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                        color: document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
                     }
                 },
                 y: {
@@ -429,15 +429,15 @@ async function renderDailyChart(dailyStats) {
                     title: {
                         display: true,
                         text: 'Posts',
-                        color: document.body.classList.contains('dark') ? '#ffffff' : '#374151'
+                        color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#374151'
                     },
                     beginAtZero: true,
                     ticks: {
                         stepSize: 1,
-                        color: document.body.classList.contains('dark') ? '#9ca3af' : '#6b7280'
+                        color: document.documentElement.classList.contains('dark') ? '#9ca3af' : '#6b7280'
                     },
                     grid: {
-                        color: document.body.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                        color: document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
                     }
                 }
             }
@@ -472,13 +472,13 @@ function renderHourlyChart(hourlyStats) {
                     title: {
                         display: true,
                         text: 'Hour of Day',
-                        color: document.body.classList.contains('dark') ? '#ffffff' : '#374151'
+                        color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#374151'
                     },
                     ticks: {
-                        color: document.body.classList.contains('dark') ? '#9ca3af' : '#6b7280'
+                        color: document.documentElement.classList.contains('dark') ? '#9ca3af' : '#6b7280'
                     },
                     grid: {
-                        color: document.body.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                        color: document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
                     }
                 },
                 y: {
@@ -486,15 +486,15 @@ function renderHourlyChart(hourlyStats) {
                     title: {
                         display: true,
                         text: 'Posts',
-                        color: document.body.classList.contains('dark') ? '#ffffff' : '#374151'
+                        color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#374151'
                     },
                     beginAtZero: true,
                     ticks: {
                         stepSize: 1,
-                        color: document.body.classList.contains('dark') ? '#9ca3af' : '#6b7280'
+                        color: document.documentElement.classList.contains('dark') ? '#9ca3af' : '#6b7280'
                     },
                     grid: {
-                        color: document.body.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                        color: document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
                     }
                 }
             }
@@ -531,7 +531,7 @@ function renderNotificationsChart(notifications) {
                 data: typeData,
                 backgroundColor: backgroundColors,
                 borderWidth: 2,
-                borderColor: document.body.classList.contains('dark') ? '#374151' : '#ffffff'
+                borderColor: document.documentElement.classList.contains('dark') ? '#374151' : '#ffffff'
             }]
         },
         options: {
@@ -543,9 +543,7 @@ function renderNotificationsChart(notifications) {
                     labels: {
                         padding: 15,
                         usePointStyle: true,
-                        font: {
-                            color: document.body.classList.contains('dark') ? '#ffffff' : '#374151'
-                        }
+                        color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#374151'
                     }
                 },
                 tooltip: {
@@ -556,10 +554,10 @@ function renderNotificationsChart(notifications) {
                             return `${context.label}: ${context.parsed} (${percentage}%)`;
                         }
                     },
-                    backgroundColor: document.body.classList.contains('dark') ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.9)',
-                    titleColor: document.body.classList.contains('dark') ? '#fff' : '#000',
-                    bodyColor: document.body.classList.contains('dark') ? '#fff' : '#000',
-                    borderColor: document.body.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    backgroundColor: document.documentElement.classList.contains('dark') ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+                    titleColor: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                    bodyColor: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                    borderColor: document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
                     borderWidth: 1
                 }
             }
@@ -593,9 +591,7 @@ function renderWeeklyChart(weeklyStats) {
                     labels: {
                         padding: 15,
                         usePointStyle: true,
-                        font: {
-                            color: document.body.classList.contains('dark') ? '#ffffff' : '#374151'
-                        }
+                        color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#374151'
                     }
                 },
             }
