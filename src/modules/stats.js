@@ -533,7 +533,7 @@ function renderNotificationsChart(notifications) {
 
 function renderWeeklyChart(weeklyStats) {
     const ctx = document.getElementById('weeklyChart').getContext('2d');
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     new Chart(ctx, {
         type: 'doughnut',
@@ -552,8 +552,16 @@ function renderWeeklyChart(weeklyStats) {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: false
-                }
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true,
+                        font: {
+                            color: document.body.classList.contains('dark') ? '#ffffff' : '#374151'
+                        }
+                    }
+                },
             }
         }
     });
