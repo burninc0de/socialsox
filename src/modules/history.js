@@ -101,9 +101,9 @@ export function displayHistory(history) {
         // Build results display with links
         const resultsDisplay = entry.results.map(result => {
             if (result.success) {
-                return `<a href="${result.url}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline">✓ ${result.platform}</a>`;
+                return `<a href="${result.url}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline break-all">✓ ${result.platform}</a>`;
             } else {
-                return `<span class="text-red-600 dark:text-red-400">✗ ${result.platform}: ${result.error}</span>`;
+                return `<span class="text-red-600 dark:text-red-400 break-all">✗ ${result.platform}: ${result.error}</span>`;
             }
         }).join('<br>');
         
@@ -116,7 +116,7 @@ export function displayHistory(history) {
                     </div>
                     <button onclick="(async () => { await deleteHistoryEntry('${entry.timestamp}'); })(); event.stopPropagation();" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm leading-none w-4 h-4 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Delete entry">×</button>
                 </div>
-                <p class="text-sm text-gray-800 dark:text-gray-200 mb-2 whitespace-pre-wrap">${entry.message}</p>
+                <p class="text-sm text-gray-800 dark:text-gray-200 mb-2 whitespace-pre-wrap break-words">${entry.message}</p>
                 <div class="text-xs text-gray-600 dark:text-gray-400">${resultsDisplay}</div>
             </div>
         `;
