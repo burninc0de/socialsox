@@ -148,7 +148,26 @@ function calculateStats(history, notifications) {
         // Type counts
         const typeKey = notification.type || notification.reason;
         if (typeKey) {
-            notificationTypeCounts[typeKey] = (notificationTypeCounts[typeKey] || 0) + 1;
+            // Normalize notification types (case-insensitive mapping)
+            let normalizedType = typeKey;
+            const lowerType = typeKey.toLowerCase();
+            
+            if (lowerType === 'favourite' || lowerType === 'like') {
+                normalizedType = 'Like';
+            } else if (lowerType === 'repost' || lowerType === 'reblog') {
+                normalizedType = 'Reblog';
+            } else if (lowerType === 'reply' || lowerType === 'mention') {
+                normalizedType = 'Mention';
+            } else if (lowerType === 'follow') {
+                normalizedType = 'Follow';
+            } else if (lowerType === 'quote') {
+                normalizedType = 'Quote';
+            } else {
+                // Keep original casing for other types
+                normalizedType = typeKey.charAt(0).toUpperCase() + typeKey.slice(1).toLowerCase();
+            }
+            
+            notificationTypeCounts[normalizedType] = (notificationTypeCounts[normalizedType] || 0) + 1;
         }
         
         // Time-based stats
@@ -456,22 +475,22 @@ function renderNotificationsChart(notifications) {
 
     // Color mapping for notification types
     const typeColors = {
-        mention: '#3b82f6',
-        reply: '#06b6d4',
-        reblog: '#22c55e',
-        favourite: '#ef4444',
-        like: '#f59e0b',
-        repost: '#8b5cf6',
-        follow: '#ec4899',
-        quote: '#64748b'
+        Mention: '#3b82f6',
+        Reblog: '#22c55e',
+        Like: '#ef4444',
+        Follow: '#ec4899',
+        Quote: '#64748b'
     };
+
+    // Create display labels (map Reblog to Repost for better UX)
+    const displayLabels = typeLabels.map(type => type === 'Reblog' ? 'Repost' : type);
 
     const backgroundColors = typeLabels.map(type => typeColors[type] || '#6b7280');
 
     new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: typeLabels.map(type => type.charAt(0).toUpperCase() + type.slice(1)),
+            labels: displayLabels,
             datasets: [{
                 data: typeData,
                 backgroundColor: backgroundColors,
