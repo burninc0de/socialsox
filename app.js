@@ -747,6 +747,18 @@ async function postToAll() {
             showPlatformStatus(result.platform, message, statusType);
         });
 
+        // Disable buttons for successful platforms
+        results.forEach(result => {
+            if (result.success) {
+                const platform = result.platform.toLowerCase();
+                window.platforms[platform] = false;
+                const btn = document.querySelector(`.platform-toggle[data-platform="${platform}"]`);
+                if (btn) {
+                    btn.classList.remove('active');
+                }
+            }
+        });
+
         // Also show overall status for backward compatibility
         const hasSuccess = results.some(r => r.success);
         const hasFailure = results.some(r => !r.success);
