@@ -92,13 +92,15 @@ window.optimizeMessage = async function() {
         return;
     }
 
+    const prompt = document.getElementById('aiPrompt').value.trim();
+
     const optimizeBtn = document.getElementById('optimizeBtn');
     const originalText = optimizeBtn.innerHTML;
     optimizeBtn.disabled = true;
     optimizeBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Optimizing...';
 
     try {
-        const optimizedMessage = await optimizeTweet(apiKey, message);
+        const optimizedMessage = await optimizeTweet(apiKey, message, prompt);
         document.getElementById('message').value = optimizedMessage;
         updateCharCount();
         window.showToast('Message optimized successfully!', 'success');
@@ -326,7 +328,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    document.querySelectorAll('input').forEach(input => {
+    document.querySelectorAll('input, textarea').forEach(input => {
         input.addEventListener('change', async () => await saveCredentials());
     });
 
@@ -823,6 +825,7 @@ function resetAllData() {
     document.getElementById('aiOptimizationToggle').checked = false;
     document.getElementById('aiApiKeySection').style.display = 'none';
     document.getElementById('optimizeBtn').style.display = 'none';
+    document.getElementById('aiPrompt').value = 'optimize this message for posting on X/Bluesky/Mastodon. Use max 280-300 characters. Respond only with optimized message.';
 
     Object.keys(window.platforms).forEach(platform => {
         window.platforms[platform] = false;

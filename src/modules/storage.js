@@ -1,5 +1,7 @@
 // Credentials and settings storage management
 
+const DEFAULT_AI_PROMPT = "optimize this message for posting on X/Bluesky/Mastodon. Use max 280-300 characters. Respond only with optimized message.";
+
 export async function saveCredentials() {
     const sensitiveCreds = {
         mastodonToken: document.getElementById('mastodon-token').value,
@@ -26,7 +28,8 @@ export async function saveCredentials() {
             bluesky: document.getElementById('excludeBlueskyNotifications').checked
         },
         windowControlsStyle: document.getElementById('windowControlsStyle').value || 'macos-circles',
-        aiOptimizationEnabled: document.getElementById('aiOptimizationToggle').checked
+        aiOptimizationEnabled: document.getElementById('aiOptimizationToggle').checked,
+        aiPrompt: document.getElementById('aiPrompt').value || DEFAULT_AI_PROMPT
     };
 
     try {
@@ -148,6 +151,7 @@ export async function loadCredentials() {
         document.getElementById('aiOptimizationToggle').checked = aiOptimizationEnabled;
         document.getElementById('aiApiKeySection').style.display = aiOptimizationEnabled ? 'block' : 'none';
         document.getElementById('optimizeBtn').style.display = aiOptimizationEnabled ? 'block' : 'none';
+        document.getElementById('aiPrompt').value = settings.aiPrompt || DEFAULT_AI_PROMPT;
         
         document.querySelectorAll('.platform-toggle').forEach(btn => {
             const platform = btn.dataset.platform;
@@ -172,7 +176,8 @@ export async function exportCredentials() {
             blueskyHandle: document.getElementById('bluesky-handle').value,
             blueskyPassword: document.getElementById('bluesky-password').value,
             grokApiKey: document.getElementById('grok-api-key').value,
-            aiOptimizationEnabled: document.getElementById('aiOptimizationToggle').checked
+            aiOptimizationEnabled: document.getElementById('aiOptimizationToggle').checked,
+            aiPrompt: document.getElementById('aiPrompt').value
         };
 
         if (window.electron && window.electron.exportCredentials) {
@@ -218,6 +223,7 @@ export async function importCredentials() {
                 document.getElementById('aiOptimizationToggle').checked = creds.aiOptimizationEnabled || false;
                 document.getElementById('aiApiKeySection').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
                 document.getElementById('optimizeBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                document.getElementById('aiPrompt').value = creds.aiPrompt || DEFAULT_AI_PROMPT;
                 
                 await saveCredentials();
                 window.showStatus('Credentials imported successfully!', 'success');
@@ -247,6 +253,7 @@ export async function importCredentials() {
                         document.getElementById('aiOptimizationToggle').checked = creds.aiOptimizationEnabled || false;
                         document.getElementById('aiApiKeySection').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
                         document.getElementById('optimizeBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                        document.getElementById('aiPrompt').value = creds.aiPrompt || DEFAULT_AI_PROMPT;
                         
                         await saveCredentials();
                         window.showStatus('Credentials imported successfully!', 'success');

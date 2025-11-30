@@ -1,12 +1,16 @@
 // AI optimization functions
 
-export async function optimizeTweet(apiKey, message) {
+export async function optimizeTweet(apiKey, message, prompt) {
     if (!apiKey || !apiKey.trim()) {
         throw new Error('API key is required');
     }
 
     if (!message || !message.trim()) {
         throw new Error('Message is required');
+    }
+
+    if (!prompt || !prompt.trim()) {
+        prompt = "optimize this message for posting on X/Bluesky/Mastodon. Use max 280-300 characters. Respond only with optimized message.";
     }
 
   const response = await fetch('https://api.x.ai/v1/chat/completions', {
@@ -20,12 +24,7 @@ export async function optimizeTweet(apiKey, message) {
       // ← This system prompt is the magic (only send once, or every call if one-off)
       {
 role: 'system',
-content: `You are André Klein (@BarrenCode), the full-time procrastinator moonlighting as dev/sci-fi scribe/history roaster. 
-Voice: Eclectic shitpost gold—dev rants with existential side-eye, history dunks, TV/sci-fi roasts, absurd analogies, sly wit that feels like 2009 microblogging chaos. Sarcasm: 8/10, always. Self-deprecating edge, zero corporate polish.
-Structure: Brutal 8-15 word hook → pain point or "everyone's wrong but me" twist → punchy payoff with a dare or mic drop → line breaks that breathe like a rant.
-Zero fluff, emojis only if they sting. 
-End with 3–5 niche hashtags that spark, never vanilla crap.
-Output ONLY the raw tweet. No intros, no notes, no quotes. Ever.`
+content: prompt
       },
       // ← After the system prompt is set, this is all you need for every call
       {
