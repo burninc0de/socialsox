@@ -348,15 +348,6 @@ export async function loadAndDisplayScheduled() {
 
 export async function checkAndSendDuePosts() {
     try {
-        // Sync scheduled data first to ensure we have the latest
-        if (window.syncEnabled && window.syncDirPath) {
-            try {
-                await window.manualSync();
-            } catch (syncError) {
-                console.error('Failed to sync before checking due posts:', syncError);
-            }
-        }
-
         const scheduled = await window.electron.readScheduled();
 
         // Stop polling if no posts remain (safety check)
@@ -432,6 +423,11 @@ export async function checkAndSendDuePosts() {
             // Remove from scheduled list
             const remainingScheduled = scheduled.filter(entry => entry.id !== post.id);
             await saveScheduled(remainingScheduled);
+            scheduled = remainingScheduled; // Update the local scheduled array
+            scheduledData = remainingScheduled; // Update the global scheduledData immediately
+            // Sort by scheduled time (earliest first)
+            scheduledData.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
+            displayScheduled(); // Update the UI immediately
         }
 
         // Show toast notification for sent posts
@@ -443,8 +439,8 @@ export async function checkAndSendDuePosts() {
             window.electron.showOSNotification('Scheduled Posts Sent', `${duePosts.length} scheduled posts have been sent successfully.`);
         }
 
-        // Refresh the display
-        await loadAndDisplayScheduled();
+        // Final display update (scheduledData is already up to date)
+        displayScheduled();
 
         // Stop polling if no posts remain
         const remainingPosts = await window.electron.readScheduled();
