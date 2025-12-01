@@ -3,6 +3,37 @@
 let syncEnabled = false;
 let syncDirPath = '';
 let syncInterval = null;
+let syncIndicatorTimeout = null;
+
+function showSyncIndicator() {
+    const indicator = document.getElementById('syncIndicator');
+    if (indicator) {
+        // Clear any existing timeout
+        if (syncIndicatorTimeout) {
+            clearTimeout(syncIndicatorTimeout);
+            syncIndicatorTimeout = null;
+        }
+        // Remove fade-out class and show immediately
+        indicator.classList.remove('hidden', 'fade-out');
+        if (window.lucide && window.lucide.createIcons && window.lucideIcons) {
+            window.lucide.createIcons({ icons: window.lucideIcons });
+        }
+    }
+}
+
+function hideSyncIndicator() {
+    const indicator = document.getElementById('syncIndicator');
+    if (indicator) {
+        // Add fade-out class first
+        indicator.classList.add('fade-out');
+        // Then hide after transition completes
+        syncIndicatorTimeout = setTimeout(() => {
+            indicator.classList.add('hidden');
+            indicator.classList.remove('fade-out');
+            syncIndicatorTimeout = null;
+        }, 600); // Match the CSS transition duration
+    }
+}
 
 export async function selectSyncDir() {
     try {
@@ -47,10 +78,15 @@ export async function manualSync() {
     }
 
     try {
+        showSyncIndicator();
         await window.electron.manualSync(syncDirPath);
-        window.showToast('Data synced successfully', 'success');
+        // Delay hiding to ensure minimum visible time
+        setTimeout(() => {
+            hideSyncIndicator();
+        }, 2000); // Show for 2 seconds before starting fade-out
     } catch (error) {
         console.error('Manual sync failed:', error);
+        hideSyncIndicator();
         window.showToast('Sync failed', 'error');
     }
 }
@@ -113,9 +149,15 @@ function startPeriodicSync() {
     syncInterval = setInterval(async () => {
         if (syncEnabled && syncDirPath) {
             try {
+                showSyncIndicator();
                 await window.electron.manualSync(syncDirPath);
+                // Delay hiding to ensure minimum visible time
+                setTimeout(() => {
+                    hideSyncIndicator();
+                }, 2000); // Show for 2 seconds before starting fade-out
             } catch (error) {
                 console.error('Periodic sync failed:', error);
+                hideSyncIndicator();
             }
         }
     }, 5 * 60 * 1000);
