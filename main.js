@@ -696,9 +696,9 @@ ipcMain.handle('write-sync-settings', async (event, settings) => {
 
 ipcMain.handle('manual-sync', async (event, syncDirPath) => {
     const files = [
-        { local: historyPath, remote: path.join(syncDirPath, 'history.json'), merge: true },
+        { local: historyPath, remote: path.join(syncDirPath, 'history.json'), merge: false },
         { local: notificationsPath, remote: path.join(syncDirPath, 'notifications.json'), merge: false },
-        { local: schedulePath, remote: path.join(syncDirPath, 'schedule.json'), merge: true }
+        { local: schedulePath, remote: path.join(syncDirPath, 'schedule.json'), merge: false }
     ];
 
     for (const file of files) {
@@ -708,52 +708,11 @@ ipcMain.handle('manual-sync', async (event, syncDirPath) => {
             const remoteStat = await fs.stat(file.remote).catch(() => null);
 
             if (localStat && remoteStat) {
-                // Both exist, merge if needed
-                if (file.merge) {
-                    // Read both files
-                    const localData = JSON.parse(await fs.readFile(file.local, 'utf8') || '[]');
-                    const remoteData = JSON.parse(await fs.readFile(file.remote, 'utf8') || '[]');
-
-                    // For history and schedule, merge by unique key
-                    let mergedData;
-                    if (file.local.includes('history.json')) {
-                        // History: merge by timestamp
-                        const allEntries = [...localData, ...remoteData];
-                        const uniqueEntries = allEntries.filter((entry, index, self) =>
-                            index === self.findIndex(e => e.timestamp === entry.timestamp)
-                        );
-                        mergedData = uniqueEntries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                    } else if (file.local.includes('schedule.json')) {
-                        // Schedule: merge by id, preferring the latest lastUpdated
-                        const allPosts = [...localData, ...remoteData];
-                        const postMap = new Map();
-                        allPosts.forEach(post => {
-                            if (!postMap.has(post.id) || new Date(post.lastUpdated || post.createdAt) > new Date(postMap.get(post.id).lastUpdated || postMap.get(post.id).createdAt)) {
-                                postMap.set(post.id, post);
-                            }
-                        });
-                        const uniquePosts = Array.from(postMap.values());
-                        mergedData = uniquePosts.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
-                    }
-
-                    // Write merged data only if different
-                    const mergedJson = JSON.stringify(mergedData, null, 2);
-                    const localJson = JSON.stringify(localData, null, 2);
-                    const remoteJson = JSON.stringify(remoteData, null, 2);
-
-                    if (mergedJson !== localJson) {
-                        await fs.writeFile(file.local, mergedJson);
-                    }
-                    if (mergedJson !== remoteJson) {
-                        await fs.writeFile(file.remote, mergedJson);
-                    }
-                } else {
-                    // For non-merge files, copy newer
-                    if (localStat.mtime > remoteStat.mtime) {
-                        await fs.copyFile(file.local, file.remote);
-                    } else if (remoteStat.mtime > localStat.mtime) {
-                        await fs.copyFile(file.remote, file.local);
-                    }
+                // Both exist, copy newer
+                if (localStat.mtime > remoteStat.mtime) {
+                    await fs.copyFile(file.local, file.remote);
+                } else if (remoteStat.mtime > localStat.mtime) {
+                    await fs.copyFile(file.remote, file.local);
                 }
             } else if (localStat && (!remoteStat || localStat.mtime > remoteStat.mtime)) {
                 // Local is newer or remote doesn't exist, copy to remote

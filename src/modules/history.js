@@ -38,6 +38,7 @@ export async function deleteHistoryEntry(timestamp) {
         const history = await window.electron.readHistory();
         const filteredHistory = history.filter(entry => entry.timestamp !== timestamp);
         await saveHistory(filteredHistory);
+        historyData = filteredHistory; // Update global historyData
         displayHistory(filteredHistory);
         window.showToast('History entry deleted', 'success');
     } catch (error) {
@@ -50,6 +51,7 @@ export async function clearHistory() {
     if (confirm('Are you sure you want to clear all posting history? This action cannot be undone.')) {
         try {
             await window.electron.deleteHistory();
+            historyData = []; // Update global historyData
             displayHistory([]);
             window.showToast('Posting history cleared', 'success');
         } catch (error) {
@@ -75,6 +77,7 @@ export async function addHistoryEntry(message, selectedPlatforms, results) {
         }
         
         await saveHistory(history);
+        historyData = history; // Update global historyData
         displayHistory(history);
     } catch (error) {
         console.error('Failed to add history entry:', error);
