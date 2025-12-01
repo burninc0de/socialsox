@@ -696,9 +696,9 @@ ipcMain.handle('write-sync-settings', async (event, settings) => {
 
 ipcMain.handle('manual-sync', async (event, syncDirPath) => {
     const files = [
-        { local: historyPath, remote: path.join(syncDirPath, 'history.json') },
-        { local: notificationsPath, remote: path.join(syncDirPath, 'notifications.json') },
-        { local: schedulePath, remote: path.join(syncDirPath, 'schedule.json') }
+        { local: historyPath, remote: path.join(syncDirPath, 'history.json'), merge: true },
+        { local: notificationsPath, remote: path.join(syncDirPath, 'notifications.json'), merge: false },
+        { local: schedulePath, remote: path.join(syncDirPath, 'schedule.json'), merge: true }
     ];
 
     for (const file of files) {
@@ -707,7 +707,43 @@ ipcMain.handle('manual-sync', async (event, syncDirPath) => {
             const localStat = await fs.stat(file.local).catch(() => null);
             const remoteStat = await fs.stat(file.remote).catch(() => null);
 
-            if (localStat && (!remoteStat || localStat.mtime > remoteStat.mtime)) {
+            if (localStat && remoteStat) {
+                // Both exist, merge if needed
+                if (file.merge) {
+                    // Read both files
+                    const localData = JSON.parse(await fs.readFile(file.local, 'utf8') || '[]');
+                    const remoteData = JSON.parse(await fs.readFile(file.remote, 'utf8') || '[]');
+
+                    // For history and schedule, merge by unique key
+                    let mergedData;
+                    if (file.local.includes('history.json')) {
+                        // History: merge by timestamp
+                        const allEntries = [...localData, ...remoteData];
+                        const uniqueEntries = allEntries.filter((entry, index, self) =>
+                            index === self.findIndex(e => e.timestamp === entry.timestamp)
+                        );
+                        mergedData = uniqueEntries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    } else if (file.local.includes('schedule.json')) {
+                        // Schedule: merge by id
+                        const allPosts = [...localData, ...remoteData];
+                        const uniquePosts = allPosts.filter((post, index, self) =>
+                            index === self.findIndex(p => p.id === post.id)
+                        );
+                        mergedData = uniquePosts.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
+                    }
+
+                    // Write merged data to both files
+                    await fs.writeFile(file.local, JSON.stringify(mergedData, null, 2));
+                    await fs.writeFile(file.remote, JSON.stringify(mergedData, null, 2));
+                } else {
+                    // For non-merge files, copy newer
+                    if (localStat.mtime > remoteStat.mtime) {
+                        await fs.copyFile(file.local, file.remote);
+                    } else if (remoteStat.mtime > localStat.mtime) {
+                        await fs.copyFile(file.remote, file.local);
+                    }
+                }
+            } else if (localStat && (!remoteStat || localStat.mtime > remoteStat.mtime)) {
                 // Local is newer or remote doesn't exist, copy to remote
                 await fs.copyFile(file.local, file.remote);
             } else if (remoteStat && (!localStat || remoteStat.mtime > localStat.mtime)) {

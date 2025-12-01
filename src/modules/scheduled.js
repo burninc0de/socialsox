@@ -346,6 +346,15 @@ export async function loadAndDisplayScheduled() {
 
 export async function checkAndSendDuePosts() {
     try {
+        // Sync scheduled data first to ensure we have the latest
+        if (window.syncEnabled && window.syncDirPath) {
+            try {
+                await window.manualSync();
+            } catch (syncError) {
+                console.error('Failed to sync before checking due posts:', syncError);
+            }
+        }
+
         const scheduled = await window.electron.readScheduled();
 
         // Stop polling if no posts remain (safety check)
