@@ -724,11 +724,15 @@ ipcMain.handle('manual-sync', async (event, syncDirPath) => {
                         );
                         mergedData = uniqueEntries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                     } else if (file.local.includes('schedule.json')) {
-                        // Schedule: merge by id
+                        // Schedule: merge by id, preferring the latest lastUpdated
                         const allPosts = [...localData, ...remoteData];
-                        const uniquePosts = allPosts.filter((post, index, self) =>
-                            index === self.findIndex(p => p.id === post.id)
-                        );
+                        const postMap = new Map();
+                        allPosts.forEach(post => {
+                            if (!postMap.has(post.id) || new Date(post.lastUpdated || post.createdAt) > new Date(postMap.get(post.id).lastUpdated || postMap.get(post.id).createdAt)) {
+                                postMap.set(post.id, post);
+                            }
+                        });
+                        const uniquePosts = Array.from(postMap.values());
                         mergedData = uniquePosts.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
                     }
 

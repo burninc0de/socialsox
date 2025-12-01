@@ -115,6 +115,7 @@ export async function addScheduledPost(message, platforms, scheduledTime, images
             platforms: platforms,
             scheduledTime: scheduledTime,
             createdAt: new Date().toISOString(),
+            lastUpdated: new Date().toISOString(),
             images: images
         };
         scheduled.push(entry);
@@ -148,6 +149,7 @@ export async function updateScheduledPost(id, newValues) {
 
             // Update only provided values
             Object.assign(scheduled[postIndex], newValues);
+            scheduled[postIndex].lastUpdated = new Date().toISOString();
 
             await saveScheduled(scheduled);
             scheduledData = scheduled;
