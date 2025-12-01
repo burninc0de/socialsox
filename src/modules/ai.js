@@ -10,7 +10,12 @@ export async function optimizeTweet(apiKey, message, prompt) {
     }
 
     if (!prompt || !prompt.trim()) {
-        prompt = "optimize this message for posting on X/Bluesky/Mastodon. Use max 280-300 characters. Respond only with optimized message.";
+        prompt = "Rewrite this message to fit in abou 300 characters. DO NOT change the tone or voice. Trim if necessary. Suggest relevant hashtags if we have space.";
+    }
+
+    // Ensure the prompt always instructs to output only the message
+    if (!prompt.toLowerCase().includes("output only the message")) {
+        prompt += ". output only the message";
     }
 
   const response = await fetch('https://api.x.ai/v1/chat/completions', {
