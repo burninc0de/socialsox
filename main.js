@@ -732,9 +732,17 @@ ipcMain.handle('manual-sync', async (event, syncDirPath) => {
                         mergedData = uniquePosts.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
                     }
 
-                    // Write merged data to both files
-                    await fs.writeFile(file.local, JSON.stringify(mergedData, null, 2));
-                    await fs.writeFile(file.remote, JSON.stringify(mergedData, null, 2));
+                    // Write merged data only if different
+                    const mergedJson = JSON.stringify(mergedData, null, 2);
+                    const localJson = JSON.stringify(localData, null, 2);
+                    const remoteJson = JSON.stringify(remoteData, null, 2);
+
+                    if (mergedJson !== localJson) {
+                        await fs.writeFile(file.local, mergedJson);
+                    }
+                    if (mergedJson !== remoteJson) {
+                        await fs.writeFile(file.remote, mergedJson);
+                    }
                 } else {
                     // For non-merge files, copy newer
                     if (localStat.mtime > remoteStat.mtime) {
