@@ -10,7 +10,7 @@ export async function optimizeTweet(apiKey, message, prompt) {
     }
 
     if (!prompt || !prompt.trim()) {
-        prompt = "Rewrite this message to fit in abou 300 characters. DO NOT change the tone or voice. Trim if necessary. Suggest relevant hashtags if we have space.";
+        prompt = "Rewrite this message to fit in about 300 characters. DO NOT change the tone or voice. Trim if necessary. Suggest relevant hashtags if we have space.";
     }
 
     // Ensure the prompt always instructs to output only the message
