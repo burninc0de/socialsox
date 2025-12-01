@@ -1,6 +1,6 @@
 // Credentials and settings storage management
 
-const DEFAULT_AI_PROMPT = "optimize this message for posting on X/Bluesky/Mastodon. Use max 280-300 characters. Respond only with optimized message.";
+const DEFAULT_AI_PROMPT = "Rewrite this message to fit in about 300 characters. DO NOT change the tone or voice. Trim if necessary. Suggest relevant hashtags if we have space.";
 
 export async function saveCredentials() {
     const sensitiveCreds = {
@@ -152,6 +152,7 @@ export async function loadCredentials() {
         document.getElementById('aiApiKeySection').style.display = aiOptimizationEnabled ? 'block' : 'none';
         document.getElementById('optimizeBtn').style.display = aiOptimizationEnabled ? 'block' : 'none';
         document.getElementById('aiPrompt').value = settings.aiPrompt || DEFAULT_AI_PROMPT;
+        document.getElementById('aiPrompt').placeholder = DEFAULT_AI_PROMPT;
         
         document.querySelectorAll('.platform-toggle').forEach(btn => {
             const platform = btn.dataset.platform;
@@ -224,6 +225,7 @@ export async function importCredentials() {
                 document.getElementById('aiApiKeySection').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
                 document.getElementById('optimizeBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
                 document.getElementById('aiPrompt').value = creds.aiPrompt || DEFAULT_AI_PROMPT;
+                document.getElementById('aiPrompt').placeholder = DEFAULT_AI_PROMPT;
                 
                 await saveCredentials();
                 window.showStatus('Credentials imported successfully!', 'success');
