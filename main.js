@@ -696,9 +696,9 @@ ipcMain.handle('write-sync-settings', async (event, settings) => {
 
 ipcMain.handle('manual-sync', async (event, syncDirPath) => {
     const files = [
-        { local: historyPath, remote: path.join(syncDirPath, 'history.json'), merge: true, key: 'timestamp' },
-        { local: notificationsPath, remote: path.join(syncDirPath, 'notifications.json'), merge: true, key: 'id' },
-        { local: schedulePath, remote: path.join(syncDirPath, 'schedule.json'), merge: true, key: 'id' }
+        { local: historyPath, remote: path.join(syncDirPath, 'history.json'), merge: false },
+        { local: notificationsPath, remote: path.join(syncDirPath, 'notifications.json'), merge: false },
+        { local: schedulePath, remote: path.join(syncDirPath, 'schedule.json'), merge: false }
     ];
 
     for (const file of files) {
@@ -707,63 +707,19 @@ ipcMain.handle('manual-sync', async (event, syncDirPath) => {
             const localStat = await fs.stat(file.local).catch(() => null);
             const remoteStat = await fs.stat(file.remote).catch(() => null);
 
-            if (file.merge) {
-                // For mergeable files, combine both arrays
-                let localData = [];
-                let remoteData = [];
-                
-                if (localStat) {
-                    try {
-                        const localContent = await fs.readFile(file.local, 'utf8');
-                        localData = JSON.parse(localContent);
-                    } catch (e) {
-                        localData = [];
-                    }
-                }
-                
-                if (remoteStat) {
-                    try {
-                        const remoteContent = await fs.readFile(file.remote, 'utf8');
-                        remoteData = JSON.parse(remoteContent);
-                    } catch (e) {
-                        remoteData = [];
-                    }
-                }
-                
-                // Merge arrays and deduplicate by the specified key
-                const merged = [...localData, ...remoteData];
-                const unique = merged.filter((item, index, self) => 
-                    index === self.findIndex(i => i[file.key] === item[file.key])
-                );
-                
-                // Sort by timestamp descending for history, by scheduledTime for schedule, keep order for notifications
-                if (file.key === 'timestamp') {
-                    unique.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                    // Keep only the latest 100 entries for history
-                    unique.splice(100);
-                } else if (file.key === 'id' && unique[0] && unique[0].scheduledTime) {
-                    unique.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
-                }
-                
-                // Write to both locations
-                await fs.writeFile(file.local, JSON.stringify(unique, null, 2));
-                await fs.writeFile(file.remote, JSON.stringify(unique, null, 2));
-            } else {
-                // Original copy logic for non-mergeable files
-                if (localStat && remoteStat) {
-                    // Both exist, copy newer
-                    if (localStat.mtime > remoteStat.mtime) {
-                        await fs.copyFile(file.local, file.remote);
-                    } else if (remoteStat.mtime > localStat.mtime) {
-                        await fs.copyFile(file.remote, file.local);
-                    }
-                } else if (localStat && (!remoteStat || localStat.mtime > remoteStat.mtime)) {
-                    // Local is newer or remote doesn't exist, copy to remote
+            if (localStat && remoteStat) {
+                // Both exist, copy newer
+                if (localStat.mtime > remoteStat.mtime) {
                     await fs.copyFile(file.local, file.remote);
-                } else if (remoteStat && (!localStat || remoteStat.mtime > localStat.mtime)) {
-                    // Remote is newer or local doesn't exist, copy to local
+                } else if (remoteStat.mtime > localStat.mtime) {
                     await fs.copyFile(file.remote, file.local);
                 }
+            } else if (localStat && (!remoteStat || localStat.mtime > remoteStat.mtime)) {
+                // Local is newer or remote doesn't exist, copy to remote
+                await fs.copyFile(file.local, file.remote);
+            } else if (remoteStat && (!localStat || remoteStat.mtime > localStat.mtime)) {
+                // Remote is newer or local doesn't exist, copy to local
+                await fs.copyFile(file.remote, file.local);
             }
         } catch (error) {
             console.error(`Failed to sync ${file.local}:`, error);
