@@ -1,8 +1,8 @@
 
 // Import lucide icons
-import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify } from 'lucide';
+import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify, Plus } from 'lucide';
 
-const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify };
+const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify, Plus };
 
 // Import Chart.js
 import Chart from 'chart.js/auto';
@@ -55,39 +55,97 @@ window.platforms = {
     bluesky: false
 };
 
-// Make UI functions globally available
-window.showStatus = showStatus;
-window.showToast = showToast;
-window.switchTab = switchTab;
-window.toggleCollapsible = toggleCollapsible;
-window.removeImage = removeImage;
-window.exportCredentials = exportCredentials;
-window.importCredentials = importCredentials;
-window.clearHistory = clearHistory;
-window.loadAndDisplayHistory = loadAndDisplayHistory;
-window.deleteHistoryEntry = deleteHistoryEntry;
-window.showStats = showStats;
-window.closeStatsModal = closeStatsModal;
-window.clearNotificationsCache = clearNotificationsCache;
-window.loadNotifications = loadNotifications;
-window.showPlatformStatus = showPlatformStatus;
-window.clearPlatformStatuses = clearPlatformStatuses;
-window.markAsSeen = markAsSeen;
-window.markAllAsRead = markAllAsRead;
-window.loadCachedNotifications = loadCachedNotifications;
-window.testNotification = testNotification;
-window.resetAllData = resetAllData;
-window.testMastodonConfig = testMastodonConfig;
-window.testTwitterConfig = testTwitterConfig;
-window.testBlueskyConfig = testBlueskyConfig;
-window.clearScheduled = clearScheduled;
-window.normalizeScheduled = normalizeScheduled;
-window.loadAndDisplayScheduled = loadAndDisplayScheduled;
-window.deleteScheduledPost = deleteScheduledPost;
-window.setSelectedImages = setSelectedImages;
-window.selectSyncDir = selectSyncDir;
-window.setSyncEnabled = setSyncEnabled;
-window.manualSync = manualSync;
+// Make prompt functions globally available
+window.updatePromptSelect = updatePromptSelect;
+window.updatePromptDisplay = updatePromptDisplay;
+
+// AI prompt styles
+const DEFAULT_PROMPT = "Rewrite this message to fit in about 300 characters. DO NOT change the tone or voice. Trim if necessary. Suggest relevant hashtags if we have space.";
+
+// Get current AI prompt based on selected style
+function getCurrentAIPrompt() {
+    const selectedPromptId = document.getElementById('aiPromptSelect').value;
+    if (selectedPromptId === 'default') {
+        return DEFAULT_PROMPT;
+    }
+    
+    const customPrompts = getCustomPrompts();
+    return customPrompts[selectedPromptId] || DEFAULT_PROMPT;
+}
+
+// Get custom prompts from localStorage
+function getCustomPrompts() {
+    try {
+        const stored = localStorage.getItem('socialSoxCustomPrompts');
+        return stored ? JSON.parse(stored) : {};
+    } catch (error) {
+        console.error('Error loading custom prompts:', error);
+        return {};
+    }
+}
+
+// Save custom prompts to localStorage
+function saveCustomPrompts(prompts) {
+    localStorage.setItem('socialSoxCustomPrompts', JSON.stringify(prompts));
+}
+
+// Update prompt select options
+function updatePromptSelect(selectedId = null) {
+    const select = document.getElementById('aiPromptSelect');
+    const customPrompts = getCustomPrompts();
+    
+    // Clear existing options except default
+    while (select.options.length > 1) {
+        select.remove(1);
+    }
+    
+    // Add custom prompts
+    Object.keys(customPrompts).forEach(id => {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = id;
+        select.appendChild(option);
+    });
+    
+    // Set selected value
+    if (selectedId && (selectedId === 'default' || customPrompts[selectedId])) {
+        select.value = selectedId;
+    } else {
+        select.value = 'default';
+    }
+    
+    updatePromptDisplay();
+}
+
+// Update the prompt display based on selection
+function updatePromptDisplay() {
+    const selectedValue = document.getElementById('aiPromptSelect').value;
+    const defaultContent = document.getElementById('defaultPromptContent');
+    const customContent = document.getElementById('customPromptContent');
+    const promptTextarea = document.getElementById('aiPrompt');
+    const saveBtn = document.getElementById('savePromptBtn');
+    const deleteBtn = document.getElementById('deletePromptBtn');
+    
+    if (selectedValue === 'default') {
+        defaultContent.classList.remove('hidden');
+        customContent.classList.add('hidden');
+    } else {
+        defaultContent.classList.add('hidden');
+        customContent.classList.remove('hidden');
+        
+        const customPrompts = getCustomPrompts();
+        promptTextarea.value = customPrompts[selectedValue] || '';
+        
+        // Show/hide buttons based on whether this is a custom prompt
+        const isCustom = customPrompts[selectedValue];
+        saveBtn.style.display = isCustom ? 'inline-block' : 'none';
+        deleteBtn.style.display = isCustom ? 'inline-block' : 'none';
+    }
+    
+    // Save selected prompt ID
+    localStorage.setItem('socialSoxSelectedPromptId', selectedValue);
+    saveCredentials();
+}
 
 // AI optimization function
 window.optimizeMessage = async function() {
@@ -103,7 +161,7 @@ window.optimizeMessage = async function() {
         return;
     }
 
-    const prompt = document.getElementById('aiPrompt').value.trim();
+    const prompt = getCurrentAIPrompt();
 
     const optimizeBtn = document.getElementById('optimizeBtn');
     const originalText = optimizeBtn.innerHTML;
@@ -138,6 +196,74 @@ function updateDebugModeStyling(isDebug) {
         messageTextarea.placeholder = "What's on your mind?";
     }
 }
+
+// Modal functions for custom prompts
+window.showAddPromptModal = function() {
+    document.getElementById('addPromptModal').classList.remove('hidden');
+    document.getElementById('newPromptName').value = '';
+    document.getElementById('newPromptContent').value = '';
+    document.getElementById('newPromptName').focus();
+};
+
+window.closeAddPromptModal = function() {
+    document.getElementById('addPromptModal').classList.add('hidden');
+};
+
+window.saveNewPrompt = function() {
+    const name = document.getElementById('newPromptName').value.trim();
+    const content = document.getElementById('newPromptContent').value.trim();
+    
+    if (!name || !content) {
+        window.showToast('Please fill in both name and content', 'error');
+        return;
+    }
+    
+    const customPrompts = getCustomPrompts();
+    if (customPrompts[name]) {
+        window.showToast('A prompt with this name already exists', 'error');
+        return;
+    }
+    
+    customPrompts[name] = content;
+    saveCustomPrompts(customPrompts);
+    updatePromptSelect(name);
+    
+    window.showToast('Custom prompt created successfully!', 'success');
+    closeAddPromptModal();
+};
+
+window.saveCurrentPrompt = function() {
+    const selectedId = document.getElementById('aiPromptSelect').value;
+    if (selectedId === 'default') return;
+    
+    const content = document.getElementById('aiPrompt').value.trim();
+    if (!content) {
+        window.showToast('Please enter prompt content', 'error');
+        return;
+    }
+    
+    const customPrompts = getCustomPrompts();
+    customPrompts[selectedId] = content;
+    saveCustomPrompts(customPrompts);
+    
+    window.showToast('Prompt updated successfully!', 'success');
+};
+
+window.deleteCurrentPrompt = function() {
+    const selectedId = document.getElementById('aiPromptSelect').value;
+    if (selectedId === 'default') return;
+    
+    if (!confirm(`Are you sure you want to delete the "${selectedId}" prompt?`)) {
+        return;
+    }
+    
+    const customPrompts = getCustomPrompts();
+    delete customPrompts[selectedId];
+    saveCustomPrompts(customPrompts);
+    updatePromptSelect('default');
+    
+    window.showToast('Prompt deleted successfully!', 'success');
+};
 
 // Page load
 window.addEventListener('DOMContentLoaded', async () => {
@@ -230,6 +356,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     window.electron.setTrayIcon(trayIconPathStored); const externalLinksStored = localStorage.getItem('socialSoxExternalLinks');
     const externalLinks = externalLinksStored !== null ? externalLinksStored === 'true' : false;
     document.getElementById('externalLinksToggle').checked = externalLinks;
+
+    // Initialize prompt select
+    updatePromptSelect(localStorage.getItem('socialSoxSelectedPromptId') || 'default');
 
     const cachedNotifications = getAllCachedNotifications();
     if (cachedNotifications.length > 0) {
@@ -329,6 +458,12 @@ window.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('optimizeBtn').style.display = isEnabled ? 'block' : 'none';
         saveCredentials();
     });
+
+    // Prompt management
+    document.getElementById('addPromptBtn').addEventListener('click', showAddPromptModal);
+    document.getElementById('aiPromptSelect').addEventListener('change', updatePromptDisplay);
+    document.getElementById('savePromptBtn').addEventListener('click', saveCurrentPrompt);
+    document.getElementById('deletePromptBtn').addEventListener('click', deleteCurrentPrompt);
 
     document.querySelectorAll('.platform-toggle').forEach(btn => {
         btn.addEventListener('click', async function () {
@@ -838,7 +973,10 @@ function resetAllData() {
     document.getElementById('aiOptimizationToggle').checked = false;
     document.getElementById('aiApiKeySection').style.display = 'none';
     document.getElementById('optimizeBtn').style.display = 'none';
-    document.getElementById('aiPrompt').value = 'optimize this message for posting on X/Bluesky/Mastodon. Use max 280-300 characters. Respond only with optimized message.';
+    localStorage.setItem('socialSoxSelectedPromptStyle', 'default');
+    if (document.getElementById('aiPrompt')) {
+        document.getElementById('aiPrompt').value = '';
+    }
 
     Object.keys(window.platforms).forEach(platform => {
         window.platforms[platform] = false;
