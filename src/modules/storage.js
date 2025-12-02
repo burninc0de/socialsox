@@ -248,6 +248,12 @@ export async function importCredentials() {
                 }
                 
                 await saveCredentials();
+                
+                // Update prompt select to show imported prompts
+                if (window.updatePromptSelect) {
+                    window.updatePromptSelect(creds.aiSelectedPromptId || 'default');
+                }
+                
                 window.showStatus('Credentials imported successfully!', 'success');
             } else if (!result.canceled) {
                 window.showStatus('Failed to import credentials: ' + result.error, 'error');
@@ -288,6 +294,12 @@ export async function importCredentials() {
                         }
                         
                         await saveCredentials();
+                        
+                        // Update prompt select to show imported prompts
+                        if (window.updatePromptSelect) {
+                            window.updatePromptSelect(creds.aiSelectedPromptId || 'default');
+                        }
+                        
                         window.showStatus('Credentials imported successfully!', 'success');
                     } catch (error) {
                         window.showStatus('Failed to parse credentials file: ' + error.message, 'error');
