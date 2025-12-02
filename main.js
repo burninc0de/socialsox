@@ -26,6 +26,8 @@ const sharp = require('sharp');
 const configPath = path.join(app.getPath('userData'), 'window-config.json');
 const notificationsPath = path.join(app.getPath('userData'), 'notifications.json');
 const historyPath = path.join(app.getPath('userData'), 'history.json');
+const schedulePath = path.join(app.getPath('userData'), 'schedule.json');
+const syncSettingsPath = path.join(app.getPath('userData'), 'sync-settings.json');
 
 async function getWindowBounds() {
     try {
@@ -74,7 +76,8 @@ async function createWindow() {
             nodeIntegration: false,
             contextIsolation: true,
             enableRemoteModule: false,
-            webSecurity: app.isPackaged,
+            webSecurity: true,
+            allowRunningInsecureContent: false,
             colorScheme: 'system',
             preload: path.join(__dirname, 'preload.js')
         },
@@ -107,7 +110,8 @@ async function createWindow() {
                 nodeIntegration: false,
                 contextIsolation: true,
                 enableRemoteModule: false,
-                webSecurity: app.isPackaged,
+                webSecurity: true,
+                allowRunningInsecureContent: false,
                 preload: path.join(__dirname, 'preload.js')
             },
             icon: trayIconPath,
@@ -234,7 +238,7 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
         // Upload images if provided
         if (imageData) {
             const imageArray = Array.isArray(imageData) ? imageData : [imageData];
-            
+
             for (const imgData of imageArray.slice(0, 4)) {
                 console.log('Twitter: Uploading image...');
                 const base64Data = imgData.split(',')[1];
@@ -633,6 +637,96 @@ ipcMain.handle('delete-history', async () => {
         // File doesn't exist or can't be deleted, that's ok
         return true;
     }
+});
+
+ipcMain.handle('read-scheduled', async () => {
+    try {
+        const data = await fs.readFile(schedulePath, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        return [];
+    }
+});
+
+ipcMain.handle('write-scheduled', async (event, scheduled) => {
+    try {
+        await fs.writeFile(schedulePath, JSON.stringify(scheduled, null, 2));
+        return true;
+    } catch (error) {
+        console.error('Failed to save scheduled posts:', error);
+        return false;
+    }
+});
+
+ipcMain.handle('delete-scheduled', async () => {
+    try {
+        await fs.unlink(schedulePath);
+        return true;
+    } catch (error) {
+        // File doesn't exist or can't be deleted, that's ok
+        return true;
+    }
+});
+
+ipcMain.handle('select-sync-dir', async () => {
+    const result = await dialog.showOpenDialog({
+        properties: ['openDirectory']
+    });
+    return result;
+});
+
+ipcMain.handle('read-sync-settings', async () => {
+    try {
+        const data = await fs.readFile(syncSettingsPath, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        return { enabled: false, path: '' };
+    }
+});
+
+ipcMain.handle('write-sync-settings', async (event, settings) => {
+    try {
+        await fs.writeFile(syncSettingsPath, JSON.stringify(settings, null, 2));
+        return true;
+    } catch (error) {
+        console.error('Failed to save sync settings:', error);
+        return false;
+    }
+});
+
+ipcMain.handle('manual-sync', async (event, syncDirPath) => {
+    const files = [
+        { local: historyPath, remote: path.join(syncDirPath, 'history.json'), merge: false },
+        { local: notificationsPath, remote: path.join(syncDirPath, 'notifications.json'), merge: false },
+        { local: schedulePath, remote: path.join(syncDirPath, 'schedule.json'), merge: false }
+    ];
+
+    for (const file of files) {
+        try {
+            // Check if local file exists
+            const localStat = await fs.stat(file.local).catch(() => null);
+            const remoteStat = await fs.stat(file.remote).catch(() => null);
+
+            if (localStat && remoteStat) {
+                // Both exist, copy newer
+                if (localStat.mtime > remoteStat.mtime) {
+                    await fs.copyFile(file.local, file.remote);
+                } else if (remoteStat.mtime > localStat.mtime) {
+                    await fs.copyFile(file.remote, file.local);
+                }
+            } else if (localStat && (!remoteStat || localStat.mtime > remoteStat.mtime)) {
+                // Local is newer or remote doesn't exist, copy to remote
+                await fs.copyFile(file.local, file.remote);
+            } else if (remoteStat && (!localStat || remoteStat.mtime > localStat.mtime)) {
+                // Remote is newer or local doesn't exist, copy to local
+                await fs.copyFile(file.remote, file.local);
+            }
+        } catch (error) {
+            console.error(`Failed to sync ${file.local}:`, error);
+        }
+    }
+
+    return true;
 });
 
 ipcMain.on('log', (event, message) => {

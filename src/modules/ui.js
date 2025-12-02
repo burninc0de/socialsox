@@ -79,20 +79,55 @@ export function showToast(message, type = 'info', duration = 3000) {
 
 export function updateCharCount() {
     const message = document.getElementById('message').value;
-    const count = message.length;
+    const charCount = message.length;
+    const graphemeCount = countGraphemes(message);
     const countEl = document.getElementById('charCount');
     
-    countEl.textContent = `${count} characters`;
+    // Get selected platforms
+    const selectedPlatforms = Object.keys(window.platforms || {}).filter(p => window.platforms[p]);
+    
+    let warnings = [];
+    let isOverLimit = false;
+    
+    if (selectedPlatforms.includes('twitter') && charCount > 280) {
+        warnings.push('Twitter (280 chars)');
+        isOverLimit = true;
+    }
+    
+    if (selectedPlatforms.includes('bluesky') && graphemeCount > 300) {
+        warnings.push('Bluesky (300 graphemes)');
+        isOverLimit = true;
+    }
+    
+    // For Mastodon, no strict limit, but show if over 500 for warning
+    if (selectedPlatforms.includes('mastodon') && charCount > 500) {
+        warnings.push('Mastodon (500+ chars)');
+        isOverLimit = true;
+    }
     
     countEl.className = 'text-right text-xs mb-5';
     
-    if (count > 280) {
+    if (isOverLimit) {
+        if (charCount === graphemeCount) {
+            countEl.textContent = `${charCount} characters - Over limit for: ${warnings.join(', ')}`;
+        } else {
+            countEl.textContent = `${charCount} chars / ${graphemeCount} graphemes - Over limit for: ${warnings.join(', ')}`;
+        }
         countEl.classList.add('text-red-500');
-    } else if (count > 250) {
-        countEl.classList.add('text-orange-500');
     } else {
+        if (charCount === graphemeCount) {
+            countEl.textContent = `${charCount} characters`;
+        } else {
+            countEl.textContent = `${charCount} chars / ${graphemeCount} graphemes`;
+        }
         countEl.classList.add('text-gray-500', 'dark:text-gray-400');
     }
+}
+
+function countGraphemes(str) {
+    if (!str) return 0;
+    const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
+    return [...segmenter.segment(str)].length;
 }
 
 export function switchTab(tab) {
@@ -121,6 +156,11 @@ export function switchTab(tab) {
     // Load and display history when switching to history tab
     if (tab === 'history' && window.loadAndDisplayHistory) {
         window.loadAndDisplayHistory();
+    }
+    
+    // Load and display scheduled posts when switching to scheduled tab
+    if (tab === 'scheduled' && window.loadAndDisplayScheduled) {
+        window.loadAndDisplayScheduled();
     }
     
     // Clear status message when switching tabs

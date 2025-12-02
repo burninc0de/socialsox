@@ -18,6 +18,14 @@ export async function getAllCachedNotifications() {
 export async function saveAllNotifications(notifications) {
     try {
         await window.electron.writeNotifications(notifications);
+        // Trigger sync if enabled
+        if (window.syncEnabled && window.syncDirPath) {
+            try {
+                await window.manualSync();
+            } catch (syncError) {
+                console.error('Failed to sync after saving notifications:', syncError);
+            }
+        }
     } catch (error) {
         console.error('Failed to save notifications:', error);
     }
@@ -557,10 +565,13 @@ async function displayNotifications(notifications) {
     noNotifications.style.display = 'none';
     
     const assetsPath = await window.electron.getAssetsPath();
+    const mastodonIcon = await window.electron.readFileAsDataURL(`${assetsPath}/masto.svg`);
+    const twitterIcon = await window.electron.readFileAsDataURL(`${assetsPath}/twit.svg`);
+    const blueskyIcon = await window.electron.readFileAsDataURL(`${assetsPath}/bsky.svg`);
     const platformIcons = {
-        mastodon: `<img src="file://${assetsPath}/masto.svg" alt="M" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`,
-        twitter: `<img src="file://${assetsPath}/twit.svg" alt="X" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`,
-        bluesky: `<img src="file://${assetsPath}/bsky.svg" alt="B" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`
+        mastodon: `<img src="${mastodonIcon}" alt="M" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`,
+        twitter: `<img src="${twitterIcon}" alt="X" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`,
+        bluesky: `<img src="${blueskyIcon}" alt="B" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`
     };
     
     const typeLabels = {
@@ -572,6 +583,17 @@ async function displayNotifications(notifications) {
         repost: 'Reposted',
         follow: 'Followed you',
         quote: 'Quoted you'
+    };
+    
+    const typeIcons = {
+        mention: '<i data-lucide="message-circle" class="w-3 h-3 inline-block text-primary-600 dark:text-gray-200"></i>',
+        reply: '<i data-lucide="message-circle" class="w-3 h-3 inline-block text-primary-600 dark:text-gray-200"></i>',
+        reblog: '<i data-lucide="repeat-2" class="w-3 h-3 inline-block text-primary-600 dark:text-gray-200"></i>',
+        favourite: '<i data-lucide="heart" class="w-3 h-3 inline-block text-primary-600 dark:text-gray-200"></i>',
+        like: '<i data-lucide="heart" class="w-3 h-3 inline-block text-primary-600 dark:text-gray-200"></i>',
+        repost: '<i data-lucide="repeat-2" class="w-3 h-3 inline-block text-primary-600 dark:text-gray-200"></i>',
+        follow: '<i data-lucide="user-plus" class="w-3 h-3 inline-block text-primary-600 dark:text-gray-200"></i>',
+        quote: '<i data-lucide="quote" class="w-3 h-3 inline-block text-primary-600 dark:text-gray-200"></i>'
     };
     
     notificationsList.innerHTML = visibleNotifications.map(notif => {
@@ -601,7 +623,8 @@ async function displayNotifications(notifications) {
                         ${platformIcons[notif.platform] || ''}
                         <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">${notif.platform.toUpperCase()}</span>
                         <span class="text-xs text-gray-500 dark:text-gray-400">•</span>
-                        <span class="text-xs text-primary-600 dark:text-primary-400">${typeLabel}</span>
+                        ${typeIcons[notif.type] || ''}
+                        <span class="text-xs text-primary-600 dark:text-gray-200 ml-1">${typeLabel}</span>
                         ${unseenBadge}
                     </div>
                     <div class="flex items-center gap-2">
@@ -627,8 +650,13 @@ async function displayNotifications(notifications) {
                 })()}
                 ${notif.replyingTo ? `<div class="mb-2 p-2 bg-gray-100 dark:bg-gray-600 rounded text-xs text-gray-600 dark:text-gray-400"><strong>Replying to:</strong> ${notif.replyingTo.substring(0, 150)}${notif.replyingTo.length > 150 ? '...' : ''}</div>` : ''}
                 ${notif.quotingTo ? `<div class="mb-2 p-2 bg-gray-100 dark:bg-gray-600 rounded text-xs text-gray-600 dark:text-gray-400"><strong>Quoting:</strong> ${notif.quotingTo.substring(0, 150)}${notif.quotingTo.length > 150 ? '...' : ''}</div>` : ''}
-                ${notif.url ? `<a href="${notif.url}" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">View on ${notif.platform}</a>` : ''}
+                ${notif.url ? `<a href="${notif.url}" class="text-xs text-primary-600 dark:text-gray-200 hover:underline">View on ${notif.platform}</a>` : ''}
             </div>
         `;
     }).join('');
+    
+    // Initialize Lucide icons for newly added elements
+    if (window.lucide && window.lucide.createIcons && window.lucideIcons) {
+        window.lucide.createIcons({ icons: window.lucideIcons });
+    }
 }

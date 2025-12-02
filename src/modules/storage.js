@@ -1,5 +1,7 @@
 // Credentials and settings storage management
 
+const DEFAULT_AI_PROMPT = "Rewrite this message to fit in about 300 characters. DO NOT change the tone or voice. Trim if necessary. Suggest relevant hashtags if we have space.";
+
 export async function saveCredentials() {
     const sensitiveCreds = {
         mastodonToken: document.getElementById('mastodon-token').value,
@@ -7,7 +9,8 @@ export async function saveCredentials() {
         twitterSecret: document.getElementById('twitter-secret').value,
         twitterToken: document.getElementById('twitter-token').value,
         twitterTokenSecret: document.getElementById('twitter-token-secret').value,
-        blueskyPassword: document.getElementById('bluesky-password').value
+        blueskyPassword: document.getElementById('bluesky-password').value,
+        grokApiKey: document.getElementById('grok-api-key').value
     };
 
     const settings = {
@@ -24,7 +27,9 @@ export async function saveCredentials() {
             twitter: document.getElementById('excludeTwitterNotifications').checked,
             bluesky: document.getElementById('excludeBlueskyNotifications').checked
         },
-        windowControlsStyle: document.getElementById('windowControlsStyle').value || 'macos-circles'
+        windowControlsStyle: document.getElementById('windowControlsStyle').value || 'macos-circles',
+        aiOptimizationEnabled: document.getElementById('aiOptimizationToggle').checked,
+        aiSelectedPromptId: localStorage.getItem('socialSoxSelectedPromptId') || 'default'
     };
 
     try {
@@ -77,7 +82,8 @@ export async function loadCredentials() {
                         twitterSecret: creds.twitterSecret || '',
                         twitterToken: creds.twitterToken || '',
                         twitterTokenSecret: creds.twitterTokenSecret || '',
-                        blueskyPassword: creds.blueskyPassword || ''
+                        blueskyPassword: creds.blueskyPassword || '',
+                        grokApiKey: creds.grokApiKey || ''
                     };
                     settings = {
                         mastodonInstance: creds.mastodonInstance || '',
@@ -103,6 +109,7 @@ export async function loadCredentials() {
         document.getElementById('twitter-token-secret').value = sensitiveCreds.twitterTokenSecret || '';
         document.getElementById('bluesky-handle').value = settings.blueskyHandle || '';
         document.getElementById('bluesky-password').value = sensitiveCreds.blueskyPassword || '';
+        document.getElementById('grok-api-key').value = sensitiveCreds.grokApiKey || '';
         
         if (settings.platforms) {
             Object.assign(window.platforms, settings.platforms);
@@ -139,17 +146,31 @@ export async function loadCredentials() {
         // Apply window controls style
         updateWindowControlsStyle(settings.windowControlsStyle || 'macos-circles');
         
+        // Load AI optimization settings
+        const aiOptimizationEnabled = settings.aiOptimizationEnabled || false;
+        document.getElementById('aiOptimizationToggle').checked = aiOptimizationEnabled;
+        document.getElementById('aiApiKeySection').style.display = aiOptimizationEnabled ? 'block' : 'none';
+        document.getElementById('optimizeBtn').style.display = aiOptimizationEnabled ? 'block' : 'none';
+        document.getElementById('cropBtn').style.display = aiOptimizationEnabled ? 'block' : 'none';
+        document.getElementById('hashtagBtn').style.display = aiOptimizationEnabled ? 'block' : 'none';
+        document.getElementById('grammarBtn').style.display = aiOptimizationEnabled ? 'block' : 'none';
+        document.getElementById('aiPromptSelectContainer').style.display = aiOptimizationEnabled ? 'block' : 'none';
+        
+        // Load selected prompt ID
+        const selectedPromptId = settings.aiSelectedPromptId || 'default';
+        localStorage.setItem('socialSoxSelectedPromptId', selectedPromptId);
+        
+        // Update prompt select (this will be called after DOM is ready)
+        setTimeout(() => {
+            if (window.updatePromptSelect) {
+                window.updatePromptSelect(selectedPromptId);
+            }
+        }, 100);
+        
         document.querySelectorAll('.platform-toggle').forEach(btn => {
             const platform = btn.dataset.platform;
             const isActive = window.platforms[platform];
             btn.classList.toggle('active', isActive);
-            if (isActive) {
-                btn.classList.remove('border-gray-300', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
-                btn.classList.add('border-primary-500', 'bg-primary-500', 'text-white');
-            } else {
-                btn.classList.add('border-gray-300', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
-                btn.classList.remove('border-primary-500', 'bg-primary-500', 'text-white');
-            }
         });
     } catch (error) {
         console.error('Error loading credentials from localStorage:', error);
@@ -167,7 +188,11 @@ export async function exportCredentials() {
             twitterToken: document.getElementById('twitter-token').value,
             twitterTokenSecret: document.getElementById('twitter-token-secret').value,
             blueskyHandle: document.getElementById('bluesky-handle').value,
-            blueskyPassword: document.getElementById('bluesky-password').value
+            blueskyPassword: document.getElementById('bluesky-password').value,
+            grokApiKey: document.getElementById('grok-api-key').value,
+            aiOptimizationEnabled: document.getElementById('aiOptimizationToggle').checked,
+            aiSelectedPromptId: localStorage.getItem('socialSoxSelectedPromptId') || 'default',
+            aiCustomPrompts: localStorage.getItem('socialSoxCustomPrompts') || '{}'
         };
 
         if (window.electron && window.electron.exportCredentials) {
@@ -209,8 +234,32 @@ export async function importCredentials() {
                 document.getElementById('twitter-token-secret').value = creds.twitterTokenSecret || '';
                 document.getElementById('bluesky-handle').value = creds.blueskyHandle || '';
                 document.getElementById('bluesky-password').value = creds.blueskyPassword || '';
+                document.getElementById('grok-api-key').value = creds.grokApiKey || '';
+                document.getElementById('aiOptimizationToggle').checked = creds.aiOptimizationEnabled || false;
+                document.getElementById('aiApiKeySection').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                document.getElementById('optimizeBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                document.getElementById('cropBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                document.getElementById('hashtagBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                document.getElementById('grammarBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                document.getElementById('aiPromptSelectContainer').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                
+                // Import custom prompts
+                if (creds.aiCustomPrompts) {
+                    localStorage.setItem('socialSoxCustomPrompts', creds.aiCustomPrompts);
+                }
+                
+                // Import selected prompt ID
+                if (creds.aiSelectedPromptId) {
+                    localStorage.setItem('socialSoxSelectedPromptId', creds.aiSelectedPromptId);
+                }
                 
                 await saveCredentials();
+                
+                // Update prompt select to show imported prompts
+                if (window.updatePromptSelect) {
+                    window.updatePromptSelect(creds.aiSelectedPromptId || 'default');
+                }
+                
                 window.showStatus('Credentials imported successfully!', 'success');
             } else if (!result.canceled) {
                 window.showStatus('Failed to import credentials: ' + result.error, 'error');
@@ -234,8 +283,32 @@ export async function importCredentials() {
                         document.getElementById('twitter-token-secret').value = creds.twitterTokenSecret || '';
                         document.getElementById('bluesky-handle').value = creds.blueskyHandle || '';
                         document.getElementById('bluesky-password').value = creds.blueskyPassword || '';
+                        document.getElementById('grok-api-key').value = creds.grokApiKey || '';
+                        document.getElementById('aiOptimizationToggle').checked = creds.aiOptimizationEnabled || false;
+                        document.getElementById('aiApiKeySection').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                        document.getElementById('optimizeBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                        document.getElementById('cropBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                        document.getElementById('hashtagBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                        document.getElementById('grammarBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                        document.getElementById('aiPromptSelectContainer').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                        
+                        // Import custom prompts
+                        if (creds.aiCustomPrompts) {
+                            localStorage.setItem('socialSoxCustomPrompts', creds.aiCustomPrompts);
+                        }
+                        
+                        // Import selected prompt ID
+                        if (creds.aiSelectedPromptId) {
+                            localStorage.setItem('socialSoxSelectedPromptId', creds.aiSelectedPromptId);
+                        }
                         
                         await saveCredentials();
+                        
+                        // Update prompt select to show imported prompts
+                        if (window.updatePromptSelect) {
+                            window.updatePromptSelect(creds.aiSelectedPromptId || 'default');
+                        }
+                        
                         window.showStatus('Credentials imported successfully!', 'success');
                     } catch (error) {
                         window.showStatus('Failed to parse credentials file: ' + error.message, 'error');

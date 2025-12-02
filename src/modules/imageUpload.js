@@ -250,3 +250,9 @@ export function getSelectedImages() {
 export function getSelectedImage() {
     return selectedImages[0] || null;
 }
+
+export function setSelectedImages(files) {
+    selectedImages = files;
+    refreshImagePreviews();
+    updateImageUploadUI();
+}

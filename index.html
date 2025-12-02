@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SocialSox - Multi-Platform Poster</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' http://localhost:*; style-src 'self' 'unsafe-inline' http://localhost:*; img-src 'self' data: http://localhost:*; font-src 'self' http://localhost:*; connect-src 'self' https: data:;">
     <link rel="stylesheet" href="./style.css">
 </head>
 
@@ -29,6 +30,11 @@
     <!-- Toast Container -->
     <div id="toastContainer" class="fixed top-20 right-5 z-50 space-y-2"></div>
 
+    <!-- Sync Indicator -->
+    <div id="syncIndicator" class="fixed bottom-5 right-5 z-50 hidden">
+        <i data-lucide="refresh-cw" class="w-6 h-6 text-primary-500 animate-spin"></i>
+    </div>
+
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full p-10 min-h-[700px]">
         <!-- Tabs -->
         <div class="flex justify-between mb-6 border-b border-gray-200 dark:border-gray-700">
@@ -44,6 +50,12 @@
                     data-tab="history">
                     <i data-lucide="history" class="w-4 h-4"></i>
                     History
+                </button>
+                <button id="scheduledTab"
+                    class="tab-button px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 border-b-2 border-transparent bg-transparent cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center gap-2"
+                    data-tab="scheduled">
+                    <i data-lucide="clock" class="w-4 h-4"></i>
+                    Scheduled
                 </button>
                 <button id="notificationsTab"
                     class="tab-button px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 border-b-2 border-transparent bg-transparent cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center gap-2"
@@ -67,25 +79,34 @@
             <!-- Platform Toggles -->
             <div class="flex gap-2.5 mb-5">
                 <button
-                    class="platform-toggle flex-1 px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer transition-all duration-300 text-sm font-semibold hover:-translate-y-0.5"
+                    class="platform-toggle"
                     data-platform="mastodon">
                     <img src="assets/masto.svg" alt="Mastodon" class="w-5 h-5 mr-2 inline-block align-middle"> Mastodon
                 </button>
                 <button
-                    class="platform-toggle flex-1 px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer transition-all duration-300 text-sm font-semibold hover:-translate-y-0.5"
+                    class="platform-toggle"
                     data-platform="twitter">
                     <img src="assets/twit.svg" alt="Twitter" class="w-5 h-5 mr-2 inline-block align-middle"> Twitter
                 </button>
                 <button
-                    class="platform-toggle flex-1 px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer transition-all duration-300 text-sm font-semibold hover:-translate-y-0.5"
+                    class="platform-toggle"
                     data-platform="bluesky">
                     <img src="assets/bsky.svg" alt="Bluesky" class="w-5 h-5 mr-2 inline-block align-middle"> Bluesky
                 </button>
             </div>
 
             <!-- Message Input -->
-            <textarea id="message" placeholder="What's on your mind?"
-                class="w-full min-h-[150px] p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-base resize-y mb-4 transition-colors bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500"></textarea>
+            <div class="relative mb-4">
+                <textarea id="message" placeholder="What's on your mind?"
+                    class="w-full min-h-[150px] p-4 pr-10 pb-8 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-base transition-colors bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500"></textarea>
+                <div id="message-resize-handle" class="absolute bottom-3 right-1 cursor-ns-resize z-10 text-gray-400 dark:text-gray-500">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M12 6L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M12 10L10 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+            </div>
             <div class="text-right text-gray-500 dark:text-gray-400 text-xs mb-5" id="charCount">0 characters</div>
 
             <!-- Image Upload -->
@@ -103,11 +124,59 @@
                 </div>
             </div>
 
-            <!-- Post Button -->
-            <button id="postBtn" onclick="postToAll()"
-                class="w-full py-3.5 px-4 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-lg text-base font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                Post to Selected Platforms
-            </button>
+            <!-- AI Prompt Select -->
+            <div class="mb-4" id="aiPromptSelectContainer" style="display: none;">
+                <label class="block text-sm text-gray-600 dark:text-gray-400 mb-2">SocialSox Spice:</label>
+                <div class="flex gap-2">
+                    <div class="relative flex-1">
+                        <select id="postAiPromptSelect" onchange="updatePostPromptSelection()"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer hover:border-primary-500 focus:outline-none focus:border-primary-500 appearance-none pr-8">
+                            <option value="default">Default</option>
+                        </select>
+                        <i data-lucide="chevron-down"
+                            class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400 pointer-events-none"></i>
+                    </div>
+                    <button id="cropBtn" onclick="cropMessage()" style="display: none;"
+                        class="py-2 px-3 bg-gray-600 hover:bg-gray-700 text-white border-0 rounded-md text-sm font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                        title="Shorten to 280 characters">
+                        <i data-lucide="scissors" class="w-4 h-4"></i>
+                    </button>
+                    <button id="hashtagBtn" onclick="addHashtags()" style="display: none;"
+                        class="py-2 px-3 bg-gray-600 hover:bg-gray-700 text-white border-0 rounded-md text-sm font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                        title="Add hashtags">
+                        <i data-lucide="hash" class="w-4 h-4"></i>
+                    </button>
+                    <button id="grammarBtn" onclick="fixGrammar()" style="display: none;"
+                        class="py-2 px-3 bg-gray-600 hover:bg-gray-700 text-white border-0 rounded-md text-sm font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                        title="Fix spelling and grammar">
+                        <i data-lucide="languages" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Post Button with Time Dropdown -->
+            <div class="flex gap-2">
+                <button id="optimizeBtn" onclick="optimizeMessage()" style="display: none;"
+                    class="py-3.5 px-4 bg-purple-600 hover:bg-purple-700 text-white border-0 rounded-lg text-base font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2">
+                    <i data-lucide="wand-sparkles" class="w-4 h-4"></i>
+                </button>
+                <button id="postBtn" onclick="postToAll()"
+                    class="flex-1 py-3.5 px-4 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-lg text-base font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    Post to Selected Platforms
+                </button>
+                <div class="relative">
+                    <select id="scheduleTimeSelect"
+                        class="h-full px-4 py-3.5 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer hover:border-primary-500 focus:outline-none focus:border-primary-500 appearance-none pr-10">
+                        <option value="now"> Now</option>
+                        <option value="0.083"> 5 minutes</option>
+                        <option value="1"> 1 hour</option>
+                        <option value="2"> 2 hours</option>
+                        <option value="3"> 3 hours</option>
+                    </select>
+                    <i data-lucide="chevron-down"
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400 pointer-events-none"></i>
+                </div>
+            </div>
 
             <!-- Platform Status Messages -->
             <div id="platformStatuses" class="mt-5 space-y-2 hidden">
@@ -124,17 +193,105 @@
         <div id="historyContent" class="tab-content hidden">
             <div class="flex items-center justify-between mb-8">
                 <p class="text-gray-600 dark:text-gray-400 text-sm">View your posting history</p>
-                <button onclick="clearHistory()"
-                    class="px-2 py-1 text-xs bg-gray-200 hover:bg-red-600 dark:bg-gray-600 dark:hover:bg-red-600 text-gray-600 hover:text-white dark:text-gray-400 dark:hover:text-white border-0 rounded cursor-pointer transition-colors flex items-center gap-1">
-                    <i data-lucide="trash-2" class="w-3 h-3"></i>
-                    Clear History
-                </button>
+                <div class="flex gap-2">
+                    <button onclick="showStats()"
+                        class="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white border-0 rounded cursor-pointer transition-colors flex items-center gap-1">
+                        <i data-lucide="bar-chart-3" class="w-3 h-3"></i>
+                        Stats
+                    </button>
+                    <button onclick="clearHistory()"
+                        class="px-2 py-1 text-xs bg-gray-200 hover:bg-red-600 dark:bg-gray-600 dark:hover:bg-red-600 text-gray-600 hover:text-white dark:text-gray-400 dark:hover:text-white border-0 rounded cursor-pointer transition-colors flex items-center gap-1">
+                        <i data-lucide="trash-2" class="w-3 h-3"></i>
+                        Clear History
+                    </button>
+                </div>
             </div>
             <div id="historyList" class="space-y-4 max-h-[550px] overflow-y-auto pr-3">
                 <!-- History items will be inserted here -->
             </div>
             <div id="noHistory" class="text-center text-gray-500 dark:text-gray-400 py-8">
                 No posts yet. Start posting to see your history here!
+            </div>
+        </div>
+
+        <!-- Stats Modal -->
+        <div id="statsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-6 p-6 pb-0">
+                    <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">Posting Statistics</h2>
+                    <button onclick="closeStatsModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+                <div class="px-6 pb-6">
+                    <!-- Summary Stats -->
+                    <div id="statsSummary" class="mb-8">
+                        <!-- Stats will be inserted here -->
+                    </div>
+
+                    <!-- Charts Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <!-- Daily Posts Chart -->
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Posts Over Time</h3>
+                            <div class="h-64">
+                                <canvas id="dailyChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Hourly Distribution -->
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Posts by Hour</h3>
+                            <div class="h-64">
+                                <canvas id="hourlyChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Charts Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Weekly Distribution -->
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Posts by Day of Week</h3>
+                            <div class="h-64 max-w-md mx-auto">
+                                <canvas id="weeklyChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Notifications -->
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Notifications</h3>
+                            <div class="h-64">
+                                <canvas id="metricsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scheduled Tab Content -->
+        <div id="scheduledContent" class="tab-content hidden">
+            <div class="flex items-center justify-between mb-8">
+                <p class="text-gray-600 dark:text-gray-400 text-sm">View and manage your scheduled posts</p>
+                <div class="flex gap-2">
+                    <button onclick="normalizeScheduled()"
+                        class="px-2 py-1 text-xs bg-blue-500 hover:bg-blue-600 text-white border-0 rounded cursor-pointer transition-colors flex items-center gap-1">
+                        <i data-lucide="align-justify" class="w-3 h-3"></i>
+                        Normalize
+                    </button>
+                    <button onclick="clearScheduled()"
+                        class="px-2 py-1 text-xs bg-gray-200 hover:bg-red-600 dark:bg-gray-600 dark:hover:bg-red-600 text-gray-600 hover:text-white dark:text-gray-400 dark:hover:text-white border-0 rounded cursor-pointer transition-colors flex items-center gap-1">
+                        <i data-lucide="trash-2" class="w-3 h-3"></i>
+                        Clear All
+                    </button>
+                </div>
+            </div>
+            <div id="scheduledList" class="space-y-4 max-h-[550px] overflow-y-auto pr-3">
+                <!-- Scheduled items will be inserted here -->
+            </div>
+            <div id="noScheduled" class="text-center text-gray-500 dark:text-gray-400 py-8">
+                No scheduled posts. Use the time dropdown next to the Post button to schedule posts for later!
             </div>
         </div>
 
@@ -175,7 +332,8 @@
         <div id="settingsContent" class="tab-content hidden">
             <div class="flex justify-between items-center mb-8">
                 <p class="text-gray-600 dark:text-gray-400 text-sm">Configure your preferences and API credentials</p>
-                <button id="versionPill" class="version-pill px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer">
+                <button id="versionPill"
+                    class="version-pill px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer">
                     v<span id="version"></span>
                 </button>
             </div>
@@ -192,12 +350,8 @@
                         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Dark Mode</span>
                         <div class="relative">
                             <input type="checkbox" id="darkModeToggle" class="sr-only" checked>
-                            <div
-                                class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
-                            </div>
-                            <div
-                                class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
-                            </div>
+                            <div class="toggle-switch"></div>
+                            <div class="toggle-dot"></div>
                         </div>
                     </label>
                 </div>
@@ -208,12 +362,8 @@
                         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Show Tray Icon</span>
                         <div class="relative">
                             <input type="checkbox" id="trayIconToggle" class="sr-only">
-                            <div
-                                class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
-                            </div>
-                            <div
-                                class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
-                            </div>
+                            <div class="toggle-switch"></div>
+                            <div class="toggle-dot"></div>
                         </div>
                     </label>
                 </div>
@@ -230,7 +380,8 @@
                             <button onclick="chooseTrayIcon()"
                                 class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors">Choose</button>
                             <button id="resetTrayIconBtn" onclick="resetTrayIcon()" style="display: none;"
-                                class="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors">Reset to Default</button>
+                                class="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors">Reset
+                                to Default</button>
                         </div>
                     </div>
                 </div>
@@ -242,12 +393,8 @@
                             Browser</span>
                         <div class="relative">
                             <input type="checkbox" id="externalLinksToggle" class="sr-only">
-                            <div
-                                class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
-                            </div>
-                            <div
-                                class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
-                            </div>
+                            <div class="toggle-switch"></div>
+                            <div class="toggle-dot"></div>
                         </div>
                     </label>
                 </div>
@@ -255,15 +402,12 @@
                 <!-- Debug Mode Toggle -->
                 <div class="mb-6">
                     <label class="flex items-center justify-between cursor-pointer">
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Debug Mode (Skip Actual Posting)</span>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Debug Mode (Skip Actual
+                            Posting)</span>
                         <div class="relative">
                             <input type="checkbox" id="debugModeToggle" class="sr-only">
-                            <div
-                                class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
-                            </div>
-                            <div
-                                class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
-                            </div>
+                            <div class="toggle-switch"></div>
+                            <div class="toggle-dot"></div>
                         </div>
                     </label>
                 </div>
@@ -282,6 +426,45 @@
                                 class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400 pointer-events-none"></i>
                         </div>
                     </label>
+                </div>
+
+                <!-- Data Sync -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Data Synchronization</h3>
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-4">Sync history, notifications, and scheduled posts across devices using a shared folder (e.g., Dropbox, OneDrive).</p>
+
+                    <!-- Enable Sync Toggle -->
+                    <div class="mb-4">
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Enable Sync</span>
+                            <div class="relative">
+                                <input type="checkbox" id="syncEnabledToggle" class="sr-only">
+                                <div class="toggle-switch"></div>
+                                <div class="toggle-dot"></div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Sync Directory -->
+                    <div id="syncDirSection" class="mb-4" style="display: none;">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sync Directory</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="syncDirPath" placeholder="Select a directory..." readonly
+                                class="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                            <button type="button" onclick="selectSyncDir()"
+                                class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors">Browse</button>
+                        </div>
+                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Choose a folder accessible from all your devices.</p>
+                    </div>
+
+                    <!-- Manual Sync Button -->
+                    <div id="manualSyncSection" class="mb-4" style="display: none;">
+                        <button type="button" onclick="manualSync()"
+                            class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                            Sync Now
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -310,7 +493,7 @@
                                 id="twitterIntervalValue">60</span> minutes</label>
                         <input type="range" id="twitterInterval" min="1" max="60" value="60" step="1"
                             class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-xs text-red-600 dark:text-red-400 mt-1">⚠️ Default 60min to avoid Twitter's daily
+                        <p class="text-xs  text-gray-600 dark:text-gray-400 mt-1">Default 60min to avoid Twitter's daily
                             limits (25/day). Free: ≥15min. Paid: shorter OK. <a
                                 href="https://docs.x.com/x-api/fundamentals/rate-limits" target="_blank"
                                 class="underline hover:no-underline">More info</a></p>
@@ -339,12 +522,8 @@
                             </span>
                             <div class="relative">
                                 <input type="checkbox" id="excludeMastodonNotifications" class="sr-only">
-                                <div
-                                    class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
-                                </div>
-                                <div
-                                    class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
-                                </div>
+                                <div class="toggle-switch"></div>
+                                <div class="toggle-dot"></div>
                             </div>
                         </label>
                     </div>
@@ -357,12 +536,8 @@
                             </span>
                             <div class="relative">
                                 <input type="checkbox" id="excludeTwitterNotifications" class="sr-only">
-                                <div
-                                    class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
-                                </div>
-                                <div
-                                    class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
-                                </div>
+                                <div class="toggle-switch"></div>
+                                <div class="toggle-dot"></div>
                             </div>
                         </label>
                     </div>
@@ -375,12 +550,8 @@
                             </span>
                             <div class="relative">
                                 <input type="checkbox" id="excludeBlueskyNotifications" class="sr-only">
-                                <div
-                                    class="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full shadow-inner transition-colors">
-                                </div>
-                                <div
-                                    class="dot absolute w-4 h-4 bg-white rounded-full shadow top-1 left-0.5 transition transform">
-                                </div>
+                                <div class="toggle-switch"></div>
+                                <div class="toggle-dot"></div>
                             </div>
                         </label>
                     </div>
@@ -494,6 +665,72 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- AI Optimization Section -->
+                <div
+                    class="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <h4 class="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
+                        <i data-lucide="wand-sparkles" class="w-4 h-4"></i> AI Optimization
+                    </h4>
+                    <div class="space-y-3">
+                        <div class="mb-4">
+                            <label class="flex items-center justify-between cursor-pointer">
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Enable AI Optimization</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="aiOptimizationToggle" class="sr-only">
+                                    <div class="toggle-switch"></div>
+                                    <div class="toggle-dot"></div>
+                                </div>
+                            </label>
+                        </div>
+                        <div id="aiApiKeySection" style="display: none;">
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Grok API Key:</label>
+                            <input type="password" id="grok-api-key" placeholder="Your Grok API key"
+                                class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 mt-3 font-medium">AI Prompt:</label>
+                            <div class="flex gap-2 mb-3">
+                                <div class="relative flex-1">
+                                    <select id="aiPromptSelect" class="appearance-none p-2.5 pr-8 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500 w-full">
+                                        <option value="default">Default</option>
+                                    </select>
+                                    <i data-lucide="chevron-down" class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400 pointer-events-none"></i>
+                                </div>
+                                <button id="addPromptBtn" type="button" class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors flex items-center justify-center">
+                                    <i data-lucide="plus" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <div id="promptContent" class="mb-3">
+                                <div id="defaultPromptContent">
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">Optimize for social media: keep under 300 characters, maintain original tone, add relevant hashtags if space allows.</p>
+                                </div>
+                                <div id="customPromptContent" class="hidden">
+                                    <textarea id="aiPrompt" placeholder="Enter your custom AI prompt"
+                                        class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500" rows="4"></textarea>
+                                    <div class="flex gap-1 mt-2 justify-end">
+                                        <button id="savePromptBtn" type="button" class="px-2 py-1 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1">
+                                            <i data-lucide="save" class="w-3 h-3"></i>
+                                            Save
+                                        </button>
+                                        <button id="deletePromptBtn" type="button" class="px-2 py-1 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1">
+                                            <i data-lucide="trash-2" class="w-3 h-3"></i>
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" id="testGrokBtn" onclick="testGrok()"
+                                class="w-full mt-3 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2">
+                                <i data-lucide="check-circle" class="w-3 h-3"></i>
+                                Test Configuration
+                            </button>
+                        </div>
+                        <button type="button" id="testBlueskyBtn" onclick="testBluesky()"
+                            class="w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2">
+                            <i data-lucide="check-circle" class="w-3 h-3"></i>
+                            Test Configuration
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- Import/Export Buttons -->
@@ -517,27 +754,70 @@
         </div>
 
         <!-- About Modal -->
-        <div id="aboutModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div id="aboutModal"
+            class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
             <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-8">
                 <div class="text-center">
                     <img src="appicon.png" alt="SocialSox" class="w-20 h-20 mx-auto mb-6 rounded-xl">
                     <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">SocialSox</h2>
                     <p class="text-gray-600 dark:text-gray-400 mb-6">v<span id="modalVersion"></span></p>
                     <p class="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
-                        A simple, local-only web application for posting short messages to Mastodon, Twitter, and Bluesky simultaneously.
+                        A simple, local-only web application for posting short messages to Mastodon, Twitter, and
+                        Bluesky simultaneously.
                     </p>
                     <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Technical Information</h3>
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Technical Information
+                        </h3>
                         <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                             <p><strong>Developer:</strong> André Klein</p>
-                            <p><strong>GitHub:</strong> <a href="https://github.com/burninc0de/socialsox" class="text-primary-600 dark:text-primary-400 hover:underline" target="_blank">burninc0de/socialsox</a></p>
+                            <p><strong>GitHub:</strong> <a href="https://github.com/burninc0de/socialsox"
+                                    class="text-primary-600 dark:text-primary-400 hover:underline"
+                                    target="_blank">burninc0de/socialsox</a></p>
                             <p><strong>License:</strong> MIT</p>
                             <p><strong>Built with:</strong> Electron, Vite, Tailwind CSS</p>
-                            <p><strong>Icons:</strong> <a href="https://lucide.dev/" class="text-primary-600 dark:text-primary-400 hover:underline" target="_blank">Lucide</a> (main icons), <a href="https://fontawesome.com/" class="text-primary-600 dark:text-primary-400 hover:underline" target="_blank">Font Awesome</a> (socks glyph, CC BY 4.0)</p>
+                            <p><strong>Icons:</strong> <a href="https://lucide.dev/"
+                                    class="text-primary-600 dark:text-primary-400 hover:underline"
+                                    target="_blank">Lucide</a> (main icons), <a href="https://fontawesome.com/"
+                                    class="text-primary-600 dark:text-primary-400 hover:underline" target="_blank">Font
+                                    Awesome</a> (socks glyph, CC BY 4.0)</p>
                         </div>
                     </div>
-                    <button onclick="closeAboutModal()" class="mt-8 px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                    <button onclick="closeAboutModal()"
+                        class="mt-8 px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
                         Close
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Prompt Modal -->
+        <div id="addPromptModal"
+            class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-8">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">Create Custom Prompt</h2>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">Give your prompt a name and define its behavior</p>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Prompt Name</label>
+                        <input type="text" id="newPromptName" placeholder="e.g., Professional Tone, Concise Version"
+                            class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Prompt Content</label>
+                        <textarea id="newPromptContent" placeholder="Describe how the AI should optimize your messages..."
+                            class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500" rows="6"></textarea>
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="closeAddPromptModal()"
+                        class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
+                        Cancel
+                    </button>
+                    <button onclick="saveNewPrompt()"
+                        class="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                        Create Prompt
                     </button>
                 </div>
             </div>

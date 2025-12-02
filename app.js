@@ -1,8 +1,14 @@
 
 // Import lucide icons
-import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2 } from 'lucide';
+import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify, Plus, Scissors, Hash, Languages } from 'lucide';
 
-const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2 };
+const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify, Plus, Scissors, Hash, scissors: Scissors, hash: Hash, Languages, languages: Languages };
+
+// Import Chart.js
+import Chart from 'chart.js/auto';
+
+// Make Chart.js globally available
+window.Chart = Chart;
 
 // Make icons and createIcons globally available for modules
 window.lucide = { createIcons };
@@ -12,9 +18,11 @@ window.lucideIcons = icons;
 // Import modules
 import { saveCredentials, loadCredentials, exportCredentials, importCredentials } from './src/modules/storage.js';
 import { postToMastodon, postToTwitter, postToBluesky, testMastodonConfig, testTwitterConfig, testBlueskyConfig } from './src/modules/platforms.js';
+import { optimizeTweet, testGrokApi } from './src/modules/ai.js';
 import { showStatus, showToast, updateCharCount, switchTab, toggleCollapsible, showPlatformStatus, clearPlatformStatuses } from './src/modules/ui.js';
 import { loadHistory, loadAndDisplayHistory, clearHistory, addHistoryEntry, deleteHistoryEntry } from './src/modules/history.js';
-import { setupImageUpload, removeImage, getSelectedImages } from './src/modules/imageUpload.js';
+import { showStats, closeStatsModal } from './src/modules/stats.js';
+import { setupImageUpload, removeImage, getSelectedImages, setSelectedImages } from './src/modules/imageUpload.js';
 import {
     getAllCachedNotifications,
     clearNotificationsCache,
@@ -27,6 +35,18 @@ import {
     loadCachedNotifications,
     testNotification
 } from './src/modules/notifications.js';
+import {
+    loadScheduled,
+    loadAndDisplayScheduled,
+    clearScheduled,
+    normalizeScheduled,
+    addScheduledPost,
+    deleteScheduledPost,
+    startSchedulePolling,
+    stopSchedulePolling
+} from './src/modules/scheduled.js';
+import { makeResizable } from './src/modules/resize.js';
+import { selectSyncDir, setSyncEnabled, manualSync } from './src/modules/sync.js';
 
 // Global state
 window.platforms = {
@@ -34,6 +54,12 @@ window.platforms = {
     twitter: false,
     bluesky: false
 };
+
+// Make prompt functions globally available
+window.updatePromptSelect = updatePromptSelect;
+window.updatePromptDisplay = updatePromptDisplay;
+window.updatePostPromptSelection = updatePostPromptSelection;
+window.showToast = showToast;
 
 // Make UI functions globally available
 window.showStatus = showStatus;
@@ -46,6 +72,8 @@ window.importCredentials = importCredentials;
 window.clearHistory = clearHistory;
 window.loadAndDisplayHistory = loadAndDisplayHistory;
 window.deleteHistoryEntry = deleteHistoryEntry;
+window.showStats = showStats;
+window.closeStatsModal = closeStatsModal;
 window.clearNotificationsCache = clearNotificationsCache;
 window.loadNotifications = loadNotifications;
 window.showPlatformStatus = showPlatformStatus;
@@ -58,6 +86,278 @@ window.resetAllData = resetAllData;
 window.testMastodonConfig = testMastodonConfig;
 window.testTwitterConfig = testTwitterConfig;
 window.testBlueskyConfig = testBlueskyConfig;
+window.clearScheduled = clearScheduled;
+window.normalizeScheduled = normalizeScheduled;
+window.loadAndDisplayScheduled = loadAndDisplayScheduled;
+window.deleteScheduledPost = deleteScheduledPost;
+window.setSelectedImages = setSelectedImages;
+window.selectSyncDir = selectSyncDir;
+window.setSyncEnabled = setSyncEnabled;
+window.manualSync = manualSync;
+
+// AI prompt styles
+const DEFAULT_PROMPT = "Rewrite this message to fit in about 300 characters. DO NOT change the tone or voice. Trim if necessary. Suggest relevant hashtags if we have space.";
+
+// Get current AI prompt based on selected style
+function getCurrentAIPrompt() {
+    const selectedPromptId = document.getElementById('aiPromptSelect').value;
+    if (selectedPromptId === 'default') {
+        return DEFAULT_PROMPT;
+    }
+    
+    const customPrompts = getCustomPrompts();
+    return customPrompts[selectedPromptId] || DEFAULT_PROMPT;
+}
+
+// Get custom prompts from localStorage
+function getCustomPrompts() {
+    try {
+        const stored = localStorage.getItem('socialSoxCustomPrompts');
+        return stored ? JSON.parse(stored) : {};
+    } catch (error) {
+        console.error('Error loading custom prompts:', error);
+        return {};
+    }
+}
+
+// Save custom prompts to localStorage
+function saveCustomPrompts(prompts) {
+    localStorage.setItem('socialSoxCustomPrompts', JSON.stringify(prompts));
+}
+
+// Update prompt select options
+function updatePromptSelect(selectedId = null) {
+    const select = document.getElementById('aiPromptSelect');
+    const postSelect = document.getElementById('postAiPromptSelect');
+    const customPrompts = getCustomPrompts();
+    
+    // Clear existing options except default
+    while (select.options.length > 1) {
+        select.remove(1);
+    }
+    while (postSelect && postSelect.options.length > 1) {
+        postSelect.remove(1);
+    }
+    
+    // Add custom prompts
+    Object.keys(customPrompts).forEach(id => {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = id;
+        select.appendChild(option);
+        
+        if (postSelect) {
+            const postOption = document.createElement('option');
+            postOption.value = id;
+            postOption.textContent = id;
+            postSelect.appendChild(postOption);
+        }
+    });
+    
+    // Set selected value
+    if (selectedId && (selectedId === 'default' || customPrompts[selectedId])) {
+        select.value = selectedId;
+        if (postSelect) postSelect.value = selectedId;
+    } else {
+        select.value = 'default';
+        if (postSelect) postSelect.value = 'default';
+    }
+    
+    updatePromptDisplay();
+}
+
+// Update prompt display based on selection
+function updatePromptDisplay() {
+    const selectedValue = document.getElementById('aiPromptSelect').value;
+    const defaultContent = document.getElementById('defaultPromptContent');
+    const customContent = document.getElementById('customPromptContent');
+    const promptTextarea = document.getElementById('aiPrompt');
+    const saveBtn = document.getElementById('savePromptBtn');
+    const deleteBtn = document.getElementById('deletePromptBtn');
+    
+    // Sync post tab select with settings select
+    const postSelect = document.getElementById('postAiPromptSelect');
+    if (postSelect) {
+        postSelect.value = selectedValue;
+    }
+    
+    if (selectedValue === 'default') {
+        defaultContent.classList.remove('hidden');
+        customContent.classList.add('hidden');
+    } else {
+        defaultContent.classList.add('hidden');
+        customContent.classList.remove('hidden');
+        
+        const customPrompts = getCustomPrompts();
+        promptTextarea.value = customPrompts[selectedValue] || '';
+        
+        // Show/hide buttons based on whether this is a custom prompt
+        const isCustom = customPrompts[selectedValue];
+        saveBtn.style.display = isCustom ? 'inline-flex' : 'none';
+        deleteBtn.style.display = isCustom ? 'inline-flex' : 'none';
+        
+        // Make textarea editable for custom prompts
+        promptTextarea.readOnly = false;
+    }
+    
+    // Save selected prompt ID
+    localStorage.setItem('socialSoxSelectedPromptId', selectedValue);
+    saveCredentials();
+}
+
+// Update prompt selection from Post tab
+function updatePostPromptSelection() {
+    const postSelect = document.getElementById('postAiPromptSelect');
+    const settingsSelect = document.getElementById('aiPromptSelect');
+    if (postSelect && settingsSelect) {
+        settingsSelect.value = postSelect.value;
+        updatePromptDisplay();
+    }
+}
+
+// AI optimization function
+window.optimizeMessage = async function() {
+    const message = document.getElementById('message').value.trim();
+    if (!message) {
+        window.showToast('Please enter a message to optimize', 'error');
+        return;
+    }
+
+    const apiKey = document.getElementById('grok-api-key').value.trim();
+    if (!apiKey) {
+        window.showToast('Please enter your Grok API key in Settings', 'error');
+        return;
+    }
+
+    const prompt = getCurrentAIPrompt();
+
+    const optimizeBtn = document.getElementById('optimizeBtn');
+    const originalText = optimizeBtn.innerHTML;
+    optimizeBtn.disabled = true;
+    optimizeBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i>';
+    createIcons({ icons });
+    try {
+        const optimizedMessage = await optimizeTweet(apiKey, message, prompt);
+        document.getElementById('message').value = optimizedMessage;
+        updateCharCount();
+        window.showToast('Message optimized successfully!', 'success');
+    } catch (error) {
+        console.error('AI optimization error:', error);
+        window.showToast(`Optimization failed: ${error.message}`, 'error');
+    } finally {
+        optimizeBtn.disabled = false;
+        optimizeBtn.innerHTML = originalText;
+        createIcons({ icons });
+    }
+}
+
+// AI crop function
+window.cropMessage = async function() {
+    const message = document.getElementById('message').value.trim();
+    if (!message) {
+        window.showToast('Please enter a message to crop', 'error');
+        return;
+    }
+
+    const apiKey = document.getElementById('grok-api-key').value.trim();
+    if (!apiKey) {
+        window.showToast('Please enter your Grok API key in Settings', 'error');
+        return;
+    }
+
+    const prompt = "Shorten this message to 280 characters max. Do not change tone or content. Output only the shortened message.";
+
+    const cropBtn = document.getElementById('cropBtn');
+    const originalText = cropBtn.innerHTML;
+    cropBtn.disabled = true;
+    cropBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i>';
+    createIcons({ icons });
+    try {
+        const croppedMessage = await optimizeTweet(apiKey, message, prompt);
+        document.getElementById('message').value = croppedMessage;
+        updateCharCount();
+        window.showToast('Message cropped successfully!', 'success');
+    } catch (error) {
+        console.error('AI crop error:', error);
+        window.showToast(`Crop failed: ${error.message}`, 'error');
+    } finally {
+        cropBtn.disabled = false;
+        cropBtn.innerHTML = originalText;
+        createIcons({ icons });
+    }
+}
+
+// AI hashtag function
+window.addHashtags = async function() {
+    const message = document.getElementById('message').value.trim();
+    if (!message) {
+        window.showToast('Please enter a message to add hashtags to', 'error');
+        return;
+    }
+
+    const apiKey = document.getElementById('grok-api-key').value.trim();
+    if (!apiKey) {
+        window.showToast('Please enter your Grok API key in Settings', 'error');
+        return;
+    }
+
+    const prompt = "Suggest 1-3 hashtags based on this message. Append them to the message. Output only the message with hashtags added.";
+
+    const hashtagBtn = document.getElementById('hashtagBtn');
+    const originalText = hashtagBtn.innerHTML;
+    hashtagBtn.disabled = true;
+    hashtagBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i>';
+    createIcons({ icons });
+    try {
+        const messageWithHashtags = await optimizeTweet(apiKey, message, prompt);
+        document.getElementById('message').value = messageWithHashtags;
+        updateCharCount();
+        window.showToast('Hashtags added successfully!', 'success');
+    } catch (error) {
+        console.error('AI hashtag error:', error);
+        window.showToast(`Hashtag addition failed: ${error.message}`, 'error');
+    } finally {
+        hashtagBtn.disabled = false;
+        hashtagBtn.innerHTML = originalText;
+        createIcons({ icons });
+    }
+}
+
+// AI grammar function
+window.fixGrammar = async function() {
+    const message = document.getElementById('message').value.trim();
+    if (!message) {
+        window.showToast('Please enter a message to fix grammar', 'error');
+        return;
+    }
+
+    const apiKey = document.getElementById('grok-api-key').value.trim();
+    if (!apiKey) {
+        window.showToast('Please enter your Grok API key in Settings', 'error');
+        return;
+    }
+
+    const prompt = "Fix spelling and grammar. Don't change anything else. Output only the corrected message.";
+
+    const grammarBtn = document.getElementById('grammarBtn');
+    const originalText = grammarBtn.innerHTML;
+    grammarBtn.disabled = true;
+    grammarBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i>';
+    createIcons({ icons });
+    try {
+        const correctedMessage = await optimizeTweet(apiKey, message, prompt);
+        document.getElementById('message').value = correctedMessage;
+        updateCharCount();
+        window.showToast('Grammar fixed successfully!', 'success');
+    } catch (error) {
+        console.error('AI grammar error:', error);
+        window.showToast(`Grammar fix failed: ${error.message}`, 'error');
+    } finally {
+        grammarBtn.disabled = false;
+        grammarBtn.innerHTML = originalText;
+        createIcons({ icons });
+    }
+};
 
 // Update debug mode styling
 function updateDebugModeStyling(isDebug) {
@@ -73,9 +373,80 @@ function updateDebugModeStyling(isDebug) {
     }
 }
 
+// Modal functions for custom prompts
+window.showAddPromptModal = function() {
+    document.getElementById('addPromptModal').classList.remove('hidden');
+    document.getElementById('newPromptName').value = '';
+    document.getElementById('newPromptContent').value = '';
+    document.getElementById('newPromptName').focus();
+};
+
+window.closeAddPromptModal = function() {
+    document.getElementById('addPromptModal').classList.add('hidden');
+};
+
+window.saveNewPrompt = function() {
+    const name = document.getElementById('newPromptName').value.trim();
+    const content = document.getElementById('newPromptContent').value.trim();
+    
+    if (!name || !content) {
+        window.showToast('Please fill in both name and content', 'error');
+        return;
+    }
+    
+    const customPrompts = getCustomPrompts();
+    if (customPrompts[name]) {
+        window.showToast('A prompt with this name already exists', 'error');
+        return;
+    }
+    
+    // Close modal immediately after validation
+    closeAddPromptModal();
+    
+    customPrompts[name] = content;
+    saveCustomPrompts(customPrompts);
+    updatePromptSelect(name);
+    
+    window.showToast('Custom prompt created successfully!', 'success');
+};
+
+window.saveCurrentPrompt = function() {
+    const selectedId = document.getElementById('aiPromptSelect').value;
+    if (selectedId === 'default') return;
+    
+    const content = document.getElementById('aiPrompt').value.trim();
+    if (!content) {
+        window.showToast('Please enter prompt content', 'error');
+        return;
+    }
+    
+    const customPrompts = getCustomPrompts();
+    customPrompts[selectedId] = content;
+    saveCustomPrompts(customPrompts);
+    
+    window.showToast('Prompt updated successfully!', 'success');
+};
+
+window.deleteCurrentPrompt = function() {
+    const selectedId = document.getElementById('aiPromptSelect').value;
+    if (selectedId === 'default') return;
+    
+    if (!confirm(`Are you sure you want to delete the "${selectedId}" prompt?`)) {
+        return;
+    }
+    
+    const customPrompts = getCustomPrompts();
+    delete customPrompts[selectedId];
+    saveCustomPrompts(customPrompts);
+    updatePromptSelect('default');
+    
+    window.showToast('Prompt deleted successfully!', 'success');
+};
+
 // Page load
 window.addEventListener('DOMContentLoaded', async () => {
     loadCredentials();
+    updateCharCount(); // Update character count after loading platforms
     try {
         await loadHistory();
     } catch (error) {
@@ -94,13 +465,22 @@ window.addEventListener('DOMContentLoaded', async () => {
             console.error('Failed to load cached notifications:', error);
         }
     }
-    
+
     // Load and display history if history tab is active
     if (savedTab === 'history') {
         try {
             await loadAndDisplayHistory();
         } catch (error) {
             console.error('Failed to load and display history:', error);
+        }
+    }
+
+    // Load and display scheduled posts if scheduled tab is active
+    if (savedTab === 'scheduled') {
+        try {
+            await loadAndDisplayScheduled();
+        } catch (error) {
+            console.error('Failed to load and display scheduled posts:', error);
         }
     }
 
@@ -151,9 +531,12 @@ window.addEventListener('DOMContentLoaded', async () => {
         });
         document.getElementById('resetTrayIconBtn').style.display = 'block';
     }
-    window.electron.setTrayIcon(trayIconPathStored);    const externalLinksStored = localStorage.getItem('socialSoxExternalLinks');
+    window.electron.setTrayIcon(trayIconPathStored); const externalLinksStored = localStorage.getItem('socialSoxExternalLinks');
     const externalLinks = externalLinksStored !== null ? externalLinksStored === 'true' : false;
     document.getElementById('externalLinksToggle').checked = externalLinks;
+
+    // Initialize prompt select
+    updatePromptSelect(localStorage.getItem('socialSoxSelectedPromptId') || 'default');
 
     const cachedNotifications = getAllCachedNotifications();
     if (cachedNotifications.length > 0) {
@@ -164,6 +547,17 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     startNotificationPolling();
+    startNotificationPolling();
+
+    // Check for scheduled posts and start polling if needed
+    try {
+        const scheduled = await window.electron.readScheduled();
+        if (scheduled && scheduled.length > 0) {
+            startSchedulePolling();
+        }
+    } catch (error) {
+        console.error('Failed to check scheduled posts on startup:', error);
+    }
 
     if (window.electron && window.electron.onSwitchToNotificationsTab) {
         window.electron.onSwitchToNotificationsTab(() => {
@@ -172,9 +566,16 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Initialize lucide icons
-createIcons({icons});
+    createIcons({ icons });
+
+    // Make main textarea resizable
+    const messageTextarea = document.getElementById('message');
+    const resizeHandle = document.getElementById('message-resize-handle');
+    makeResizable(messageTextarea, resizeHandle);
+
     // Event listeners
     document.getElementById('message').addEventListener('input', updateCharCount);
+
 
     document.querySelectorAll('.tab-button').forEach(btn => {
         btn.addEventListener('click', function () {
@@ -224,25 +625,40 @@ createIcons({icons});
         });
     });
 
+    document.getElementById('syncEnabledToggle').addEventListener('change', function () {
+        const isEnabled = this.checked;
+        setSyncEnabled(isEnabled);
+    });
+
+    document.getElementById('aiOptimizationToggle').addEventListener('change', function () {
+        const isEnabled = this.checked;
+        document.getElementById('aiApiKeySection').style.display = isEnabled ? 'block' : 'none';
+        document.getElementById('optimizeBtn').style.display = isEnabled ? 'block' : 'none';
+        document.getElementById('cropBtn').style.display = isEnabled ? 'block' : 'none';
+        document.getElementById('hashtagBtn').style.display = isEnabled ? 'block' : 'none';
+        document.getElementById('grammarBtn').style.display = isEnabled ? 'block' : 'none';
+        document.getElementById('aiPromptSelectContainer').style.display = isEnabled ? 'block' : 'none';
+        saveCredentials();
+    });
+
+    // Prompt management
+    document.getElementById('addPromptBtn').addEventListener('click', showAddPromptModal);
+    document.getElementById('aiPromptSelect').addEventListener('change', updatePromptDisplay);
+    document.getElementById('savePromptBtn').addEventListener('click', saveCurrentPrompt);
+    document.getElementById('deletePromptBtn').addEventListener('click', deleteCurrentPrompt);
+
     document.querySelectorAll('.platform-toggle').forEach(btn => {
         btn.addEventListener('click', async function () {
             const platform = this.dataset.platform;
             window.platforms[platform] = !window.platforms[platform];
             this.classList.toggle('active');
 
-            if (window.platforms[platform]) {
-                this.classList.remove('border-gray-300', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
-                this.classList.add('border-primary-500', 'bg-primary-500', 'text-white');
-            } else {
-                this.classList.add('border-gray-300', 'dark:border-gray-600', 'bg-white', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-200');
-                this.classList.remove('border-primary-500', 'bg-primary-500', 'text-white');
-            }
-
             await saveCredentials();
+            updateCharCount(); // Update character count when platforms change
         });
     });
 
-    document.querySelectorAll('input').forEach(input => {
+    document.querySelectorAll('input, textarea').forEach(input => {
         input.addEventListener('change', async () => await saveCredentials());
     });
 
@@ -283,14 +699,16 @@ createIcons({icons});
 
     document.getElementById('mastodon-instance').addEventListener('input', () => resetTestButtonColor('testMastodonBtn'));
     document.getElementById('mastodon-token').addEventListener('input', () => resetTestButtonColor('testMastodonBtn'));
-    
+
     document.getElementById('twitter-key').addEventListener('input', () => resetTestButtonColor('testTwitterBtn'));
     document.getElementById('twitter-secret').addEventListener('input', () => resetTestButtonColor('testTwitterBtn'));
     document.getElementById('twitter-token').addEventListener('input', () => resetTestButtonColor('testTwitterBtn'));
     document.getElementById('twitter-token-secret').addEventListener('input', () => resetTestButtonColor('testTwitterBtn'));
-    
+
     document.getElementById('bluesky-handle').addEventListener('input', () => resetTestButtonColor('testBlueskyBtn'));
     document.getElementById('bluesky-password').addEventListener('input', () => resetTestButtonColor('testBlueskyBtn'));
+
+    document.getElementById('grok-api-key').addEventListener('input', () => resetTestButtonColor('testGrokBtn'));
 
     setupImageUpload();
 
@@ -340,7 +758,7 @@ createIcons({icons});
     window.testMastodon = async function () {
         const instance = document.getElementById('mastodon-instance').value.trim();
         const token = document.getElementById('mastodon-token').value.trim();
-        
+
         if (!instance || !token) {
             showToast('Please fill in all Mastodon credentials', 'error');
             return;
@@ -350,7 +768,7 @@ createIcons({icons});
         const originalText = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Testing...';
-        createIcons({icons});
+        createIcons({ icons });
 
         try {
             const result = await testMastodonConfig(instance, token);
@@ -363,7 +781,7 @@ createIcons({icons});
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalText;
-            createIcons({icons});
+            createIcons({ icons });
         }
     };
 
@@ -372,7 +790,7 @@ createIcons({icons});
         const apiSecret = document.getElementById('twitter-secret').value.trim();
         const accessToken = document.getElementById('twitter-token').value.trim();
         const tokenSecret = document.getElementById('twitter-token-secret').value.trim();
-        
+
         if (!apiKey || !apiSecret || !accessToken || !tokenSecret) {
             showToast('Please fill in all Twitter credentials', 'error');
             return;
@@ -382,7 +800,7 @@ createIcons({icons});
         const originalText = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Testing...';
-        createIcons({icons});
+        createIcons({ icons });
 
         try {
             const result = await testTwitterConfig(apiKey, apiSecret, accessToken, tokenSecret);
@@ -395,14 +813,14 @@ createIcons({icons});
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalText;
-            createIcons({icons});
+            createIcons({ icons });
         }
     };
 
     window.testBluesky = async function () {
         const handle = document.getElementById('bluesky-handle').value.trim();
         const password = document.getElementById('bluesky-password').value.trim();
-        
+
         if (!handle || !password) {
             showToast('Please fill in all Bluesky credentials', 'error');
             return;
@@ -412,7 +830,7 @@ createIcons({icons});
         const originalText = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Testing...';
-        createIcons({icons});
+        createIcons({ icons });
 
         try {
             const result = await testBlueskyConfig(handle, password);
@@ -425,7 +843,7 @@ createIcons({icons});
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalText;
-            createIcons({icons});
+            createIcons({ icons });
         }
     };
 });
@@ -451,7 +869,7 @@ async function postToAll() {
     clearPlatformStatuses();
     const status = document.getElementById('status');
     status.classList.add('hidden');
-    
+
     let message = document.getElementById('message').value.trim();
 
     // Decode URLs to handle encoded characters better
@@ -469,38 +887,85 @@ async function postToAll() {
         return;
     }
 
+    // Check if scheduling is selected
+    const scheduleTimeSelect = document.getElementById('scheduleTimeSelect');
+    const scheduleValue = scheduleTimeSelect.value;
+
+    if (scheduleValue !== 'now') {
+        // Schedule the post
+        const hours = parseFloat(scheduleValue);
+        const scheduledTime = new Date();
+        // Add time in milliseconds for accurate fractional hours
+        scheduledTime.setTime(scheduledTime.getTime() + (hours * 60 * 60 * 1000));
+
+        console.log('Scheduling post:', JSON.stringify({
+            hoursToAdd: hours,
+            currentTime: new Date().toISOString(),
+            scheduledTime: scheduledTime.toISOString()
+        }, null, 2));
+
+        // Get images if any
+        const selectedImages = getSelectedImages();
+        let imageDataArray = [];
+        if (selectedImages.length > 0) {
+            for (const image of selectedImages) {
+                const reader = new FileReader();
+                const imageData = await new Promise((resolve) => {
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(image);
+                });
+                imageDataArray.push(imageData);
+            }
+        }
+
+        // Add to scheduled posts
+        await addScheduledPost(message, selectedPlatforms, scheduledTime.toISOString(), imageDataArray);
+
+        // Clear the form
+        document.getElementById('message').value = '';
+        updateCharCount();
+        removeImage();
+
+        // Reset dropdown to "Now"
+        scheduleTimeSelect.value = 'now';
+
+        return;
+    }
+
+    // Continue with immediate posting...
+
     const btn = document.getElementById('postBtn');
     btn.disabled = true;
     btn.textContent = 'Posting...';
 
     const loadingMessages = [
-"sacrificing a byte to the API gods …",
-"negotiating with rate limits …",
-"arguing with OAuth again …",
-"launching message into the void …",
-"bribing the API with snacks …",
-"spinning up the content hamster …",
-"duct-taping the timelines together …",
-"delivering your post via carrier pigeon …",
-"compressing your hot take …",
-"duct-taping your thoughts together …",
-"debugging reality … please wait …",
-"brewing fresh latency …",
-"hand-carving your post in ASCII …",
-"teaching the server to cope …",
-"whispering sweet nothings to the API …",
-"smuggling your post past the algorithm …",
-"loading… because social media is a mistake …",
-"poking the timeline with a stick …",
-"wrangling APIs like feral cats …",
-"compressing existential dread …",
-"ignoring the ‘touch grass’ alert …",
-"warming up the doomscroll engines …",
-"converting your thoughts to 280p …",
-"wrapping your content in bubble wrap …",
-"firing message through the tubes …",
-"packing your post’s parachute …",
-"convincing the server this isn’t spam …",
+        "sacrificing a byte to the API gods …",
+        "negotiating with rate limits …",
+        "arguing with OAuth again …",
+        "launching message into the void …",
+        "bribing the API with snacks …",
+        "spinning up the content hamster …",
+        "duct-taping the timelines together …",
+        "delivering your post via carrier pigeon …",
+        "compressing your hot take …",
+        "duct-taping your thoughts together …",
+        "debugging reality … please wait …",
+        "brewing fresh latency …",
+        "hand-carving your post in ASCII …",
+        "teaching the server to cope …",
+        "whispering sweet nothings to the API …",
+        "smuggling your post past the algorithm …",
+        "loading… because social media is a mistake …",
+        "poking the timeline with a stick …",
+        "wrangling APIs like feral cats …",
+        "compressing existential dread …",
+        "ignoring the ‘touch grass’ alert …",
+        "warming up the doomscroll engines …",
+        "converting your thoughts to 280p …",
+        "wrapping your content in bubble wrap …",
+        "firing message through the tubes …",
+        "packing your post’s parachute …",
+        "convincing the server this isn’t spam …",
     ];
 
     let messageInterval;
@@ -614,6 +1079,18 @@ async function postToAll() {
             showPlatformStatus(result.platform, message, statusType);
         });
 
+        // Disable buttons for successful platforms
+        results.forEach(result => {
+            if (result.success) {
+                const platform = result.platform.toLowerCase();
+                window.platforms[platform] = false;
+                const btn = document.querySelector(`.platform-toggle[data-platform="${platform}"]`);
+                if (btn) {
+                    btn.classList.remove('active');
+                }
+            }
+        });
+
         // Also show overall status for backward compatibility
         const hasSuccess = results.some(r => r.success);
         const hasFailure = results.some(r => !r.success);
@@ -674,6 +1151,18 @@ function resetAllData() {
     document.getElementById('twitter-token-secret').value = '';
     document.getElementById('bluesky-handle').value = '';
     document.getElementById('bluesky-password').value = '';
+    document.getElementById('grok-api-key').value = '';
+    document.getElementById('aiOptimizationToggle').checked = false;
+    document.getElementById('aiApiKeySection').style.display = 'none';
+    document.getElementById('optimizeBtn').style.display = 'none';
+    document.getElementById('cropBtn').style.display = 'none';
+    document.getElementById('hashtagBtn').style.display = 'none';
+    document.getElementById('grammarBtn').style.display = 'none';
+    document.getElementById('aiPromptSelectContainer').style.display = 'none';
+    localStorage.setItem('socialSoxSelectedPromptStyle', 'default');
+    if (document.getElementById('aiPrompt')) {
+        document.getElementById('aiPrompt').value = '';
+    }
 
     Object.keys(window.platforms).forEach(platform => {
         window.platforms[platform] = false;
@@ -754,3 +1243,118 @@ window.closeAboutModal = closeAboutModal;
 
 // Make postToAll globally available
 window.postToAll = postToAll;
+
+// Test functions
+window.testMastodon = async function() {
+    const instance = document.getElementById('mastodon-instance').value.trim();
+    const token = document.getElementById('mastodon-token').value.trim();
+    if (!instance || !token) {
+        window.showToast('Please fill in all Mastodon credentials', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('testMastodonBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Testing...';
+
+    try {
+        const result = await testMastodonConfig(instance, token);
+        window.showToast(`✓ Connected as @${result.username} (${result.displayName})`, 'success');
+        btn.className = 'w-full py-2 px-3 bg-green-600 hover:bg-green-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
+    } catch (error) {
+        console.error('Mastodon test failed:', error);
+        window.showToast(`✗ Mastodon test failed: ${error.message}`, 'error');
+        btn.className = 'w-full py-2 px-3 bg-red-600 hover:bg-red-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        createIcons({ icons });
+    }
+};
+
+window.testTwitter = async function() {
+    const apiKey = document.getElementById('twitter-key').value.trim();
+    const apiSecret = document.getElementById('twitter-secret').value.trim();
+    const accessToken = document.getElementById('twitter-token').value.trim();
+    const accessTokenSecret = document.getElementById('twitter-token-secret').value.trim();
+    if (!apiKey || !apiSecret || !accessToken || !accessTokenSecret) {
+        window.showToast('Please fill in all Twitter credentials', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('testTwitterBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Testing...';
+
+    try {
+        const result = await testTwitterConfig(apiKey, apiSecret, accessToken, accessTokenSecret);
+        window.showToast(`✓ Connected as @${result.username}`, 'success');
+        btn.className = 'w-full py-2 px-3 bg-green-600 hover:bg-green-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
+    } catch (error) {
+        console.error('Twitter test failed:', error);
+        window.showToast(`✗ Twitter test failed: ${error.message}`, 'error');
+        btn.className = 'w-full py-2 px-3 bg-red-600 hover:bg-red-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        createIcons({ icons });
+    }
+};
+
+window.testBluesky = async function() {
+    const handle = document.getElementById('bluesky-handle').value.trim();
+    const password = document.getElementById('bluesky-password').value.trim();
+    if (!handle || !password) {
+        window.showToast('Please fill in all Bluesky credentials', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('testBlueskyBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Testing...';
+
+    try {
+        const result = await testBlueskyConfig(handle, password);
+        window.showToast(`✓ Connected as @${result.username}`, 'success');
+        btn.className = 'w-full py-2 px-3 bg-green-600 hover:bg-green-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
+    } catch (error) {
+        console.error('Bluesky test failed:', error);
+        window.showToast(`✗ Bluesky test failed: ${error.message}`, 'error');
+        btn.className = 'w-full py-2 px-3 bg-red-600 hover:bg-red-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        createIcons({ icons });
+    }
+};
+
+window.testGrok = async function() {
+    const apiKey = document.getElementById('grok-api-key').value.trim();
+    if (!apiKey) {
+        window.showToast('Please enter your Grok API key', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('testGrokBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Testing...';
+    createIcons({ icons });
+
+    try {
+        const result = await testGrokApi(apiKey);
+        window.showToast(`✓ API test successful: ${result.message}`, 'success');
+        btn.className = 'w-full py-2 px-3 bg-green-600 hover:bg-green-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
+    } catch (error) {
+        console.error('Grok test failed:', error);
+        window.showToast(`✗ Grok test failed: ${error.message}`, 'error');
+        btn.className = 'w-full py-2 px-3 bg-red-600 hover:bg-red-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        createIcons({ icons });
+    }
+};

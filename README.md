@@ -29,7 +29,28 @@ Today's social media landscape is fragmented. Your audience is scattered across 
 - 🎨 Native dark mode support
 - ⚙️ Customizable tray icons and window decorations
 
-## Screenshots
+**Scheduling**
+- ⏰ Schedule posts for future publication
+- 🔄 Drag-and-drop to reorder scheduled posts
+- 📅 Automatic posting at scheduled times
+- ⚠️ Requires the app to be running for automatic posting
+
+**Data Synchronization**
+- 🔄 Sync posting history and scheduled posts to a local directory
+- ⏱️ Automatic periodic sync
+- 🔧 Manual sync option
+- ⚠️ Sync pulls the latest file without merging changes
+
+**Statistics & Analytics**
+- 📊 View posting statistics and analytics
+- 📈 Charts for daily, hourly, and weekly activity
+- 📋 Platform breakdown and success rates
+- 🔔 Notification analytics
+
+**AI Optimization**
+- 🤖 Optimize messages using Grok AI
+- 🎯 Custom prompts for shortening, spellchecking, hashtags (or just general optimization)
+- 🧪 Test API connection
 
 ### Message Composition
 ![Compose a message with platform selection and character counter](screenshots/message-compose.png)
@@ -45,6 +66,12 @@ Today's social media landscape is fragmented. Your audience is scattered across 
 
 ### Notifications
 ![Monitor notifications from connected platforms](screenshots/notifications-tab.png)
+
+### Scheduled Posts
+![Schedule posts for future publication](screenshots/schedule.png)
+
+### Statistics & Analytics
+![View posting statistics and charts](screenshots/stats.png)
 
 ## Project Notes
 
@@ -68,11 +95,16 @@ The application follows a modular architecture to keep code organized and mainta
 ```
 src/
 ├── modules/
+│   ├── ai.js               # AI-powered message optimization
 │   ├── history.js          # Handles posting history and status tracking
 │   ├── imageUpload.js      # Manages image upload functionality
 │   ├── notifications.js    # Handles platform notifications
 │   ├── platforms.js        # Contains platform-specific API integrations
+│   ├── resize.js           # Window resizing utilities
+│   ├── scheduled.js        # Scheduled posts management
+│   ├── stats.js            # Statistics and analytics
 │   ├── storage.js          # Manages secure credential storage
+│   ├── sync.js             # Data synchronization
 │   └── ui.js               # UI-related utilities and helpers
 ```
 
@@ -86,6 +118,11 @@ Download the latest [release](https://github.com/burninc0de/socialsox/releases/)
 - **Windows**: `.exe` installer
 - **macOS**: `.dmg` file
 - **Linux**: `.AppImage` file
+
+> [!TIP]
+> **Linux GPU Acceleration**: For better performance on Linux, run the AppImage with GPU flags:  
+> `./SocialSox.AppImage --enable-gpu-rasterization --enable-zero-copy --ozone-platform=wayland`  
+> (Use `x11` instead of `wayland` if you're on X11)
 
 ### Option 2: Run from Source (Developers)
 
@@ -148,6 +185,13 @@ Use the **Settings** tab to configure your API credentials. They're encrypted lo
    - **API Secret** (also called Consumer Secret)
    - **Access Token** (newly regenerated)
    - **Access Token Secret** (newly regenerated)
+
+#### Grok AI (for Message Optimization)
+
+1. Go to [x.ai](https://x.ai) and sign up for an account
+2. Navigate to your API keys section
+3. Create a new API key
+4. Copy the API key and paste it in the Settings tab under "Grok API Key"
 
 ### Test Credentials & Post
 
@@ -238,38 +282,6 @@ SocialSox stores your data locally on your computer. Here's where to find and ma
 
 ### Clearing Data Manually
 If you need to clear data manually (or the in-app "Clear All Data" button doesn't work):
-1. Close SocialSox completely
-2. Navigate to the folder above for your platform
-3. Delete the files you want to clear:
-   - Delete `notifications.json` to clear notification cache
-   - Delete `history.json` to clear posting history
-   - Delete `window-config.json` to reset window preferences
-4. Restart SocialSox
-
-> [!NOTE]
-> Your encrypted API credentials are stored separately using your operating system's secure storage and won't be in these folders.
-
-## Data Storage & Clearing Saved Data
-
-SocialSox stores your data locally on your computer. Here's where to find and manage it:
-
-### Windows
-**Location**: `%APPDATA%\socialsox\`  
-**Full path**: `C:\Users\[YourUsername]\AppData\Roaming\socialsox\`
-
-### macOS
-**Location**: `~/Library/Application Support/socialsox/`
-
-### Linux
-**Location**: `~/.config/socialsox/`
-
-### Files Stored
-- `notifications.json` - Cached notifications from platforms
-- `history.json` - Your posting history and status tracking
-- `window-config.json` - Window position and size preferences
-
-### Clearing Data Manually
-If you need to clear data manually (or the in-app "CLEAR ALL DATA" button doesn't work):
 1. Close SocialSox completely
 2. Navigate to the folder above for your platform
 3. Delete the files you want to clear:
