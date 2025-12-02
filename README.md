@@ -29,7 +29,26 @@ Today's social media landscape is fragmented. Your audience is scattered across 
 - 🎨 Native dark mode support
 - ⚙️ Customizable tray icons and window decorations
 
-## Screenshots
+**Scheduling**
+- ⏰ Schedule posts for future publication
+- 🔄 Drag-and-drop to reorder scheduled posts
+- 📅 Automatic posting at scheduled times
+
+**Data Synchronization**
+- 🔄 Sync posting history and scheduled posts to a local directory
+- ⏱️ Automatic periodic sync
+- 🔧 Manual sync option
+
+**AI Optimization**
+- 🤖 Optimize messages using Grok AI
+- 🎯 Custom prompts for shortening, spellchecking, hashtags (or just general optimization)
+- 🧪 Test API connection
+
+**Statistics & Analytics**
+- 📊 View posting statistics and analytics
+- 📈 Charts for daily, hourly, and weekly activity
+- 📋 Platform breakdown and success rates
+- 🔔 Notification analytics
 
 ### Message Composition
 ![Compose a message with platform selection and character counter](screenshots/message-compose.png)
@@ -68,11 +87,16 @@ The application follows a modular architecture to keep code organized and mainta
 ```
 src/
 ├── modules/
+│   ├── ai.js               # AI-powered message optimization
 │   ├── history.js          # Handles posting history and status tracking
 │   ├── imageUpload.js      # Manages image upload functionality
 │   ├── notifications.js    # Handles platform notifications
 │   ├── platforms.js        # Contains platform-specific API integrations
+│   ├── resize.js           # Window resizing utilities
+│   ├── scheduled.js        # Scheduled posts management
+│   ├── stats.js            # Statistics and analytics
 │   ├── storage.js          # Manages secure credential storage
+│   ├── sync.js             # Data synchronization
 │   └── ui.js               # UI-related utilities and helpers
 ```
 
@@ -153,6 +177,13 @@ Use the **Settings** tab to configure your API credentials. They're encrypted lo
    - **API Secret** (also called Consumer Secret)
    - **Access Token** (newly regenerated)
    - **Access Token Secret** (newly regenerated)
+
+#### Grok AI (for Message Optimization)
+
+1. Go to [x.ai](https://x.ai) and sign up for an account
+2. Navigate to your API keys section
+3. Create a new API key
+4. Copy the API key and paste it in the Settings tab under "Grok API Key"
 
 ### Test Credentials & Post
 
