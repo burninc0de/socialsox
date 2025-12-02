@@ -33,11 +33,13 @@ Today's social media landscape is fragmented. Your audience is scattered across 
 - ⏰ Schedule posts for future publication
 - 🔄 Drag-and-drop to reorder scheduled posts
 - 📅 Automatic posting at scheduled times
+- ⚠️ Requires the app to be running for automatic posting
 
 **Data Synchronization**
 - 🔄 Sync posting history and scheduled posts to a local directory
 - ⏱️ Automatic periodic sync
 - 🔧 Manual sync option
+- ⚠️ Sync pulls the latest file without merging changes
 
 **AI Optimization**
 - 🤖 Optimize messages using Grok AI
@@ -64,6 +66,12 @@ Today's social media landscape is fragmented. Your audience is scattered across 
 
 ### Notifications
 ![Monitor notifications from connected platforms](screenshots/notifications-tab.png)
+
+### Scheduled Posts
+![Schedule posts for future publication](screenshots/schedule.png)
+
+### Statistics & Analytics
+![View posting statistics and charts](screenshots/stats.png)
 
 ## Project Notes
 
