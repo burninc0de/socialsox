@@ -127,13 +127,30 @@
             <!-- AI Prompt Select -->
             <div class="mb-4" id="aiPromptSelectContainer" style="display: none;">
                 <label class="block text-sm text-gray-600 dark:text-gray-400 mb-2">SocialSox Spice:</label>
-                <div class="relative">
-                    <select id="postAiPromptSelect" onchange="updatePostPromptSelection()"
-                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer hover:border-primary-500 focus:outline-none focus:border-primary-500 appearance-none pr-8">
-                        <option value="default">Default - Social Media Optimization</option>
-                    </select>
-                    <i data-lucide="chevron-down"
-                        class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400 pointer-events-none"></i>
+                <div class="flex gap-2">
+                    <div class="relative flex-1">
+                        <select id="postAiPromptSelect" onchange="updatePostPromptSelection()"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer hover:border-primary-500 focus:outline-none focus:border-primary-500 appearance-none pr-8">
+                            <option value="default">Default</option>
+                        </select>
+                        <i data-lucide="chevron-down"
+                            class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400 pointer-events-none"></i>
+                    </div>
+                    <button id="cropBtn" onclick="cropMessage()" style="display: none;"
+                        class="py-2 px-3 bg-gray-600 hover:bg-gray-700 text-white border-0 rounded-md text-sm font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                        title="Shorten to 280 characters">
+                        <i data-lucide="scissors" class="w-4 h-4"></i>
+                    </button>
+                    <button id="hashtagBtn" onclick="addHashtags()" style="display: none;"
+                        class="py-2 px-3 bg-gray-600 hover:bg-gray-700 text-white border-0 rounded-md text-sm font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                        title="Add hashtags">
+                        <i data-lucide="hash" class="w-4 h-4"></i>
+                    </button>
+                    <button id="grammarBtn" onclick="fixGrammar()" style="display: none;"
+                        class="py-2 px-3 bg-gray-600 hover:bg-gray-700 text-white border-0 rounded-md text-sm font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                        title="Fix spelling and grammar">
+                        <i data-lucide="languages" class="w-4 h-4"></i>
+                    </button>
                 </div>
             </div>
 
@@ -674,7 +691,7 @@
                             <div class="flex gap-2 mb-3">
                                 <div class="relative flex-1">
                                     <select id="aiPromptSelect" class="appearance-none p-2.5 pr-8 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500 w-full">
-                                        <option value="default">Default - Social Media Optimization</option>
+                                        <option value="default">Default</option>
                                     </select>
                                     <i data-lucide="chevron-down" class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400 pointer-events-none"></i>
                                 </div>

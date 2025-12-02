@@ -151,6 +151,9 @@ export async function loadCredentials() {
         document.getElementById('aiOptimizationToggle').checked = aiOptimizationEnabled;
         document.getElementById('aiApiKeySection').style.display = aiOptimizationEnabled ? 'block' : 'none';
         document.getElementById('optimizeBtn').style.display = aiOptimizationEnabled ? 'block' : 'none';
+        document.getElementById('cropBtn').style.display = aiOptimizationEnabled ? 'block' : 'none';
+        document.getElementById('hashtagBtn').style.display = aiOptimizationEnabled ? 'block' : 'none';
+        document.getElementById('grammarBtn').style.display = aiOptimizationEnabled ? 'block' : 'none';
         document.getElementById('aiPromptSelectContainer').style.display = aiOptimizationEnabled ? 'block' : 'none';
         
         // Load selected prompt ID
@@ -235,6 +238,9 @@ export async function importCredentials() {
                 document.getElementById('aiOptimizationToggle').checked = creds.aiOptimizationEnabled || false;
                 document.getElementById('aiApiKeySection').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
                 document.getElementById('optimizeBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                document.getElementById('cropBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                document.getElementById('hashtagBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                document.getElementById('grammarBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
                 document.getElementById('aiPromptSelectContainer').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
                 
                 // Import custom prompts
@@ -281,6 +287,9 @@ export async function importCredentials() {
                         document.getElementById('aiOptimizationToggle').checked = creds.aiOptimizationEnabled || false;
                         document.getElementById('aiApiKeySection').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
                         document.getElementById('optimizeBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                        document.getElementById('cropBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                        document.getElementById('hashtagBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                        document.getElementById('grammarBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
                         document.getElementById('aiPromptSelectContainer').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
                         
                         // Import custom prompts

@@ -1,8 +1,8 @@
 
 // Import lucide icons
-import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify, Plus } from 'lucide';
+import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify, Plus, Scissors, Hash, Languages } from 'lucide';
 
-const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify, Plus };
+const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify, Plus, Scissors, Hash, scissors: Scissors, hash: Hash, Languages, languages: Languages };
 
 // Import Chart.js
 import Chart from 'chart.js/auto';
@@ -247,6 +247,114 @@ window.optimizeMessage = async function() {
     } finally {
         optimizeBtn.disabled = false;
         optimizeBtn.innerHTML = originalText;
+        createIcons({ icons });
+    }
+}
+
+// AI crop function
+window.cropMessage = async function() {
+    const message = document.getElementById('message').value.trim();
+    if (!message) {
+        window.showToast('Please enter a message to crop', 'error');
+        return;
+    }
+
+    const apiKey = document.getElementById('grok-api-key').value.trim();
+    if (!apiKey) {
+        window.showToast('Please enter your Grok API key in Settings', 'error');
+        return;
+    }
+
+    const prompt = "Shorten this message to 280 characters max. Do not change tone or content. Output only the shortened message.";
+
+    const cropBtn = document.getElementById('cropBtn');
+    const originalText = cropBtn.innerHTML;
+    cropBtn.disabled = true;
+    cropBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i>';
+    createIcons({ icons });
+    try {
+        const croppedMessage = await optimizeTweet(apiKey, message, prompt);
+        document.getElementById('message').value = croppedMessage;
+        updateCharCount();
+        window.showToast('Message cropped successfully!', 'success');
+    } catch (error) {
+        console.error('AI crop error:', error);
+        window.showToast(`Crop failed: ${error.message}`, 'error');
+    } finally {
+        cropBtn.disabled = false;
+        cropBtn.innerHTML = originalText;
+        createIcons({ icons });
+    }
+}
+
+// AI hashtag function
+window.addHashtags = async function() {
+    const message = document.getElementById('message').value.trim();
+    if (!message) {
+        window.showToast('Please enter a message to add hashtags to', 'error');
+        return;
+    }
+
+    const apiKey = document.getElementById('grok-api-key').value.trim();
+    if (!apiKey) {
+        window.showToast('Please enter your Grok API key in Settings', 'error');
+        return;
+    }
+
+    const prompt = "Suggest 1-3 hashtags based on this message. Append them to the message. Output only the message with hashtags added.";
+
+    const hashtagBtn = document.getElementById('hashtagBtn');
+    const originalText = hashtagBtn.innerHTML;
+    hashtagBtn.disabled = true;
+    hashtagBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i>';
+    createIcons({ icons });
+    try {
+        const messageWithHashtags = await optimizeTweet(apiKey, message, prompt);
+        document.getElementById('message').value = messageWithHashtags;
+        updateCharCount();
+        window.showToast('Hashtags added successfully!', 'success');
+    } catch (error) {
+        console.error('AI hashtag error:', error);
+        window.showToast(`Hashtag addition failed: ${error.message}`, 'error');
+    } finally {
+        hashtagBtn.disabled = false;
+        hashtagBtn.innerHTML = originalText;
+        createIcons({ icons });
+    }
+}
+
+// AI grammar function
+window.fixGrammar = async function() {
+    const message = document.getElementById('message').value.trim();
+    if (!message) {
+        window.showToast('Please enter a message to fix grammar', 'error');
+        return;
+    }
+
+    const apiKey = document.getElementById('grok-api-key').value.trim();
+    if (!apiKey) {
+        window.showToast('Please enter your Grok API key in Settings', 'error');
+        return;
+    }
+
+    const prompt = "Fix spelling and grammar. Don't change anything else. Output only the corrected message.";
+
+    const grammarBtn = document.getElementById('grammarBtn');
+    const originalText = grammarBtn.innerHTML;
+    grammarBtn.disabled = true;
+    grammarBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i>';
+    createIcons({ icons });
+    try {
+        const correctedMessage = await optimizeTweet(apiKey, message, prompt);
+        document.getElementById('message').value = correctedMessage;
+        updateCharCount();
+        window.showToast('Grammar fixed successfully!', 'success');
+    } catch (error) {
+        console.error('AI grammar error:', error);
+        window.showToast(`Grammar fix failed: ${error.message}`, 'error');
+    } finally {
+        grammarBtn.disabled = false;
+        grammarBtn.innerHTML = originalText;
         createIcons({ icons });
     }
 };
@@ -526,6 +634,9 @@ window.addEventListener('DOMContentLoaded', async () => {
         const isEnabled = this.checked;
         document.getElementById('aiApiKeySection').style.display = isEnabled ? 'block' : 'none';
         document.getElementById('optimizeBtn').style.display = isEnabled ? 'block' : 'none';
+        document.getElementById('cropBtn').style.display = isEnabled ? 'block' : 'none';
+        document.getElementById('hashtagBtn').style.display = isEnabled ? 'block' : 'none';
+        document.getElementById('grammarBtn').style.display = isEnabled ? 'block' : 'none';
         document.getElementById('aiPromptSelectContainer').style.display = isEnabled ? 'block' : 'none';
         saveCredentials();
     });
@@ -1044,6 +1155,10 @@ function resetAllData() {
     document.getElementById('aiOptimizationToggle').checked = false;
     document.getElementById('aiApiKeySection').style.display = 'none';
     document.getElementById('optimizeBtn').style.display = 'none';
+    document.getElementById('cropBtn').style.display = 'none';
+    document.getElementById('hashtagBtn').style.display = 'none';
+    document.getElementById('grammarBtn').style.display = 'none';
+    document.getElementById('aiPromptSelectContainer').style.display = 'none';
     localStorage.setItem('socialSoxSelectedPromptStyle', 'default');
     if (document.getElementById('aiPrompt')) {
         document.getElementById('aiPrompt').value = '';
