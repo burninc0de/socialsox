@@ -10,12 +10,12 @@ export async function optimizeTweet(apiKey, message, prompt) {
     }
 
     if (!prompt || !prompt.trim()) {
-        prompt = "Rewrite this message to fit in about 300 characters. DO NOT change the tone or voice. Trim if necessary. Suggest relevant hashtags if we have space.";
+        prompt = "Optimize for social media maintain original tone, add relevant hashtags if space allows";
     }
 
     // Ensure the prompt always instructs to output only the message
     if (!prompt.toLowerCase().includes("output only the message")) {
-        prompt += ". output only the message";
+        prompt += ". Keep it limited to 250-300 chars. output only the message";
     }
 
   const response = await fetch('https://api.x.ai/v1/chat/completions', {

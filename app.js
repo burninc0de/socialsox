@@ -58,6 +58,7 @@ window.platforms = {
 // Make prompt functions globally available
 window.updatePromptSelect = updatePromptSelect;
 window.updatePromptDisplay = updatePromptDisplay;
+window.showToast = showToast;
 
 // AI prompt styles
 const DEFAULT_PROMPT = "Rewrite this message to fit in about 300 characters. DO NOT change the tone or voice. Trim if necessary. Suggest relevant hashtags if we have space.";
@@ -138,8 +139,11 @@ function updatePromptDisplay() {
         
         // Show/hide buttons based on whether this is a custom prompt
         const isCustom = customPrompts[selectedValue];
-        saveBtn.style.display = isCustom ? 'inline-block' : 'none';
-        deleteBtn.style.display = isCustom ? 'inline-block' : 'none';
+        saveBtn.style.display = isCustom ? 'inline-flex' : 'none';
+        deleteBtn.style.display = isCustom ? 'inline-flex' : 'none';
+        
+        // Make textarea editable for custom prompts
+        promptTextarea.readOnly = false;
     }
     
     // Save selected prompt ID
@@ -224,12 +228,14 @@ window.saveNewPrompt = function() {
         return;
     }
     
+    // Close modal immediately after validation
+    closeAddPromptModal();
+    
     customPrompts[name] = content;
     saveCustomPrompts(customPrompts);
     updatePromptSelect(name);
     
     window.showToast('Custom prompt created successfully!', 'success');
-    closeAddPromptModal();
 };
 
 window.saveCurrentPrompt = function() {
