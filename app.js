@@ -175,6 +175,12 @@ function updatePromptDisplay() {
     const saveBtn = document.getElementById('savePromptBtn');
     const deleteBtn = document.getElementById('deletePromptBtn');
     
+    // Sync post tab select with settings select
+    const postSelect = document.getElementById('postAiPromptSelect');
+    if (postSelect) {
+        postSelect.value = selectedValue;
+    }
+    
     if (selectedValue === 'default') {
         defaultContent.classList.remove('hidden');
         customContent.classList.add('hidden');
