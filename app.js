@@ -58,6 +58,7 @@ window.platforms = {
 // Make prompt functions globally available
 window.updatePromptSelect = updatePromptSelect;
 window.updatePromptDisplay = updatePromptDisplay;
+window.updatePostPromptSelection = updatePostPromptSelection;
 window.showToast = showToast;
 
 // Make UI functions globally available
@@ -127,11 +128,15 @@ function saveCustomPrompts(prompts) {
 // Update prompt select options
 function updatePromptSelect(selectedId = null) {
     const select = document.getElementById('aiPromptSelect');
+    const postSelect = document.getElementById('postAiPromptSelect');
     const customPrompts = getCustomPrompts();
     
     // Clear existing options except default
     while (select.options.length > 1) {
         select.remove(1);
+    }
+    while (postSelect && postSelect.options.length > 1) {
+        postSelect.remove(1);
     }
     
     // Add custom prompts
@@ -140,19 +145,28 @@ function updatePromptSelect(selectedId = null) {
         option.value = id;
         option.textContent = id;
         select.appendChild(option);
+        
+        if (postSelect) {
+            const postOption = document.createElement('option');
+            postOption.value = id;
+            postOption.textContent = id;
+            postSelect.appendChild(postOption);
+        }
     });
     
     // Set selected value
     if (selectedId && (selectedId === 'default' || customPrompts[selectedId])) {
         select.value = selectedId;
+        if (postSelect) postSelect.value = selectedId;
     } else {
         select.value = 'default';
+        if (postSelect) postSelect.value = 'default';
     }
     
     updatePromptDisplay();
 }
 
-// Update the prompt display based on selection
+// Update prompt display based on selection
 function updatePromptDisplay() {
     const selectedValue = document.getElementById('aiPromptSelect').value;
     const defaultContent = document.getElementById('defaultPromptContent');
@@ -183,6 +197,16 @@ function updatePromptDisplay() {
     // Save selected prompt ID
     localStorage.setItem('socialSoxSelectedPromptId', selectedValue);
     saveCredentials();
+}
+
+// Update prompt selection from Post tab
+function updatePostPromptSelection() {
+    const postSelect = document.getElementById('postAiPromptSelect');
+    const settingsSelect = document.getElementById('aiPromptSelect');
+    if (postSelect && settingsSelect) {
+        settingsSelect.value = postSelect.value;
+        updatePromptDisplay();
+    }
 }
 
 // AI optimization function
@@ -496,6 +520,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         const isEnabled = this.checked;
         document.getElementById('aiApiKeySection').style.display = isEnabled ? 'block' : 'none';
         document.getElementById('optimizeBtn').style.display = isEnabled ? 'block' : 'none';
+        document.getElementById('aiPromptSelectContainer').style.display = isEnabled ? 'block' : 'none';
         saveCredentials();
     });
 

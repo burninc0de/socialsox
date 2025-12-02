@@ -124,6 +124,19 @@
                 </div>
             </div>
 
+            <!-- AI Prompt Select -->
+            <div class="mb-4" id="aiPromptSelectContainer" style="display: none;">
+                <label class="block text-sm text-gray-600 dark:text-gray-400 mb-2">AI Writing Style:</label>
+                <div class="relative">
+                    <select id="postAiPromptSelect" onchange="updatePostPromptSelection()"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer hover:border-primary-500 focus:outline-none focus:border-primary-500 appearance-none pr-8">
+                        <option value="default">Default - Social Media Optimization</option>
+                    </select>
+                    <i data-lucide="chevron-down"
+                        class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400 pointer-events-none"></i>
+                </div>
+            </div>
+
             <!-- Post Button with Time Dropdown -->
             <div class="flex gap-2">
                 <button id="optimizeBtn" onclick="optimizeMessage()" style="display: none;"

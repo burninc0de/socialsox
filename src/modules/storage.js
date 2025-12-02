@@ -151,6 +151,7 @@ export async function loadCredentials() {
         document.getElementById('aiOptimizationToggle').checked = aiOptimizationEnabled;
         document.getElementById('aiApiKeySection').style.display = aiOptimizationEnabled ? 'block' : 'none';
         document.getElementById('optimizeBtn').style.display = aiOptimizationEnabled ? 'block' : 'none';
+        document.getElementById('aiPromptSelectContainer').style.display = aiOptimizationEnabled ? 'block' : 'none';
         
         // Load selected prompt ID
         const selectedPromptId = settings.aiSelectedPromptId || 'default';
@@ -234,6 +235,7 @@ export async function importCredentials() {
                 document.getElementById('aiOptimizationToggle').checked = creds.aiOptimizationEnabled || false;
                 document.getElementById('aiApiKeySection').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
                 document.getElementById('optimizeBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                document.getElementById('aiPromptSelectContainer').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
                 
                 // Import custom prompts
                 if (creds.aiCustomPrompts) {
@@ -273,6 +275,7 @@ export async function importCredentials() {
                         document.getElementById('aiOptimizationToggle').checked = creds.aiOptimizationEnabled || false;
                         document.getElementById('aiApiKeySection').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
                         document.getElementById('optimizeBtn').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
+                        document.getElementById('aiPromptSelectContainer').style.display = (creds.aiOptimizationEnabled || false) ? 'block' : 'none';
                         
                         // Import custom prompts
                         if (creds.aiCustomPrompts) {
