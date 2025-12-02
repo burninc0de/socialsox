@@ -41,16 +41,16 @@ Today's social media landscape is fragmented. Your audience is scattered across 
 - 🔧 Manual sync option
 - ⚠️ Sync pulls the latest file without merging changes
 
-**AI Optimization**
-- 🤖 Optimize messages using Grok AI
-- 🎯 Custom prompts for shortening, spellchecking, hashtags (or just general optimization)
-- 🧪 Test API connection
-
 **Statistics & Analytics**
 - 📊 View posting statistics and analytics
 - 📈 Charts for daily, hourly, and weekly activity
 - 📋 Platform breakdown and success rates
 - 🔔 Notification analytics
+
+**AI Optimization**
+- 🤖 Optimize messages using Grok AI
+- 🎯 Custom prompts for shortening, spellchecking, hashtags (or just general optimization)
+- 🧪 Test API connection
 
 ### Message Composition
 ![Compose a message with platform selection and character counter](screenshots/message-compose.png)
