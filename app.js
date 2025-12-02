@@ -60,6 +60,14 @@ window.updatePromptSelect = updatePromptSelect;
 window.updatePromptDisplay = updatePromptDisplay;
 window.showToast = showToast;
 
+// Make UI functions globally available
+window.showStatus = showStatus;
+window.switchTab = switchTab;
+window.toggleCollapsible = toggleCollapsible;
+window.removeImage = removeImage;
+window.exportCredentials = exportCredentials;
+window.importCredentials = importCredentials;
+
 // AI prompt styles
 const DEFAULT_PROMPT = "Rewrite this message to fit in about 300 characters. DO NOT change the tone or voice. Trim if necessary. Suggest relevant hashtags if we have space.";
 
