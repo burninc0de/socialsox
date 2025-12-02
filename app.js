@@ -1342,6 +1342,7 @@ window.testGrok = async function() {
     const originalText = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Testing...';
+    createIcons({ icons });
 
     try {
         const result = await testGrokApi(apiKey);
