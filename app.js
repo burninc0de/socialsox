@@ -62,11 +62,37 @@ window.showToast = showToast;
 
 // Make UI functions globally available
 window.showStatus = showStatus;
+window.showToast = showToast;
 window.switchTab = switchTab;
 window.toggleCollapsible = toggleCollapsible;
 window.removeImage = removeImage;
 window.exportCredentials = exportCredentials;
 window.importCredentials = importCredentials;
+window.clearHistory = clearHistory;
+window.loadAndDisplayHistory = loadAndDisplayHistory;
+window.deleteHistoryEntry = deleteHistoryEntry;
+window.showStats = showStats;
+window.closeStatsModal = closeStatsModal;
+window.clearNotificationsCache = clearNotificationsCache;
+window.loadNotifications = loadNotifications;
+window.showPlatformStatus = showPlatformStatus;
+window.clearPlatformStatuses = clearPlatformStatuses;
+window.markAsSeen = markAsSeen;
+window.markAllAsRead = markAllAsRead;
+window.loadCachedNotifications = loadCachedNotifications;
+window.testNotification = testNotification;
+window.resetAllData = resetAllData;
+window.testMastodonConfig = testMastodonConfig;
+window.testTwitterConfig = testTwitterConfig;
+window.testBlueskyConfig = testBlueskyConfig;
+window.clearScheduled = clearScheduled;
+window.normalizeScheduled = normalizeScheduled;
+window.loadAndDisplayScheduled = loadAndDisplayScheduled;
+window.deleteScheduledPost = deleteScheduledPost;
+window.setSelectedImages = setSelectedImages;
+window.selectSyncDir = selectSyncDir;
+window.setSyncEnabled = setSyncEnabled;
+window.manualSync = manualSync;
 
 // AI prompt styles
 const DEFAULT_PROMPT = "Rewrite this message to fit in about 300 characters. DO NOT change the tone or voice. Trim if necessary. Suggest relevant hashtags if we have space.";
