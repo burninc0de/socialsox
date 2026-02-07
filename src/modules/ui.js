@@ -4,7 +4,7 @@ export function showStatus(message, type) {
     const status = document.getElementById('status');
     status.textContent = message;
     status.className = 'mt-5 p-4 rounded-lg text-sm whitespace-pre-line block';
-    
+
     if (type === 'success') {
         status.classList.add('bg-green-100', 'dark:bg-green-900', 'text-green-800', 'dark:text-green-200', 'border', 'border-green-300', 'dark:border-green-600');
         setTimeout(() => {
@@ -20,12 +20,12 @@ export function showStatus(message, type) {
 export function showPlatformStatus(platform, message, type) {
     const platformStatuses = document.getElementById('platformStatuses');
     const statusElement = document.getElementById(`${platform.toLowerCase()}Status`);
-    
+
     if (!statusElement) return;
-    
+
     statusElement.textContent = message;
     statusElement.className = 'p-3 rounded-lg text-sm block';
-    
+
     if (type === 'success') {
         statusElement.classList.add('bg-green-100', 'dark:bg-green-900', 'text-green-800', 'dark:text-green-200', 'border', 'border-green-300', 'dark:border-green-600');
     } else if (type === 'error') {
@@ -33,11 +33,11 @@ export function showPlatformStatus(platform, message, type) {
     } else if (type === 'info') {
         statusElement.classList.add('bg-blue-100', 'dark:bg-blue-900', 'text-blue-800', 'dark:text-blue-200', 'border', 'border-blue-300', 'dark:border-blue-600');
     }
-    
+
     // Show the platform statuses container
     platformStatuses.classList.remove('hidden');
     statusElement.classList.remove('hidden');
-    
+
     // Auto-hide success messages after 5 seconds
     if (type === 'success') {
         setTimeout(() => {
@@ -64,9 +64,9 @@ export function showToast(message, type = 'info', duration = 3000) {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.textContent = message;
-    
+
     toastContainer.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.classList.add('fade-out');
         setTimeout(() => {
@@ -82,31 +82,31 @@ export function updateCharCount() {
     const charCount = message.length;
     const graphemeCount = countGraphemes(message);
     const countEl = document.getElementById('charCount');
-    
+
     // Get selected platforms
     const selectedPlatforms = Object.keys(window.platforms || {}).filter(p => window.platforms[p]);
-    
+
     let warnings = [];
     let isOverLimit = false;
-    
+
     if (selectedPlatforms.includes('twitter') && charCount > 280) {
         warnings.push('Twitter (280 chars)');
         isOverLimit = true;
     }
-    
+
     if (selectedPlatforms.includes('bluesky') && graphemeCount > 300) {
         warnings.push('Bluesky (300 graphemes)');
         isOverLimit = true;
     }
-    
+
     // For Mastodon, no strict limit, but show if over 500 for warning
     if (selectedPlatforms.includes('mastodon') && charCount > 500) {
         warnings.push('Mastodon (500+ chars)');
         isOverLimit = true;
     }
-    
+
     countEl.className = 'text-right text-xs mb-5';
-    
+
     if (isOverLimit) {
         if (charCount === graphemeCount) {
             countEl.textContent = `${charCount} characters - Over limit for: ${warnings.join(', ')}`;
@@ -133,36 +133,53 @@ function countGraphemes(str) {
 export function switchTab(tab) {
     // Save current tab to localStorage
     localStorage.setItem('socialSoxActiveTab', tab);
-    
+
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.add('hidden');
     });
-    
-    document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.remove('text-primary-600', 'dark:text-primary-400', 'border-primary-600', 'dark:border-primary-400');
-        btn.classList.add('text-gray-500', 'dark:text-gray-400', 'border-transparent');
+
+    // Update sidebar button states
+    document.querySelectorAll('.sidebar-button').forEach(btn => {
+        btn.classList.remove('active', 'text-primary-600', 'dark:text-primary-400', 'bg-primary-50', 'dark:bg-primary-900/20');
+        btn.classList.add('text-gray-600', 'dark:text-gray-400');
     });
-    
+
     document.getElementById(tab + 'Content').classList.remove('hidden');
-    
-    document.getElementById(tab + 'Tab').classList.remove('text-gray-500', 'dark:text-gray-400', 'border-transparent');
-    document.getElementById(tab + 'Tab').classList.add('text-primary-600', 'dark:text-primary-400', 'border-b-2', 'border-primary-600', 'dark:border-primary-400');
-    
+
+    const activeBtn = document.getElementById(tab + 'Tab');
+    activeBtn.classList.remove('text-gray-600', 'dark:text-gray-400');
+    activeBtn.classList.add('active', 'text-primary-600', 'dark:text-primary-400', 'bg-primary-50', 'dark:bg-primary-900/20');
+
     // Load cached notifications when switching to notifications tab
     if (tab === 'notifications' && window.loadCachedNotifications) {
         window.loadCachedNotifications();
     }
-    
+
     // Load and display history when switching to history tab
     if (tab === 'history' && window.loadAndDisplayHistory) {
         window.loadAndDisplayHistory();
     }
-    
+
     // Load and display scheduled posts when switching to scheduled tab
     if (tab === 'scheduled' && window.loadAndDisplayScheduled) {
         window.loadAndDisplayScheduled();
     }
-    
+
+    // Load home feed when switching to home tab
+    if (tab === 'home' && window.loadHomeFeed) {
+        // Jump to top immediately
+        window.scrollTo(0, 0);
+        
+        // Check if feed is already loaded
+        const feedList = document.getElementById('homeFeedList');
+        const isEmpty = !feedList || feedList.children.length === 0;
+        
+        if (isEmpty) {
+            // First time loading - show skeletons
+            window.loadHomeFeed(false);
+        }
+    }
+
     // Clear status message when switching tabs
     const status = document.getElementById('status');
     status.classList.add('hidden');
@@ -171,7 +188,7 @@ export function switchTab(tab) {
 export function toggleCollapsible() {
     const content = document.getElementById('credentials');
     const arrow = document.getElementById('arrow');
-    
+
     if (content.style.maxHeight === '1000px') {
         content.style.maxHeight = '0';
         arrow.style.transform = 'rotate(0deg)';

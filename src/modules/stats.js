@@ -1,3 +1,4 @@
+import { getPlatformIcons } from './icons.js';
 // Stats and analytics module
 import Chart from 'chart.js/auto';
 
@@ -295,10 +296,10 @@ async function renderSummaryStats(stats) {
     const summaryEl = document.getElementById('statsSummary');
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-    const assetsPath = await window.electron.getAssetsPath();
-    const mastodonIcon = await window.electron.readFileAsDataURL(`${assetsPath}/masto.svg`);
-    const twitterIcon = await window.electron.readFileAsDataURL(`${assetsPath}/twit.svg`);
-    const blueskyIcon = await window.electron.readFileAsDataURL(`${assetsPath}/bsky.svg`);
+    const platformIcons = await getPlatformIcons();
+    const mastodonIcon = platformIcons.mastodon;
+    const twitterIcon = platformIcons.twitter;
+    const blueskyIcon = platformIcons.bluesky;
 
     summaryEl.innerHTML = `
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
@@ -372,10 +373,10 @@ async function renderDailyChart(dailyStats) {
     }
 
     // Load images as data URLs
-    const assetsPath = await window.electron.getAssetsPath();
-    const mastodonDataUrl = await window.electron.readFileAsDataURL(`${assetsPath}/masto.svg`);
-    const twitterDataUrl = await window.electron.readFileAsDataURL(`${assetsPath}/twit.svg`);
-    const blueskyDataUrl = await window.electron.readFileAsDataURL(`${assetsPath}/bsky.svg`);
+    const platformIcons = await getPlatformIcons();
+    const mastodonDataUrl = platformIcons.mastodon;
+    const twitterDataUrl = platformIcons.twitter;
+    const blueskyDataUrl = platformIcons.bluesky;
 
     // Create image objects for platform SVGs
     const mastodonIcon = new Image();

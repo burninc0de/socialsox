@@ -37,6 +37,12 @@ export async function deleteHistoryEntry(timestamp) {
     try {
         const history = await window.electron.readHistory();
         const filteredHistory = history.filter(entry => entry.timestamp !== timestamp);
+        
+        // Track the deletion for sync
+        if (window.electron.trackDeletedHistory) {
+            await window.electron.trackDeletedHistory(timestamp);
+        }
+        
         await saveHistory(filteredHistory);
         historyData = filteredHistory; // Update global historyData
         displayHistory(filteredHistory);
@@ -96,7 +102,12 @@ export function displayHistory(history) {
     
     noHistory.style.display = 'none';
     
-    historyList.innerHTML = history.map(entry => {
+    // Sort by timestamp descending (newest first)
+    const sortedHistory = [...history].sort((a, b) => 
+        new Date(b.timestamp) - new Date(a.timestamp)
+    );
+    
+    historyList.innerHTML = sortedHistory.map(entry => {
         const date = new Date(entry.timestamp);
         const timeString = date.toLocaleString();
         const platformsString = entry.platforms.join(', ');

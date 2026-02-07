@@ -8,64 +8,30 @@ Today's social media landscape is fragmented. Your audience is scattered across 
 
 ## Features
 
-**Core Posting**
-- 📝 Post to one or all platforms simultaneously
-- 🖼️ Multiple image uploads (up to 4) with drag-and-drop
-- 🔄 Drag to reorder images before posting
-- 📊 Real-time character counter per platform
-- 🧪 Debug mode: Test your posts without actually publishing them
+**Cross-Platform Posting**
+- 📝 Post to Mastodon, X (Twitter), and Bluesky simultaneously
+- 🖼️ Multiple image uploads with drag-and-drop reordering
+- 📜 View posting history with delivery status tracking
 
-**Management & History**
-- 📜 View posting history with status tracking
-- 🔔 Monitor replies, likes, and reposts
-- ✅ Per-platform delivery status
+**Social Feed**
+- 🏠 Browse aggregated home feed from connected accounts
+- 🔄 Infinite scroll with configurable platform mix
+- 🏷️ Explore hashtags and user profiles
+- ❤️ Like, boost, reply, and moderate directly from feed
 
-**Privacy & Security**
-- 🔒 Credentials encrypted using OS-level security
-- 🖥️ Runs entirely on your machine—no cloud required
-- 📥 Export/import credentials for backup
-
-**Customization**
-- 🎨 Native dark mode support
-- ⚙️ Customizable tray icons and window decorations
-
-**Scheduling**
+**Scheduling & Sync**
 - ⏰ Schedule posts for future publication
-- 🔄 Drag-and-drop to reorder scheduled posts
-- 📅 Automatic posting at scheduled times
-- ⚠️ Requires the app to be running for automatic posting
-
-**Data Synchronization**
-- 🔄 Sync posting history and scheduled posts to a local directory
-- ⏱️ Automatic periodic sync
-- 🔧 Manual sync option
-- ⚠️ Sync pulls the latest file without merging changes
-
-**Statistics & Analytics**
-- 📊 View posting statistics and analytics
-- 📈 Charts for daily, hourly, and weekly activity
-- 📋 Platform breakdown and success rates
-- 🔔 Notification analytics
-
-**AI Optimization**
-- 🤖 Optimize messages using Grok AI
-- 🎯 Custom prompts for shortening, spellchecking, hashtags (or just general optimization)
-- 🧪 Test API connection
+- 🔄 Automatic data synchronization
+- 📅 Drag-and-drop scheduled post management
 
 ### Message Composition
-![Compose a message with platform selection and character counter](screenshots/message-compose.png)
+![Compose a message with platform selection and character counter](screenshots/composition.png)
 
-### Posting with Images
-![Compose messages with image uploads](screenshots/message-with-image.png)
-
-### Posting History
-![View your posting history with status tracking](screenshots/history-tab.png)
+### Social Feed
+![Browse aggregated home feed from connected accounts](screenshots/homefeed.png)
 
 ### Settings & Credentials
-![Configure API credentials and app settings](screenshots/settings-tab-2.png)
-
-### Notifications
-![Monitor notifications from connected platforms](screenshots/notifications-tab.png)
+![Configure API credentials and app settings](screenshots/settings.png)
 
 ### Scheduled Posts
 ![Schedule posts for future publication](screenshots/schedule.png)
@@ -88,6 +54,9 @@ Today's social media landscape is fragmented. Your audience is scattered across 
 > - Tested on Linux (Arch CachyOS) and Windows 11
 > - Mac builds need testing
 
+> [!NOTE]
+> For comprehensive coding guidelines, style conventions, and development best practices (e.g., naming, error handling, testing), see [AGENTS.md](AGENTS.md).
+
 ## Project Structure
 
 The application follows a modular architecture to keep code organized and maintainable. The core functionality is split into separate modules located in the `src/modules/` directory:
@@ -97,6 +66,12 @@ src/
 ├── modules/
 │   ├── ai.js               # AI-powered message optimization
 │   ├── history.js          # Handles posting history and status tracking
+│   ├── home/
+│   │   ├── actions.js      # Home tab actions
+│   │   ├── api.js          # Home tab API calls
+│   │   ├── index.js        # Home tab main logic
+│   │   └── render.js       # Home tab rendering
+│   ├── icons.js            # Icon utilities
 │   ├── imageUpload.js      # Manages image upload functionality
 │   ├── notifications.js    # Handles platform notifications
 │   ├── platforms.js        # Contains platform-specific API integrations
@@ -108,7 +83,7 @@ src/
 │   └── ui.js               # UI-related utilities and helpers
 ```
 
-This modular approach allows for easy maintenance and future extensions.
+This modular approach allows for easy maintenance and future extensions. For detailed coding guidelines and module conventions, see [AGENTS.md](AGENTS.md).
 
 ## Quick Start
 
@@ -155,7 +130,7 @@ Use the **Settings** tab to configure your API credentials. They're encrypted lo
 1. Log in to your Mastodon instance (e.g., mastodon.social)
 2. Go to Settings → Development → New Application
 3. Give it a name (e.g., "SocialSox")
-4. Select permissions: `read:notifications`, `write:media`, `write:statuses`
+4. Select permissions: `read:accounts`, `read:blocks`, `read:favourites`, `read:follows`, `read:mutes`, `read:notifications`, `read:statuses`, `write:blocks`, `write:favourites`, `write:follows`, `write:media`, `write:mutes`, `write:statuses`
 5. Click "Submit"
 6. Copy your **instance URL** (just the domain like `https://mastodon.social`, NOT your profile URL)
 7. Copy your **access token** from the application page
@@ -308,18 +283,26 @@ cd socialsox
 npm install
 ```
 
+### Testing
+
+The project uses a custom test runner for integration tests focused on end-to-end functionality rather than unit tests. Tests mock external APIs to avoid hitting real social media endpoints.
+
+### Testing Commands
+
+- **Run all tests**: `npm test` - Executes the main test suite (currently sync tests)
+- **Run tests in watch mode**: `npm run test:watch` - Runs tests with file watching using nodemon
+- **Run a single test file**: `node test/sync.test.js` - Execute specific test files directly
+- **Run specific test files**: `node test/sync-scenario.test.js`, `node test/sync-idempotent.test.js`
+
+For detailed testing guidelines, including how to write and run tests, see [AGENTS.md](AGENTS.md).
+
 ### Development Commands
 
-```bash
-# Development mode (Vite dev server + Electron with hot-reload)
-npm run dev
+- **Start development server**: `npm run dev` - Runs Vite dev server with hot-reload and launches Electron app
+- **Build for production**: `npm run build` - Builds with Vite and creates distributable packages
+- **Run built app**: `npm start` - Launches the built Electron application
 
-# Build production distributables
-npm run build
-
-# Run the pre-built production app (after building)
-npm start
-```
+For detailed coding guidelines, build instructions, and conventions, see [AGENTS.md](AGENTS.md).
 
 ### Debugging Built App
 

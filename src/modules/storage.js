@@ -15,6 +15,8 @@ export async function saveCredentials() {
 
     const settings = {
         mastodonInstance: document.getElementById('mastodon-instance').value,
+        // Comma-separated list of language codes for home feed filtering (empty = no filter)
+        homeLanguagePreferences: (document.getElementById('home-language-preferences')?.value || '').trim(),
         blueskyHandle: document.getElementById('bluesky-handle').value,
         platforms: { ...window.platforms },
         pollingIntervals: {
@@ -102,6 +104,10 @@ export async function loadCredentials() {
         }
 
         document.getElementById('mastodon-instance').value = settings.mastodonInstance || '';
+        // Load home language preferences (empty = no filter)
+        if (typeof document.getElementById('home-language-preferences') !== 'undefined' && document.getElementById('home-language-preferences')) {
+            document.getElementById('home-language-preferences').value = settings.homeLanguagePreferences || '';
+        }
         document.getElementById('mastodon-token').value = sensitiveCreds.mastodonToken || '';
         document.getElementById('twitter-key').value = sensitiveCreds.twitterKey || '';
         document.getElementById('twitter-secret').value = sensitiveCreds.twitterSecret || '';
@@ -180,8 +186,9 @@ export async function loadCredentials() {
 
 export async function exportCredentials() {
     try {
-        const creds = {
+            const creds = {
             mastodonInstance: document.getElementById('mastodon-instance').value,
+            homeLanguagePreferences: (document.getElementById('home-language-preferences')?.value || '').trim(),
             mastodonToken: document.getElementById('mastodon-token').value,
             twitterKey: document.getElementById('twitter-key').value,
             twitterSecret: document.getElementById('twitter-secret').value,
@@ -226,7 +233,10 @@ export async function importCredentials() {
             const result = await window.electron.importCredentials();
             if (result.success && result.credentials) {
                 const creds = result.credentials;
-                document.getElementById('mastodon-instance').value = creds.mastodonInstance || '';
+                        document.getElementById('mastodon-instance').value = creds.mastodonInstance || '';
+                        if (document.getElementById('home-language-preferences')) {
+                            document.getElementById('home-language-preferences').value = creds.homeLanguagePreferences || '';
+                        }
                 document.getElementById('mastodon-token').value = creds.mastodonToken || '';
                 document.getElementById('twitter-key').value = creds.twitterKey || '';
                 document.getElementById('twitter-secret').value = creds.twitterSecret || '';
@@ -276,6 +286,9 @@ export async function importCredentials() {
                         const creds = JSON.parse(text);
                         
                         document.getElementById('mastodon-instance').value = creds.mastodonInstance || '';
+                        if (document.getElementById('home-language-preferences')) {
+                            document.getElementById('home-language-preferences').value = creds.homeLanguagePreferences || 'en';
+                        }
                         document.getElementById('mastodon-token').value = creds.mastodonToken || '';
                         document.getElementById('twitter-key').value = creds.twitterKey || '';
                         document.getElementById('twitter-secret').value = creds.twitterSecret || '';

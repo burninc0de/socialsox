@@ -28,6 +28,11 @@ const notificationsPath = path.join(app.getPath('userData'), 'notifications.json
 const historyPath = path.join(app.getPath('userData'), 'history.json');
 const schedulePath = path.join(app.getPath('userData'), 'schedule.json');
 const syncSettingsPath = path.join(app.getPath('userData'), 'sync-settings.json');
+const deletedIdsPath = path.join(app.getPath('userData'), 'deleted-ids.json');
+const dismissedIdsPath = path.join(app.getPath('userData'), 'dismissed-ids.json');
+
+// Debug log path (appends sanitized Bluesky debug dumps)
+const blueskyDebugLogPath = path.join(app.getPath('userData'), 'bluesky-debug.json');
 
 async function getWindowBounds() {
     try {
@@ -404,6 +409,23 @@ ipcMain.on('minimize-window', () => {
     }
 });
 
+// Handle renderer request to write sanitized debug logs
+ipcMain.handle('write-debug-log', async (event, obj, filename) => {
+    try {
+        const target = filename ? path.join(app.getPath('userData'), filename) : blueskyDebugLogPath;
+        const entry = {
+            at: new Date().toISOString(),
+            payload: obj
+        };
+        // Append JSON entry followed by newline for easy streaming
+        await fs.appendFile(target, JSON.stringify(entry, null, 2) + '\n');
+        return { success: true, path: target };
+    } catch (error) {
+        console.error('Failed to write debug log:', error);
+        return { success: false, error: error.message };
+    }
+});
+
 ipcMain.on('maximize-window', () => {
     const win = BrowserWindow.getFocusedWindow();
     if (win) {
@@ -571,6 +593,35 @@ ipcMain.handle('get-assets-path', () => {
         : path.join(__dirname, 'assets');
 });
 
+ipcMain.handle('get-platform-icons', async () => {
+    const assetsPath = (app && app.isPackaged)
+        ? path.join(process.resourcesPath, 'assets')
+        : path.join(__dirname, 'assets');
+    
+    const readFileAsDataURL = async (filePath) => {
+        try {
+            const buffer = await fs.readFile(filePath);
+            const ext = path.extname(filePath).toLowerCase();
+            let mime = 'image/png';
+            if (ext === '.svg') mime = 'image/svg+xml';
+            return `data:${mime};base64,${buffer.toString('base64')}`;
+        } catch (error) {
+            console.error('Error reading file:', error);
+            return null;
+        }
+    };
+
+    const mastodonIcon = await readFileAsDataURL(path.join(assetsPath, 'masto.svg'));
+    const blueskyIcon = await readFileAsDataURL(path.join(assetsPath, 'bsky.svg'));
+    const twitterIcon = await readFileAsDataURL(path.join(assetsPath, 'twit.svg'));
+
+    return {
+        mastodon: mastodonIcon,
+        bluesky: blueskyIcon,
+        twitter: twitterIcon
+    };
+});
+
 ipcMain.handle('read-notifications', async () => {
     try {
         const data = await fs.readFile(notificationsPath, 'utf8');
@@ -694,37 +745,241 @@ ipcMain.handle('write-sync-settings', async (event, settings) => {
     }
 });
 
+// Helper function to track deleted IDs
+async function trackDeletedId(type, id) {
+    try {
+        let deletedIds = { history: [], notifications: [], scheduled: [] };
+        try {
+            const content = await fs.readFile(deletedIdsPath, 'utf8');
+            deletedIds = JSON.parse(content);
+        } catch (error) {
+            // File doesn't exist, use defaults
+        }
+        
+        if (!deletedIds[type]) {
+            deletedIds[type] = [];
+        }
+        
+        const idString = String(id);
+        if (!deletedIds[type].includes(idString)) {
+            deletedIds[type].push(idString);
+            await fs.writeFile(deletedIdsPath, JSON.stringify(deletedIds, null, 2));
+        }
+    } catch (error) {
+        console.error(`Failed to track deleted ID for ${type}:`, error);
+    }
+}
+
+ipcMain.handle('track-deleted-history', async (event, timestamp) => {
+    await trackDeletedId('history', timestamp);
+});
+
+ipcMain.handle('track-deleted-notification', async (event, id) => {
+    await trackDeletedId('notifications', id);
+});
+
+ipcMain.handle('track-deleted-scheduled', async (event, id) => {
+    await trackDeletedId('scheduled', id);
+});
+
+async function trackDismissedNotification(id) {
+    try {
+        let dismissedIds = [];
+        try {
+            const content = await fs.readFile(dismissedIdsPath, 'utf8');
+            dismissedIds = JSON.parse(content);
+        } catch (error) {
+            // File doesn't exist yet
+        }
+        
+        const idString = String(id);
+        if (!dismissedIds.includes(idString)) {
+            dismissedIds.push(idString);
+            await fs.writeFile(dismissedIdsPath, JSON.stringify(dismissedIds, null, 2));
+        }
+    } catch (error) {
+        console.error('Failed to track dismissed notification:', error);
+    }
+}
+
+ipcMain.handle('track-dismissed-notification', async (event, id) => {
+    await trackDismissedNotification(id);
+});
+
+ipcMain.handle('read-dismissed-notifications', async () => {
+    try {
+        const content = await fs.readFile(dismissedIdsPath, 'utf8');
+        return JSON.parse(content);
+    } catch (error) {
+        return [];
+    }
+});
+
+// Sync strategy: Remote (sync directory) is the UPSTREAM source of truth with deletion tracking
+// - Deletions are tracked in deleted-ids.json stored in BOTH local and sync directory
+// - When syncing: deletions from both locations are merged and items are removed from data files
+// - This ensures deletions propagate across all synced machines
+// - Remote additions are pulled: all remote items not in deleted-ids are brought to local
+// - Local additions are pushed: local items not in remote are added to remote
+// - Both insertions and deletions merge seamlessly bidirectionally
 ipcMain.handle('manual-sync', async (event, syncDirPath) => {
     const files = [
-        { local: historyPath, remote: path.join(syncDirPath, 'history.json'), merge: false },
-        { local: notificationsPath, remote: path.join(syncDirPath, 'notifications.json'), merge: false },
-        { local: schedulePath, remote: path.join(syncDirPath, 'schedule.json'), merge: false }
+        { 
+            local: historyPath, 
+            remote: path.join(syncDirPath, 'history.json'),
+            idField: 'timestamp',
+            sortField: 'timestamp',
+            deletedKey: 'history'
+        },
+        { 
+            local: notificationsPath, 
+            remote: path.join(syncDirPath, 'notifications.json'),
+            idField: 'id',
+            sortField: 'timestamp',
+            deletedKey: 'notifications'
+        },
+        { 
+            local: schedulePath, 
+            remote: path.join(syncDirPath, 'schedule.json'),
+            idField: 'id',
+            sortField: 'scheduledTime',
+            deletedKey: 'scheduled'
+        }
     ];
+
+    const remoteDeletedIdsPath = path.join(syncDirPath, 'deleted-ids.json');
+    const remoteDismissedIdsPath = path.join(syncDirPath, 'dismissed-ids.json');
+
+    // Read local deleted IDs tracker
+    let localDeletedIds = {};
+    try {
+        const deletedContent = await fs.readFile(deletedIdsPath, 'utf8');
+        localDeletedIds = JSON.parse(deletedContent);
+    } catch (error) {
+        // File doesn't exist yet, initialize empty
+        localDeletedIds = { history: [], notifications: [], scheduled: [] };
+    }
+
+    // Read remote deleted IDs tracker
+    let remoteDeletedIds = {};
+    try {
+        const deletedContent = await fs.readFile(remoteDeletedIdsPath, 'utf8');
+        remoteDeletedIds = JSON.parse(deletedContent);
+    } catch (error) {
+        // File doesn't exist yet, initialize empty
+        remoteDeletedIds = { history: [], notifications: [], scheduled: [] };
+    }
+
+    // Merge deleted IDs from both local and remote
+    const mergedDeletedIds = {
+        history: [...new Set([...(localDeletedIds.history || []), ...(remoteDeletedIds.history || [])])],
+        notifications: [...new Set([...(localDeletedIds.notifications || []), ...(remoteDeletedIds.notifications || [])])],
+        scheduled: [...new Set([...(localDeletedIds.scheduled || []), ...(remoteDeletedIds.scheduled || [])])]
+    };
+
+    // Read local dismissed IDs tracker
+    let localDismissedIds = [];
+    try {
+        const dismissedContent = await fs.readFile(dismissedIdsPath, 'utf8');
+        localDismissedIds = JSON.parse(dismissedContent);
+    } catch (error) {
+        // File doesn't exist yet, initialize empty
+        localDismissedIds = [];
+    }
+
+    // Read remote dismissed IDs tracker
+    let remoteDismissedIds = [];
+    try {
+        const dismissedContent = await fs.readFile(remoteDismissedIdsPath, 'utf8');
+        remoteDismissedIds = JSON.parse(dismissedContent);
+    } catch (error) {
+        // File doesn't exist yet, initialize empty
+        remoteDismissedIds = [];
+    }
+
+    // Merge dismissed IDs from both local and remote
+    const mergedDismissedIds = [...new Set([...localDismissedIds, ...remoteDismissedIds])];
 
     for (const file of files) {
         try {
-            // Check if local file exists
-            const localStat = await fs.stat(file.local).catch(() => null);
-            const remoteStat = await fs.stat(file.remote).catch(() => null);
-
-            if (localStat && remoteStat) {
-                // Both exist, copy newer
-                if (localStat.mtime > remoteStat.mtime) {
-                    await fs.copyFile(file.local, file.remote);
-                } else if (remoteStat.mtime > localStat.mtime) {
-                    await fs.copyFile(file.remote, file.local);
-                }
-            } else if (localStat && (!remoteStat || localStat.mtime > remoteStat.mtime)) {
-                // Local is newer or remote doesn't exist, copy to remote
-                await fs.copyFile(file.local, file.remote);
-            } else if (remoteStat && (!localStat || remoteStat.mtime > localStat.mtime)) {
-                // Remote is newer or local doesn't exist, copy to local
-                await fs.copyFile(file.remote, file.local);
+            // Read remote file (upstream source of truth)
+            let remoteData = [];
+            try {
+                const remoteContent = await fs.readFile(file.remote, 'utf8');
+                remoteData = JSON.parse(remoteContent);
+            } catch (error) {
+                // Remote doesn't exist or is invalid, will be created
+                console.log(`Remote file ${file.remote} doesn't exist or is invalid, will create it`);
             }
+
+            // Read local file
+            let localData = [];
+            try {
+                const localContent = await fs.readFile(file.local, 'utf8');
+                localData = JSON.parse(localContent);
+            } catch (error) {
+                // Local doesn't exist or is invalid
+                console.log(`Local file ${file.local} doesn't exist or is invalid`);
+            }
+
+            // Get deleted IDs for this file type (from merged deletions)
+            const deleted = new Set(mergedDeletedIds[file.deletedKey] || []);
+
+            // Filter out deleted items from both remote and local
+            remoteData = remoteData.filter(item => !deleted.has(String(item[file.idField])));
+            localData = localData.filter(item => !deleted.has(String(item[file.idField])));
+
+            // Merge: Remote is source of truth, but we add local items not in remote
+            // This ensures:
+            // 1. All remote items are preserved (deletions from remote are respected)
+            // 2. New local items are pushed to remote
+            // 3. Deleted items (tracked in deletedIds) are removed from both
+            const remoteIds = new Set(remoteData.map(item => item[file.idField]));
+            const localOnlyItems = localData.filter(item => !remoteIds.has(item[file.idField]));
+            
+            // Combine: all remote items + local items not in remote
+            const mergedData = [...remoteData, ...localOnlyItems];
+            
+            // For notifications, apply dismissed status from merged dismissed IDs
+            if (file.deletedKey === 'notifications') {
+                const dismissedSet = new Set(mergedDismissedIds);
+                mergedData.forEach(notif => {
+                    if (dismissedSet.has(String(notif.id))) {
+                        notif.dismissed = true;
+                        notif.isNew = false;
+                    }
+                });
+            }
+            
+            // Sort by appropriate field for consistent ordering
+            mergedData.sort((a, b) => {
+                const aVal = a[file.sortField];
+                const bVal = b[file.sortField];
+                if (aVal < bVal) return -1;
+                if (aVal > bVal) return 1;
+                return 0;
+            });
+
+            // Write merged data to both locations
+            const mergedContent = JSON.stringify(mergedData, null, 2);
+            await fs.writeFile(file.local, mergedContent);
+            await fs.writeFile(file.remote, mergedContent);
+            
+            console.log(`Synced ${file.local}: ${remoteData.length} remote, ${localOnlyItems.length} local-only, ${deleted.size} deleted, ${mergedData.length} total`);
         } catch (error) {
             console.error(`Failed to sync ${file.local}:`, error);
         }
     }
+
+    // Save merged deleted IDs tracker to BOTH local and remote
+    const mergedDeletedContent = JSON.stringify(mergedDeletedIds, null, 2);
+    await fs.writeFile(deletedIdsPath, mergedDeletedContent);
+    await fs.writeFile(remoteDeletedIdsPath, mergedDeletedContent);
+
+    // Save merged dismissed IDs tracker to BOTH local and remote
+    const mergedDismissedContent = JSON.stringify(mergedDismissedIds, null, 2);
+    await fs.writeFile(dismissedIdsPath, mergedDismissedContent);
+    await fs.writeFile(remoteDismissedIdsPath, mergedDismissedContent);
 
     return true;
 });

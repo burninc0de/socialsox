@@ -34,6 +34,9 @@ contextBridge.exposeInMainWorld(
         encryptCredentials: (data) => ipcRenderer.invoke('encrypt-credentials', data),
         decryptCredentials: (encryptedData) => ipcRenderer.invoke('decrypt-credentials', encryptedData),
         getAssetsPath: () => ipcRenderer.invoke('get-assets-path'),
+        getPlatformIcons: () => ipcRenderer.invoke('get-platform-icons'),
+        // Write debug logs (object will be serialized on the main side)
+        writeDebugLog: (obj, filename) => ipcRenderer.invoke('write-debug-log', obj, filename),
         readNotifications: () => ipcRenderer.invoke('read-notifications'),
         writeNotifications: (notifications) => ipcRenderer.invoke('write-notifications', notifications),
         deleteNotifications: () => ipcRenderer.invoke('delete-notifications'),
@@ -47,6 +50,11 @@ contextBridge.exposeInMainWorld(
         selectSyncDir: () => ipcRenderer.invoke('select-sync-dir'),
         readSyncSettings: () => ipcRenderer.invoke('read-sync-settings'),
         writeSyncSettings: (settings) => ipcRenderer.invoke('write-sync-settings', settings),
-        manualSync: (syncDirPath) => ipcRenderer.invoke('manual-sync', syncDirPath)
+        manualSync: (syncDirPath) => ipcRenderer.invoke('manual-sync', syncDirPath),
+        trackDeletedHistory: (timestamp) => ipcRenderer.invoke('track-deleted-history', timestamp),
+        trackDeletedNotification: (id) => ipcRenderer.invoke('track-deleted-notification', id),
+        trackDeletedScheduled: (id) => ipcRenderer.invoke('track-deleted-scheduled', id),
+        trackDismissedNotification: (id) => ipcRenderer.invoke('track-dismissed-notification', id),
+        readDismissedNotifications: () => ipcRenderer.invoke('read-dismissed-notifications')
     }
 );

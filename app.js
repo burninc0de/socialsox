@@ -1,8 +1,8 @@
 
 // Import lucide icons
-import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify, Plus, Scissors, Hash, Languages } from 'lucide';
+import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, MessageCircleX, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify, Plus, Scissors, Hash, Languages, Ban, Home, Check, ArrowLeft, ExternalLink, UserMinus } from 'lucide';
 
-const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify, Plus, Scissors, Hash, scissors: Scissors, hash: Hash, Languages, languages: Languages };
+const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, MessageCircleX, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify, Plus, Scissors, Hash, scissors: Scissors, hash: Hash, Languages, languages: Languages, Ban, Home, Check, ArrowLeft, ExternalLink, UserMinus };
 
 // Import Chart.js
 import Chart from 'chart.js/auto';
@@ -21,6 +21,7 @@ import { postToMastodon, postToTwitter, postToBluesky, testMastodonConfig, testT
 import { optimizeTweet, testGrokApi } from './src/modules/ai.js';
 import { showStatus, showToast, updateCharCount, switchTab, toggleCollapsible, showPlatformStatus, clearPlatformStatuses } from './src/modules/ui.js';
 import { loadHistory, loadAndDisplayHistory, clearHistory, addHistoryEntry, deleteHistoryEntry } from './src/modules/history.js';
+import { loadHomeFeed } from './src/modules/home/index.js';
 import { showStats, closeStatsModal } from './src/modules/stats.js';
 import { setupImageUpload, removeImage, getSelectedImages, setSelectedImages } from './src/modules/imageUpload.js';
 import {
@@ -65,6 +66,10 @@ window.showToast = showToast;
 window.showStatus = showStatus;
 window.showToast = showToast;
 window.switchTab = switchTab;
+
+// Expose settings persistence to other modules
+window.saveCredentials = saveCredentials;
+
 window.toggleCollapsible = toggleCollapsible;
 window.removeImage = removeImage;
 window.exportCredentials = exportCredentials;
@@ -94,6 +99,7 @@ window.setSelectedImages = setSelectedImages;
 window.selectSyncDir = selectSyncDir;
 window.setSyncEnabled = setSyncEnabled;
 window.manualSync = manualSync;
+window.loadHomeFeed = loadHomeFeed;
 
 // AI prompt styles
 const DEFAULT_PROMPT = "Rewrite this message to fit in about 300 characters. DO NOT change the tone or voice. Trim if necessary. Suggest relevant hashtags if we have space.";
@@ -104,7 +110,7 @@ function getCurrentAIPrompt() {
     if (selectedPromptId === 'default') {
         return DEFAULT_PROMPT;
     }
-    
+
     const customPrompts = getCustomPrompts();
     return customPrompts[selectedPromptId] || DEFAULT_PROMPT;
 }
@@ -130,7 +136,7 @@ function updatePromptSelect(selectedId = null) {
     const select = document.getElementById('aiPromptSelect');
     const postSelect = document.getElementById('postAiPromptSelect');
     const customPrompts = getCustomPrompts();
-    
+
     // Clear existing options except default
     while (select.options.length > 1) {
         select.remove(1);
@@ -138,14 +144,14 @@ function updatePromptSelect(selectedId = null) {
     while (postSelect && postSelect.options.length > 1) {
         postSelect.remove(1);
     }
-    
+
     // Add custom prompts
     Object.keys(customPrompts).forEach(id => {
         const option = document.createElement('option');
         option.value = id;
         option.textContent = id;
         select.appendChild(option);
-        
+
         if (postSelect) {
             const postOption = document.createElement('option');
             postOption.value = id;
@@ -153,7 +159,7 @@ function updatePromptSelect(selectedId = null) {
             postSelect.appendChild(postOption);
         }
     });
-    
+
     // Set selected value
     if (selectedId && (selectedId === 'default' || customPrompts[selectedId])) {
         select.value = selectedId;
@@ -162,7 +168,7 @@ function updatePromptSelect(selectedId = null) {
         select.value = 'default';
         if (postSelect) postSelect.value = 'default';
     }
-    
+
     updatePromptDisplay();
 }
 
@@ -174,32 +180,32 @@ function updatePromptDisplay() {
     const promptTextarea = document.getElementById('aiPrompt');
     const saveBtn = document.getElementById('savePromptBtn');
     const deleteBtn = document.getElementById('deletePromptBtn');
-    
+
     // Sync post tab select with settings select
     const postSelect = document.getElementById('postAiPromptSelect');
     if (postSelect) {
         postSelect.value = selectedValue;
     }
-    
+
     if (selectedValue === 'default') {
         defaultContent.classList.remove('hidden');
         customContent.classList.add('hidden');
     } else {
         defaultContent.classList.add('hidden');
         customContent.classList.remove('hidden');
-        
+
         const customPrompts = getCustomPrompts();
         promptTextarea.value = customPrompts[selectedValue] || '';
-        
+
         // Show/hide buttons based on whether this is a custom prompt
         const isCustom = customPrompts[selectedValue];
         saveBtn.style.display = isCustom ? 'inline-flex' : 'none';
         deleteBtn.style.display = isCustom ? 'inline-flex' : 'none';
-        
+
         // Make textarea editable for custom prompts
         promptTextarea.readOnly = false;
     }
-    
+
     // Save selected prompt ID
     localStorage.setItem('socialSoxSelectedPromptId', selectedValue);
     saveCredentials();
@@ -216,7 +222,7 @@ function updatePostPromptSelection() {
 }
 
 // AI optimization function
-window.optimizeMessage = async function() {
+window.optimizeMessage = async function () {
     const message = document.getElementById('message').value.trim();
     if (!message) {
         window.showToast('Please enter a message to optimize', 'error');
@@ -252,7 +258,7 @@ window.optimizeMessage = async function() {
 }
 
 // AI crop function
-window.cropMessage = async function() {
+window.cropMessage = async function () {
     const message = document.getElementById('message').value.trim();
     if (!message) {
         window.showToast('Please enter a message to crop', 'error');
@@ -288,7 +294,7 @@ window.cropMessage = async function() {
 }
 
 // AI hashtag function
-window.addHashtags = async function() {
+window.addHashtags = async function () {
     const message = document.getElementById('message').value.trim();
     if (!message) {
         window.showToast('Please enter a message to add hashtags to', 'error');
@@ -324,7 +330,7 @@ window.addHashtags = async function() {
 }
 
 // AI grammar function
-window.fixGrammar = async function() {
+window.fixGrammar = async function () {
     const message = document.getElementById('message').value.trim();
     if (!message) {
         window.showToast('Please enter a message to fix grammar', 'error');
@@ -374,72 +380,72 @@ function updateDebugModeStyling(isDebug) {
 }
 
 // Modal functions for custom prompts
-window.showAddPromptModal = function() {
+window.showAddPromptModal = function () {
     document.getElementById('addPromptModal').classList.remove('hidden');
     document.getElementById('newPromptName').value = '';
     document.getElementById('newPromptContent').value = '';
     document.getElementById('newPromptName').focus();
 };
 
-window.closeAddPromptModal = function() {
+window.closeAddPromptModal = function () {
     document.getElementById('addPromptModal').classList.add('hidden');
 };
 
-window.saveNewPrompt = function() {
+window.saveNewPrompt = function () {
     const name = document.getElementById('newPromptName').value.trim();
     const content = document.getElementById('newPromptContent').value.trim();
-    
+
     if (!name || !content) {
         window.showToast('Please fill in both name and content', 'error');
         return;
     }
-    
+
     const customPrompts = getCustomPrompts();
     if (customPrompts[name]) {
         window.showToast('A prompt with this name already exists', 'error');
         return;
     }
-    
+
     // Close modal immediately after validation
     closeAddPromptModal();
-    
+
     customPrompts[name] = content;
     saveCustomPrompts(customPrompts);
     updatePromptSelect(name);
-    
+
     window.showToast('Custom prompt created successfully!', 'success');
 };
 
-window.saveCurrentPrompt = function() {
+window.saveCurrentPrompt = function () {
     const selectedId = document.getElementById('aiPromptSelect').value;
     if (selectedId === 'default') return;
-    
+
     const content = document.getElementById('aiPrompt').value.trim();
     if (!content) {
         window.showToast('Please enter prompt content', 'error');
         return;
     }
-    
+
     const customPrompts = getCustomPrompts();
     customPrompts[selectedId] = content;
     saveCustomPrompts(customPrompts);
-    
+
     window.showToast('Prompt updated successfully!', 'success');
 };
 
-window.deleteCurrentPrompt = function() {
+window.deleteCurrentPrompt = function () {
     const selectedId = document.getElementById('aiPromptSelect').value;
     if (selectedId === 'default') return;
-    
+
     if (!confirm(`Are you sure you want to delete the "${selectedId}" prompt?`)) {
         return;
     }
-    
+
     const customPrompts = getCustomPrompts();
     delete customPrompts[selectedId];
     saveCustomPrompts(customPrompts);
     updatePromptSelect('default');
-    
+
     window.showToast('Prompt deleted successfully!', 'success');
 };
 
@@ -577,7 +583,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('message').addEventListener('input', updateCharCount);
 
 
-    document.querySelectorAll('.tab-button').forEach(btn => {
+    document.querySelectorAll('.sidebar-button').forEach(btn => {
         btn.addEventListener('click', function () {
             switchTab(this.dataset.tab);
         });
@@ -690,6 +696,35 @@ window.addEventListener('DOMContentLoaded', async () => {
         saveCredentials();
         restartNotificationPolling();
     });
+
+    // Home Feed Mix Slider
+    const feedMixSlider = document.getElementById('feedMixSlider');
+    const feedMixValue = document.getElementById('feedMixValue');
+
+    if (feedMixSlider && feedMixValue) {
+        // Load saved value
+        const savedMix = localStorage.getItem('socialSoxFeedMix') || '50';
+        feedMixSlider.value = savedMix;
+        updateFeedMixLabel(savedMix);
+
+        feedMixSlider.addEventListener('input', function () {
+            updateFeedMixLabel(this.value);
+            localStorage.setItem('socialSoxFeedMix', this.value);
+        });
+    }
+
+    function updateFeedMixLabel(val) {
+        const percentage = parseInt(val, 10);
+        // Total posts = 40
+        // Bluesky % = percentage
+        // Mastodon % = 100 - percentage
+
+        const total = 40;
+        const blueskyCount = Math.round((percentage / 100) * total);
+        const mastodonCount = total - blueskyCount;
+
+        feedMixValue.textContent = `${mastodonCount} Mastodon / ${blueskyCount} Bluesky`;
+    }
 
     // Reset test button colors when credentials change
     const resetTestButtonColor = (btnId) => {
@@ -1245,7 +1280,7 @@ window.closeAboutModal = closeAboutModal;
 window.postToAll = postToAll;
 
 // Test functions
-window.testMastodon = async function() {
+window.testMastodon = async function () {
     const instance = document.getElementById('mastodon-instance').value.trim();
     const token = document.getElementById('mastodon-token').value.trim();
     if (!instance || !token) {
@@ -1273,7 +1308,7 @@ window.testMastodon = async function() {
     }
 };
 
-window.testTwitter = async function() {
+window.testTwitter = async function () {
     const apiKey = document.getElementById('twitter-key').value.trim();
     const apiSecret = document.getElementById('twitter-secret').value.trim();
     const accessToken = document.getElementById('twitter-token').value.trim();
@@ -1303,7 +1338,7 @@ window.testTwitter = async function() {
     }
 };
 
-window.testBluesky = async function() {
+window.testBluesky = async function () {
     const handle = document.getElementById('bluesky-handle').value.trim();
     const password = document.getElementById('bluesky-password').value.trim();
     if (!handle || !password) {
@@ -1331,7 +1366,7 @@ window.testBluesky = async function() {
     }
 };
 
-window.testGrok = async function() {
+window.testGrok = async function () {
     const apiKey = document.getElementById('grok-api-key').value.trim();
     if (!apiKey) {
         window.showToast('Please enter your Grok API key', 'error');

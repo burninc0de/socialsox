@@ -5,14 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SocialSox - Multi-Platform Poster</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' http://localhost:*; style-src 'self' 'unsafe-inline' http://localhost:*; img-src 'self' data: http://localhost:*; font-src 'self' http://localhost:*; connect-src 'self' https: data:;">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' http://localhost:*; style-src 'self' 'unsafe-inline' http://localhost:*; img-src 'self' data: http://localhost:* https:; font-src 'self' http://localhost:*; connect-src 'self' https: data:;">
     <link rel="stylesheet" href="./style.css">
 </head>
 
-<body class="bg-gradient-purple dark:bg-gradient-dark min-h-screen flex items-start justify-center pt-16 px-5 pb-5">
+<body class="bg-white dark:bg-gray-900 min-h-screen flex">
     <!-- Title Bar -->
     <div
-        class="title-bar fixed top-0 left-0 right-0 h-10 bg-white dark:bg-gray-800 flex items-center justify-between px-5 z-50">
+        class="title-bar fixed top-0 left-0 right-0 h-10 bg-white dark:bg-gray-800 flex items-center justify-between px-5 z-50 border-b border-gray-200 dark:border-gray-700">
         <h1 class="text-base text-gray-800 dark:text-gray-200 m-0 flex items-center gap-2">
             <img src="tray.png" id="appicon" alt="SocialSox" class="w-5 h-5">
             SocialSox
@@ -28,48 +29,89 @@
     </div>
 
     <!-- Toast Container -->
-    <div id="toastContainer" class="fixed top-20 right-5 z-50 space-y-2"></div>
+    <div id="toastContainer" class="fixed top-16 right-5 z-[100] space-y-2"></div>
 
     <!-- Sync Indicator -->
     <div id="syncIndicator" class="fixed bottom-5 right-5 z-50 hidden">
         <i data-lucide="refresh-cw" class="w-6 h-6 text-primary-500 animate-spin"></i>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full p-10 min-h-[700px]">
-        <!-- Tabs -->
-        <div class="flex justify-between mb-6 border-b border-gray-200 dark:border-gray-700">
-            <div class="flex">
-                <button id="postTab"
-                    class="tab-button px-4 py-2 text-sm font-medium text-primary-600 dark:text-primary-400 border-b-2 border-primary-600 dark:border-primary-400 bg-transparent cursor-pointer transition-colors flex items-center gap-2"
-                    data-tab="post">
-                    <i data-lucide="pen-square" class="w-4 h-4"></i>
-                    Post
-                </button>
-                <button id="historyTab"
-                    class="tab-button px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 border-b-2 border-transparent bg-transparent cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center gap-2"
-                    data-tab="history">
-                    <i data-lucide="history" class="w-4 h-4"></i>
-                    History
-                </button>
-                <button id="scheduledTab"
-                    class="tab-button px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 border-b-2 border-transparent bg-transparent cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center gap-2"
-                    data-tab="scheduled">
-                    <i data-lucide="clock" class="w-4 h-4"></i>
-                    Scheduled
-                </button>
-                <button id="notificationsTab"
-                    class="tab-button px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 border-b-2 border-transparent bg-transparent cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center gap-2"
-                    data-tab="notifications">
-                    <i data-lucide="bell" class="w-4 h-4"></i>
-                    Notifications
+    <!-- Sidebar Navigation -->
+    <aside class="fixed left-0 top-10 bottom-0 w-20 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col items-center py-6 gap-2 z-40">
+        <button id="homeTab"
+            class="sidebar-button w-14 h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 transition-all group"
+            data-tab="home" title="Home">
+            <i data-lucide="home" class="w-5 h-5"></i>
+            <span class="text-[10px] font-medium">Home</span>
+        </button>
+        <button id="postTab"
+            class="sidebar-button w-14 h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 transition-all group active"
+            data-tab="post" title="Post">
+            <i data-lucide="pen-square" class="w-5 h-5"></i>
+            <span class="text-[10px] font-medium">Post</span>
+        </button>
+        <button id="historyTab"
+            class="sidebar-button w-14 h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 transition-all group"
+            data-tab="history" title="History">
+            <i data-lucide="history" class="w-5 h-5"></i>
+            <span class="text-[10px] font-medium">History</span>
+        </button>
+        <button id="scheduledTab"
+            class="sidebar-button w-14 h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 transition-all group"
+            data-tab="scheduled" title="Scheduled">
+            <i data-lucide="clock" class="w-5 h-5"></i>
+            <span class="text-[10px] font-medium">Scheduled</span>
+        </button>
+        <button id="notificationsTab"
+            class="sidebar-button w-14 h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 transition-all group"
+            data-tab="notifications" title="Notifications">
+            <i data-lucide="bell" class="w-5 h-5"></i>
+            <span class="text-[10px] font-medium">Notifications</span>
+        </button>
+        
+        <div class="flex-1"></div>
+        
+        <button id="settingsTab"
+            class="sidebar-button w-14 h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 transition-all group"
+            data-tab="settings" title="Settings">
+            <i data-lucide="settings" class="w-5 h-5"></i>
+            <span class="text-[10px] font-medium">Settings</span>
+        </button>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 ml-20 mt-10 overflow-y-auto">
+        <div class="max-w-4xl mx-auto p-8">
+
+        <!-- Home Tab Content -->
+        <div id="homeContent" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-3">
+                    <button id="backToHomeBtn" onclick="window.backToHomeFeed()" style="display: none;"
+                        class="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        Back
+                    </button>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Home Feed</h2>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Updates from people you follow</p>
+                    </div>
+                </div>
+                <button id="refreshHomeBtn" onclick="loadHomeFeed()"
+                    class="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    Refresh
                 </button>
             </div>
-            <button id="settingsTab"
-                class="tab-button px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 border-b-2 border-transparent bg-transparent cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center gap-2"
-                data-tab="settings">
-                <i data-lucide="settings" class="w-4 h-4"></i>
-                Settings
-            </button>
+
+            <div id="homeNoPosts"
+                class="text-center py-10 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700">
+                Click "Refresh" to load your feed.
+            </div>
+
+            <div id="homeFeedList" class="space-y-4">
+                <!-- Posts will be inserted here -->
+            </div>
         </div>
 
         <!-- Post Tab Content -->
@@ -78,19 +120,13 @@
 
             <!-- Platform Toggles -->
             <div class="flex gap-2.5 mb-5">
-                <button
-                    class="platform-toggle"
-                    data-platform="mastodon">
+                <button class="platform-toggle" data-platform="mastodon">
                     <img src="assets/masto.svg" alt="Mastodon" class="w-5 h-5 mr-2 inline-block align-middle"> Mastodon
                 </button>
-                <button
-                    class="platform-toggle"
-                    data-platform="twitter">
+                <button class="platform-toggle" data-platform="twitter">
                     <img src="assets/twit.svg" alt="Twitter" class="w-5 h-5 mr-2 inline-block align-middle"> Twitter
                 </button>
-                <button
-                    class="platform-toggle"
-                    data-platform="bluesky">
+                <button class="platform-toggle" data-platform="bluesky">
                     <img src="assets/bsky.svg" alt="Bluesky" class="w-5 h-5 mr-2 inline-block align-middle"> Bluesky
                 </button>
             </div>
@@ -99,11 +135,12 @@
             <div class="relative mb-4">
                 <textarea id="message" placeholder="What's on your mind?"
                     class="w-full min-h-[150px] p-4 pr-10 pb-8 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-base transition-colors bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500"></textarea>
-                <div id="message-resize-handle" class="absolute bottom-3 right-1 cursor-ns-resize z-10 text-gray-400 dark:text-gray-500">
+                <div id="message-resize-handle"
+                    class="absolute bottom-3 right-1 cursor-ns-resize z-10 text-gray-400 dark:text-gray-500">
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                        <path d="M12 6L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                        <path d="M12 10L10 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                        <path d="M12 6L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                        <path d="M12 10L10 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                     </svg>
                 </div>
             </div>
@@ -216,10 +253,12 @@
 
         <!-- Stats Modal -->
         <div id="statsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div
+                class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                 <div class="flex justify-between items-center mb-6 p-6 pb-0">
                     <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">Posting Statistics</h2>
-                    <button onclick="closeStatsModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <button onclick="closeStatsModal()"
+                        class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                         <i data-lucide="x" class="w-6 h-6"></i>
                     </button>
                 </div>
@@ -252,7 +291,8 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <!-- Weekly Distribution -->
                         <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Posts by Day of Week</h3>
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Posts by Day of Week
+                            </h3>
                             <div class="h-64 max-w-md mx-auto">
                                 <canvas id="weeklyChart"></canvas>
                             </div>
@@ -431,7 +471,8 @@
                 <!-- Data Sync -->
                 <div class="mb-6">
                     <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Data Synchronization</h3>
-                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-4">Sync history, notifications, and scheduled posts across devices using a shared folder (e.g., Dropbox, OneDrive).</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-4">Sync history, notifications, and scheduled
+                        posts across devices using a shared folder (e.g., Dropbox, OneDrive).</p>
 
                     <!-- Enable Sync Toggle -->
                     <div class="mb-4">
@@ -447,14 +488,16 @@
 
                     <!-- Sync Directory -->
                     <div id="syncDirSection" class="mb-4" style="display: none;">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sync Directory</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sync
+                            Directory</label>
                         <div class="flex gap-2">
                             <input type="text" id="syncDirPath" placeholder="Select a directory..." readonly
                                 class="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
                             <button type="button" onclick="selectSyncDir()"
                                 class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors">Browse</button>
                         </div>
-                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Choose a folder accessible from all your devices.</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Choose a folder accessible from all
+                            your devices.</p>
                     </div>
 
                     <!-- Manual Sync Button -->
@@ -464,6 +507,31 @@
                             <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                             Sync Now
                         </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Home Feed -->
+            <div class="mb-8">
+                <h2
+                    class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">
+                    Home Feed</h2>
+
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Platform Mix</h3>
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-4">
+                        Adjust the mix of posts in your home feed (Total: 40 posts). Slide left for more Mastodon, right
+                        for more Bluesky.
+                    </p>
+                    <div class="flex items-center gap-4">
+                        <span
+                            class="text-xs font-medium text-gray-600 dark:text-gray-400 w-16 text-right">Mastodon</span>
+                        <input type="range" id="feedMixSlider" min="0" max="100" value="50" step="5"
+                            class="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                        <span class="text-xs font-medium text-gray-600 dark:text-gray-400 w-16">Bluesky</span>
+                    </div>
+                    <div class="text-center mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        <span id="feedMixValue">20 Mastodon / 20 Bluesky</span>
                     </div>
                 </div>
             </div>
@@ -586,6 +654,16 @@
                             <input type="text" id="mastodon-instance" placeholder="https://mastodon.social"
                                 class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
                         </div>
+                        <div class="mt-4">
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Exclude
+                                languages (comma-separated):</label>
+                            <input type="text" id="home-language-preferences" placeholder="e.g. de,fr,es"
+                                class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Enter <a
+                                    href="https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes" target="_blank"
+                                    rel="noopener noreferrer" class="text-blue-500 hover:underline">ISO language
+                                    codes</a> to exclude from Mastodon home feed. Leave empty to allow all.</p>
+                        </div>
                         <div>
                             <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Access
                                 Token:</label>
@@ -657,6 +735,83 @@
                                 Password:</label>
                             <input type="password" id="bluesky-password" placeholder="Your app password"
                                 class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                        </div>
+                        <button type="button" id="testBlueskyBtn" onclick="testBluesky()"
+                            class="w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2">
+                            <i data-lucide="check-circle" class="w-3 h-3"></i>
+                            Test Configuration
+                        </button>
+                    </div>
+                </div>
+
+                <!-- AI Optimization Section -->
+                <div
+                    class="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <h4 class="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
+                        <i data-lucide="wand-sparkles" class="w-4 h-4"></i> AI Optimization
+                    </h4>
+                    <div class="space-y-3">
+                        <div class="mb-4">
+                            <label class="flex items-center justify-between cursor-pointer">
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Enable AI
+                                    Optimization</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="aiOptimizationToggle" class="sr-only">
+                                    <div class="toggle-switch"></div>
+                                    <div class="toggle-dot"></div>
+                                </div>
+                            </label>
+                        </div>
+                        <div id="aiApiKeySection" style="display: none;">
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Grok API
+                                Key:</label>
+                            <input type="password" id="grok-api-key" placeholder="Your Grok API key"
+                                class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
+                            <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 mt-3 font-medium">AI
+                                Prompt:</label>
+                            <div class="flex gap-2 mb-3">
+                                <div class="relative flex-1">
+                                    <select id="aiPromptSelect"
+                                        class="appearance-none p-2.5 pr-8 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500 w-full">
+                                        <option value="default">Default</option>
+                                    </select>
+                                    <i data-lucide="chevron-down"
+                                        class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400 pointer-events-none"></i>
+                                </div>
+                                <button id="addPromptBtn" type="button"
+                                    class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-md cursor-pointer text-sm font-medium transition-colors flex items-center justify-center">
+                                    <i data-lucide="plus" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <div id="promptContent" class="mb-3">
+                                <div id="defaultPromptContent">
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">Optimize for social media:
+                                        keep under 300 characters, maintain original tone, add relevant hashtags if
+                                        space allows.</p>
+                                </div>
+                                <div id="customPromptContent" class="hidden">
+                                    <textarea id="aiPrompt" placeholder="Enter your custom AI prompt"
+                                        class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500"
+                                        rows="4"></textarea>
+                                    <div class="flex gap-1 mt-2 justify-end">
+                                        <button id="savePromptBtn" type="button"
+                                            class="px-2 py-1 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1">
+                                            <i data-lucide="save" class="w-3 h-3"></i>
+                                            Save
+                                        </button>
+                                        <button id="deletePromptBtn" type="button"
+                                            class="px-2 py-1 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1">
+                                            <i data-lucide="trash-2" class="w-3 h-3"></i>
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" id="testGrokBtn" onclick="testGrok()"
+                                class="w-full mt-3 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2">
+                                <i data-lucide="check-circle" class="w-3 h-3"></i>
+                                Test Configuration
+                            </button>
                         </div>
                         <button type="button" id="testBlueskyBtn" onclick="testBluesky()"
                             class="w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-md cursor-pointer text-xs font-medium transition-colors flex items-center justify-center gap-2">
@@ -796,18 +951,23 @@
             <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-8">
                 <div class="text-center mb-6">
                     <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">Create Custom Prompt</h2>
-                    <p class="text-gray-600 dark:text-gray-400 text-sm">Give your prompt a name and define its behavior</p>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">Give your prompt a name and define its behavior
+                    </p>
                 </div>
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Prompt Name</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Prompt
+                            Name</label>
                         <input type="text" id="newPromptName" placeholder="e.g., Professional Tone, Concise Version"
                             class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Prompt Content</label>
-                        <textarea id="newPromptContent" placeholder="Describe how the AI should optimize your messages..."
-                            class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500" rows="6"></textarea>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Prompt
+                            Content</label>
+                        <textarea id="newPromptContent"
+                            placeholder="Describe how the AI should optimize your messages..."
+                            class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500"
+                            rows="6"></textarea>
                     </div>
                 </div>
                 <div class="flex gap-3 mt-6">
@@ -822,8 +982,46 @@
                 </div>
             </div>
         </div>
+        </div>
+    </main>
 
-        <script type="module" src="app.js"></script>
+    <!-- Reply Modal -->
+    <div id="replyModal"
+        class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full mx-4 p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200">Reply to Post</h3>
+                <button onclick="closeReplyModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div id="replyContext"
+                class="mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-sm text-gray-600 dark:text-gray-300 border-l-4 border-gray-300 dark:border-gray-500 italic max-h-32 overflow-y-auto">
+                <!-- Context will be inserted here -->
+            </div>
+
+            <div class="mb-4">
+                <textarea id="replyMessage" placeholder="Write your reply..."
+                    class="w-full min-h-[120px] p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-primary-500"></textarea>
+                <div class="text-right text-xs text-gray-500 dark:text-gray-400 mt-1" id="replyCharCount">0 characters
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button onclick="closeReplyModal()"
+                    class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium transition-colors">
+                    Cancel
+                </button>
+                <button id="sendReplyBtn" onclick="sendReply()"
+                    class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                    Reply
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
 </body>
 
 </html>

@@ -170,6 +170,12 @@ export async function deleteScheduledPost(id) {
     try {
         const scheduled = await window.electron.readScheduled();
         const filteredScheduled = scheduled.filter(entry => entry.id !== id);
+        
+        // Track the deletion for sync
+        if (window.electron.trackDeletedScheduled) {
+            await window.electron.trackDeletedScheduled(id);
+        }
+        
         await saveScheduled(filteredScheduled);
         scheduledData = filteredScheduled;
         displayScheduled();
@@ -419,6 +425,11 @@ export async function checkAndSendDuePosts() {
 
             // Post it
             await window.postToAll();
+
+            // Track the deletion for sync (post was sent, so it's "deleted" from scheduled)
+            if (window.electron.trackDeletedScheduled) {
+                await window.electron.trackDeletedScheduled(post.id);
+            }
 
             // Remove from scheduled list
             const remainingScheduled = scheduled.filter(entry => entry.id !== post.id);

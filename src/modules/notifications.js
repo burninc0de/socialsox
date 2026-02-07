@@ -1,3 +1,4 @@
+import { getPlatformIcons } from './icons.js';
 // Notification fetching, polling, and display
 
 export let notificationPollingIntervals = {
@@ -226,6 +227,12 @@ export async function markAsSeen(notificationId) {
     if (notif) {
         notif.dismissed = true;
         notif.isNew = false;
+        
+        // Track as dismissed for sync (keeps in stats but syncs dismissed state)
+        if (window.electron.trackDismissedNotification) {
+            await window.electron.trackDismissedNotification(notificationId);
+        }
+        
         await saveAllNotifications(allNotifs);
         displayNotifications(allNotifs);
     }
@@ -240,13 +247,18 @@ export async function markAllAsRead() {
     const allNotifs = await getAllCachedNotifications();
     let hasChanges = false;
     
-    allNotifs.forEach(notif => {
+    for (const notif of allNotifs) {
         if (!notif.dismissed || notif.isNew) {
             notif.dismissed = true;
             notif.isNew = false;
             hasChanges = true;
+            
+            // Track as dismissed for sync (keeps in stats but syncs dismissed state)
+            if (window.electron.trackDismissedNotification) {
+                await window.electron.trackDismissedNotification(notif.id);
+            }
         }
-    });
+    }
     
     if (hasChanges) {
         await saveAllNotifications(allNotifs);
@@ -564,14 +576,11 @@ async function displayNotifications(notifications) {
     
     noNotifications.style.display = 'none';
     
-    const assetsPath = await window.electron.getAssetsPath();
-    const mastodonIcon = await window.electron.readFileAsDataURL(`${assetsPath}/masto.svg`);
-    const twitterIcon = await window.electron.readFileAsDataURL(`${assetsPath}/twit.svg`);
-    const blueskyIcon = await window.electron.readFileAsDataURL(`${assetsPath}/bsky.svg`);
+    const platformIconsData = await getPlatformIcons();
     const platformIcons = {
-        mastodon: `<img src="${mastodonIcon}" alt="M" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`,
-        twitter: `<img src="${twitterIcon}" alt="X" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`,
-        bluesky: `<img src="${blueskyIcon}" alt="B" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`
+        mastodon: `<img src="${platformIconsData.mastodon}" alt="M" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`,
+        twitter: `<img src="${platformIconsData.twitter}" alt="X" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`,
+        bluesky: `<img src="${platformIconsData.bluesky}" alt="B" class="w-4 h-4 inline-block dark:brightness-0 dark:invert">`
     };
     
     const typeLabels = {

@@ -1,4 +1,11 @@
 // Data synchronization management
+// The sync directory is treated as the UPSTREAM source of truth with deletion tracking:
+// - Deletions are tracked in deleted-ids.json stored in BOTH local and sync directory
+// - When syncing: deletions from both locations are merged, ensuring all machines see all deletions
+// - When you delete an item, it's marked as deleted and removed from all synced machines
+// - New items from sync dir are pulled to local
+// - New local items are pushed to sync dir
+// - Both insertions and deletions merge seamlessly in both directions
 
 let syncEnabled = false;
 let syncDirPath = '';

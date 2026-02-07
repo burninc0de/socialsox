@@ -10,14 +10,6 @@
     -webkit-app-region: no-drag;
 }
 
-.bg-gradient-purple {
-    background: linear-gradient(135deg, #4c51bf 0%, #5a4d8f 100%);
-}
-
-.bg-gradient-dark {
-    background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
-}
-
 .tab-content {
     display: block;
 }
@@ -26,10 +18,17 @@
     display: none;
 }
 
-@media (prefers-color-scheme: dark) {
-    body {
-        background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
-    }
+/* Sidebar Navigation Styles */
+.sidebar-button {
+    position: relative;
+}
+
+.sidebar-button.active {
+    @apply text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20;
+}
+
+.sidebar-button:not(.active):hover {
+    @apply bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100;
 }
 
 /* Custom Scrollbars */
@@ -211,4 +210,8 @@ html:not(.dark) #appicon {
 /* Disable default textarea resize */
 textarea {
     resize: none;
+}
+
+.post-content a {
+    @apply text-primary-600 dark:text-primary-500 hover:underline;
 }
