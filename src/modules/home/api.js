@@ -42,6 +42,13 @@ export async function fetchMastodonHome(instance, token, limit = 20, maxId = nul
         throw new Error('Mastodon API returned unexpected data format');
     }
 
+    // Get current user info to identify own posts
+    const meResponse = await fetch(`${cleanInstance}/api/v1/accounts/verify_credentials`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const me = meResponse.ok ? await meResponse.json() : null;
+    const myAccountId = me ? me.id : null;
+
     const posts = data.map(status => {
         // Handle Boosts/Reblogs
         const isReblog = !!status.reblog;
@@ -73,7 +80,8 @@ export async function fetchMastodonHome(instance, token, limit = 20, maxId = nul
             replyTo: displayStatus.in_reply_to_id ? (displayStatus.mentions?.[0]?.acct || 'unknown') : null,
             repliesCount: displayStatus.replies_count,
             reblogsCount: displayStatus.reblogs_count,
-            favouritesCount: displayStatus.favourites_count
+            favouritesCount: displayStatus.favourites_count,
+            isOwnPost: myAccountId && displayStatus.account.id === myAccountId
         };
     });
 
@@ -160,7 +168,8 @@ export async function fetchBlueskyHome(handle, password, limit = 20, cursor = nu
             reblogged: !!post.viewer?.repost,
             repliesCount: post.replyCount,
             reblogsCount: post.repostCount,
-            favouritesCount: post.likeCount
+            favouritesCount: post.likeCount,
+            isOwnPost: post.author.did === session.did
         };
 
         // If this post embeds another record (quote), try to fetch that record so we can render it inline
@@ -197,6 +206,13 @@ export async function fetchMastodonHashtag(tag, instance, token) {
     if (!cleanInstance.startsWith('http')) cleanInstance = 'https://' + cleanInstance;
     cleanInstance = cleanInstance.replace(/\/$/, '');
 
+    // Get current user info to identify own posts
+    const meResponse = await fetch(`${cleanInstance}/api/v1/accounts/verify_credentials`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const me = meResponse.ok ? await meResponse.json() : null;
+    const myAccountId = me ? me.id : null;
+
     // Use encodeURIComponent for tag
     const response = await fetch(`${cleanInstance}/api/v1/timelines/tag/${encodeURIComponent(tag)}?limit=20`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -225,7 +241,8 @@ export async function fetchMastodonHashtag(tag, instance, token) {
             reblogged: displayStatus.reblogged,
             favourited: displayStatus.favourited,
             replyTo: displayStatus.in_reply_to_id ? (displayStatus.mentions?.[0]?.acct || 'unknown') : null,
-            boostedBy: boostedBy
+            boostedBy: boostedBy,
+            isOwnPost: myAccountId && displayStatus.account.id === myAccountId
         };
     });
 }
@@ -260,7 +277,8 @@ export async function fetchBlueskyHashtag(tag, session) {
             reply: null,
             boostedBy: null,
             favourited: !!post.viewer?.like,
-            reblogged: !!post.viewer?.repost
+            reblogged: !!post.viewer?.repost,
+            isOwnPost: post.author.did === session.did
         };
     });
 }
@@ -300,7 +318,16 @@ export async function fetchBlueskyProfile(actorDid, session) {
 }
 
 export async function fetchMastodonUserFeed(accountId, instance, token) {
-    const response = await fetch(`${instance}/api/v1/accounts/${accountId}/statuses?limit=20`, {
+    const cleanInstance = instance.replace(/\/$/, '');
+    
+    // Get current user info to identify own posts
+    const meResponse = await fetch(`${cleanInstance}/api/v1/accounts/verify_credentials`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const me = meResponse.ok ? await meResponse.json() : null;
+    const myAccountId = me ? me.id : null;
+    
+    const response = await fetch(`${cleanInstance}/api/v1/accounts/${accountId}/statuses?limit=20`, {
         headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!response.ok) throw new Error('Mastodon fetch error');
@@ -317,12 +344,13 @@ export async function fetchMastodonUserFeed(accountId, instance, token) {
             timestamp: status.created_at,
             url: status.url,
             media: status.media_attachments,
-            instance: instance,
+            instance: cleanInstance,
             token: token,
             reblogged: status.reblogged,
             favourited: status.favourited,
             replyTo: status.in_reply_to_id ? (status.mentions?.[0]?.acct || 'unknown') : null,
-            boostedBy: null
+            boostedBy: null,
+            isOwnPost: myAccountId && status.account.id === myAccountId
         };
     });
 }
@@ -361,7 +389,8 @@ export async function fetchBlueskyUserFeed(actorDid, session) {
             boostedBy: boostedBy,
             replyTo: post.record.reply ? 'User' : null,
             favourited: !!post.viewer?.like,
-            reblogged: !!post.viewer?.repost
+            reblogged: !!post.viewer?.repost,
+            isOwnPost: post.author.did === session.did
         });
     }
     return postsOut;
@@ -369,6 +398,13 @@ export async function fetchBlueskyUserFeed(actorDid, session) {
 
 export async function fetchMastodonThread(postId, instance, token) {
     const cleanInstance = instance.replace(/\/$/, '');
+
+    // Get current user info to identify own posts
+    const meResponse = await fetch(`${cleanInstance}/api/v1/accounts/verify_credentials`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const me = meResponse.ok ? await meResponse.json() : null;
+    const myAccountId = me ? me.id : null;
 
     // 1. Fetch Context
     const contextResp = await fetch(`${cleanInstance}/api/v1/statuses/${postId}/context`, {
@@ -407,7 +443,8 @@ export async function fetchMastodonThread(postId, instance, token) {
         repliesCount: status.replies_count,
         reblogsCount: status.reblogs_count,
         favouritesCount: status.favourites_count,
-        isFocused: status.id === postId
+        isFocused: status.id === postId,
+        isOwnPost: myAccountId && status.account.id === myAccountId
     }));
 }
 
@@ -469,7 +506,8 @@ export async function fetchBlueskyThread(uri, session) {
             repliesCount: post.replyCount,
             reblogsCount: post.repostCount,
             favouritesCount: post.likeCount,
-            isFocused: isFocused
+            isFocused: isFocused,
+            isOwnPost: post.author.did === session.did
         };
     };
 

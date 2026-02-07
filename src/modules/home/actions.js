@@ -728,6 +728,65 @@ window.handleQuote = function (index, context = 'feed') {
     window.openReplyComposer(post, 'quote');
 }
 
+window.handleDelete = async function (index, context = 'feed') {
+    const post = getPost(index, context);
+    if (!post) return;
+
+    if (!post.isOwnPost) {
+        window.showToast('You can only delete your own posts', 'error');
+        return;
+    }
+
+    if (!confirm('Are you sure you want to delete this post? This cannot be undone.')) return;
+
+    window.showToast('Deleting post...', 'info');
+
+    try {
+        if (post.platform === 'mastodon') {
+            const resp = await fetch(`${post.instance}/api/v1/statuses/${post.id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${post.token}` }
+            });
+            if (!resp.ok) throw new Error(await resp.text());
+        } else if (post.platform === 'bluesky') {
+            // Extract rkey from URI
+            const rkey = post.id.split('/').pop();
+            const resp = await fetch('https://bsky.social/xrpc/com.atproto.repo.deleteRecord', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${post.accessJwt}`
+                },
+                body: JSON.stringify({
+                    repo: post.did,
+                    collection: 'app.bsky.feed.post',
+                    rkey: rkey
+                })
+            });
+            if (!resp.ok) throw new Error(await resp.text());
+        }
+
+        window.showToast('Post deleted successfully', 'success');
+
+        // Remove from UI
+        if (context === 'feed') {
+            window.currentFeedPosts = window.currentFeedPosts.filter((_, i) => i !== index);
+            displayHomeFeed(window.currentFeedPosts);
+        } else if (context === 'thread') {
+            window.currentThreadPosts = window.currentThreadPosts.filter((_, i) => i !== index);
+            if (window.currentThreadPosts.length === 0) {
+                document.getElementById('threadModal').classList.add('hidden');
+            } else {
+                renderThreadView(window.currentThreadPosts);
+            }
+        }
+
+    } catch (error) {
+        console.error('Delete failed:', error);
+        window.showToast(`Delete failed: ${error.message}`, 'error');
+    }
+}
+
 // Re-usable send function (core logic)
 async function executeSendReply(post, message, mode) {
     if (mode === 'quote') {
@@ -836,6 +895,24 @@ window.submitInlineReply = async function (index, context) {
         document.getElementById(`reply-form-${index}-${context}`).classList.add('hidden');
         window.showToast('Reply sent successfully!', 'success');
 
+        // Reload thread if we're in thread context
+        if (context === 'thread') {
+            window.showToast('Refreshing thread...', 'info');
+            try {
+                let threadPosts = [];
+                if (post.platform === 'mastodon') {
+                    const inst = post.instance.replace(/\/$/, '');
+                    threadPosts = await fetchMastodonThread(post.id, inst, post.token);
+                } else if (post.platform === 'bluesky') {
+                    const session = { accessJwt: post.accessJwt, did: post.did };
+                    threadPosts = await fetchBlueskyThread(post.id, session);
+                }
+                renderThreadView(threadPosts);
+            } catch (e) {
+                console.error('Failed to refresh thread:', e);
+            }
+        }
+
     } catch (e) {
         window.showToast(`Failed: ${e.message}`, 'error');
     } finally {
@@ -910,6 +987,25 @@ window.sendReply = async function () {
 
         window.showToast('Reply sent successfully!', 'success');
         window.closeReplyModal();
+
+        // Reload thread if it's currently open
+        const threadModal = document.getElementById('threadModal');
+        if (threadModal && !threadModal.classList.contains('hidden')) {
+            window.showToast('Refreshing thread...', 'info');
+            try {
+                let threadPosts = [];
+                if (currentReplyPost.platform === 'mastodon') {
+                    const inst = currentReplyPost.instance.replace(/\/$/, '');
+                    threadPosts = await fetchMastodonThread(currentReplyPost.id, inst, currentReplyPost.token);
+                } else if (currentReplyPost.platform === 'bluesky') {
+                    const session = { accessJwt: currentReplyPost.accessJwt, did: currentReplyPost.did };
+                    threadPosts = await fetchBlueskyThread(currentReplyPost.id, session);
+                }
+                renderThreadView(threadPosts);
+            } catch (e) {
+                console.error('Failed to refresh thread:', e);
+            }
+        }
 
     } catch (error) {
         console.error('Reply failed:', error);

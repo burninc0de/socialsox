@@ -368,6 +368,12 @@ export function createPostHtml(post, index, context = 'feed', platformIcons = {}
                 <span>${post.favourited ? 'Liked' : 'Like'}</span>
                 ${likeCount > 0 ? `<span class="text-xs bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded-full ml-1">${likeCount}</span>` : ''}
             </button>
+            ${post.isOwnPost ? `
+            <button id="delete-btn-${index}-${context}" onclick="window.handleDelete(${index}, '${context}')" class="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-500 transition-colors text-sm ml-auto" title="Delete post">
+                <i data-lucide="trash-2" class="w-4 h-4"></i> 
+                <span>Delete</span>
+            </button>
+            ` : ''}
         </div>
     `;
 
