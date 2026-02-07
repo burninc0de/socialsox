@@ -342,27 +342,31 @@ export function updateWindowControlsStyle(style) {
     controlsContainer.innerHTML = '';
     
     if (style === 'lucide-icons') {
-        // Create icon buttons
+        // VSCode-style icon buttons
+        controlsContainer.className = 'window-controls flex h-full';
+
         const minimizeBtn = document.createElement('button');
-        minimizeBtn.className = 'w-6 h-6 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-800 dark:text-gray-200';
+        minimizeBtn.className = 'w-8 h-full flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-600 dark:text-gray-400';
         minimizeBtn.onclick = () => window.electron.minimizeWindow();
-        minimizeBtn.innerHTML = '<i data-lucide="minus" class="w-3 h-3"></i>';
-        
+        minimizeBtn.innerHTML = '<svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 6H11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
+
         const maximizeBtn = document.createElement('button');
-        maximizeBtn.className = 'w-6 h-6 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-800 dark:text-gray-200';
+        maximizeBtn.className = 'w-8 h-full flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-600 dark:text-gray-400';
         maximizeBtn.onclick = () => window.electron.maximizeWindow();
-        maximizeBtn.innerHTML = '<i data-lucide="maximize" class="w-3 h-3"></i>';
-        
+        maximizeBtn.innerHTML = '<svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="1.5" y="1.5" width="9" height="9" stroke="currentColor" stroke-width="1.2"/></svg>';
+
         const closeBtn = document.createElement('button');
-        closeBtn.className = 'w-6 h-6 flex items-center justify-center hover:bg-red-200 dark:hover:bg-red-800 rounded transition-colors text-gray-800 dark:text-gray-200';
+        closeBtn.className = 'w-8 h-full flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors text-gray-600 dark:text-gray-400';
         closeBtn.onclick = () => window.electron.closeWindow();
-        closeBtn.innerHTML = '<i data-lucide="x" class="w-3 h-3"></i>';
+        closeBtn.innerHTML = '<svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L11 11M11 1L1 11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
         
         controlsContainer.appendChild(minimizeBtn);
         controlsContainer.appendChild(maximizeBtn);
         controlsContainer.appendChild(closeBtn);
     } else {
         // Default macOS circles
+        controlsContainer.className = 'window-controls flex gap-2.5';
+        
         const minimizeBtn = document.createElement('button');
         minimizeBtn.className = 'w-3 h-3 rounded-full bg-yellow-400 hover:opacity-70 transition-opacity';
         minimizeBtn.onclick = () => window.electron.minimizeWindow();
@@ -383,5 +387,15 @@ export function updateWindowControlsStyle(style) {
     // Re-create Lucide icons if available
     if (typeof lucide !== 'undefined' && typeof window.lucideIcons !== 'undefined') {
         lucide.createIcons({icons: window.lucideIcons});
+    }
+    // Reduce title bar right padding for compact (basic) controls so they sit
+    // closer to the window edge. Restore to default for other styles.
+    const titleBar = document.querySelector('.title-bar');
+    if (titleBar) {
+        if (style === 'lucide-icons') {
+            titleBar.style.paddingRight = '0.5rem';
+        } else {
+            titleBar.style.paddingRight = '';
+        }
     }
 }

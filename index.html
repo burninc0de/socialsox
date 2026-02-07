@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="./style.css">
 </head>
 
-<body class="bg-white dark:bg-gray-900 min-h-screen flex">
+<body class="bg-white dark:bg-gray-900 min-h-screen flex pt-10">
     <!-- Title Bar -->
     <div
         class="title-bar fixed top-0 left-0 right-0 h-10 bg-white dark:bg-gray-800 flex items-center justify-between px-5 z-50 border-b border-gray-200 dark:border-gray-700">
@@ -19,12 +19,9 @@
             SocialSox
         </h1>
         <div class="window-controls flex gap-2.5">
-            <button class="w-3 h-3 rounded-full bg-yellow-400 hover:opacity-70 transition-opacity"
-                onclick="window.electron.minimizeWindow()"></button>
-            <button class="w-3 h-3 rounded-full bg-green-500 hover:opacity-70 transition-opacity"
-                onclick="window.electron.maximizeWindow()"></button>
-            <button class="w-3 h-3 rounded-full bg-red-500 hover:opacity-70 transition-opacity"
-                onclick="window.electron.closeWindow()"></button>
+            <button class="w-3 h-3 rounded-full bg-yellow-400 hover:opacity-70 transition-opacity" onclick="window.electron.minimizeWindow()"></button>
+            <button class="w-3 h-3 rounded-full bg-green-500 hover:opacity-70 transition-opacity" onclick="window.electron.maximizeWindow()"></button>
+            <button class="w-3 h-3 rounded-full bg-red-500 hover:opacity-70 transition-opacity" onclick="window.electron.closeWindow()"></button>
         </div>
     </div>
 
@@ -80,7 +77,7 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-1 ml-20 mt-10 overflow-y-auto">
+    <main class="flex-1 ml-20 overflow-y-auto h-[calc(100vh-2.5rem)]">
         <div class="max-w-4xl mx-auto p-8">
 
         <!-- Home Tab Content -->
