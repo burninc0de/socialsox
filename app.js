@@ -453,11 +453,11 @@ window.deleteCurrentPrompt = function () {
 window.addEventListener('DOMContentLoaded', async () => {
     // Initialize window controls style synchronously to avoid flash
     const settingsSaved = localStorage.getItem('socialSoxSettings');
-    let initialStyle = 'macos-circles';
+    let initialStyle = 'lucide-icons';
     if (settingsSaved) {
         try {
             const settings = JSON.parse(settingsSaved);
-            initialStyle = settings.windowControlsStyle || 'macos-circles';
+            initialStyle = settings.windowControlsStyle || 'lucide-icons';
         } catch (error) {
             // Ignore parse errors
         }
@@ -1245,9 +1245,9 @@ function resetAllData() {
 
     document.getElementById('externalLinksToggle').checked = false;
 
-    document.getElementById('windowControlsStyle').value = 'macos-circles';
+    document.getElementById('windowControlsStyle').value = 'lucide-icons';
     import('./src/modules/storage.js').then(module => {
-        module.updateWindowControlsStyle('macos-circles');
+        module.updateWindowControlsStyle('lucide-icons');
     });
 
     const historyList = document.getElementById('historyList');

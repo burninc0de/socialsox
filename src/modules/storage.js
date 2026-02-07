@@ -29,7 +29,7 @@ export async function saveCredentials() {
             twitter: document.getElementById('excludeTwitterNotifications').checked,
             bluesky: document.getElementById('excludeBlueskyNotifications').checked
         },
-        windowControlsStyle: document.getElementById('windowControlsStyle').value || 'macos-circles',
+        windowControlsStyle: document.getElementById('windowControlsStyle').value || 'lucide-icons',
         aiOptimizationEnabled: document.getElementById('aiOptimizationToggle').checked,
         aiSelectedPromptId: localStorage.getItem('socialSoxSelectedPromptId') || 'default'
     };
@@ -146,11 +146,11 @@ export async function loadCredentials() {
         if (settings.windowControlsStyle) {
             document.getElementById('windowControlsStyle').value = settings.windowControlsStyle;
         } else {
-            document.getElementById('windowControlsStyle').value = 'macos-circles';
+            document.getElementById('windowControlsStyle').value = 'lucide-icons';
         }
         
         // Apply window controls style
-        updateWindowControlsStyle(settings.windowControlsStyle || 'macos-circles');
+        updateWindowControlsStyle(settings.windowControlsStyle || 'lucide-icons');
         
         // Load AI optimization settings
         const aiOptimizationEnabled = settings.aiOptimizationEnabled || false;
