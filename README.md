@@ -1,10 +1,12 @@
 # <img src="tray.png" alt="🧦" width="32" /> SocialSox
 
-A simple, open source cross-platform desktop app for posting short messages to Mastodon, X (aka Twitter), and Bluesky separately or simultaneously.
+A cross-platform desktop app for posting to Mastodon, X, and Bluesky—separately or all at once.
 
 ## Why SocialSox?
 
-Today's social media landscape is fragmented. Your audience is scattered across Mastodon, Bluesky, and X, but existing tools are either browser-based tab juggling, overpriced SaaS, or complex self-hosted setups. SocialSox gives you a simple, free desktop app that does one thing well: post your message everywhere at once.
+Modern social media is a fragmented mess. Reaching your audience across Mastodon, Bluesky, and X usually requires over-engineered SaaS subscriptions or complex self-hosted setups.
+
+SocialSox is a focused, free alternative. It’s a local desktop app designed for one thing: getting your message onto every platform without the friction.
 
 ## Features
 
@@ -20,8 +22,8 @@ Today's social media landscape is fragmented. Your audience is scattered across 
 - ❤️ Like, boost, reply, and moderate directly from feed
 
 **Scheduling & Sync**
-- ⏰ Schedule posts for future publication
-- 🔄 Automatic data synchronization
+- ⏰ Schedule posts for future publication (only when app running)
+- 🔄 Automatic data synchronization (via sync folder)
 - 📅 Drag-and-drop scheduled post management
 
 ### Message Composition
@@ -45,11 +47,7 @@ Today's social media landscape is fragmented. Your audience is scattered across 
 > **Current implementation details:**
 > - Tailwind CSS and Lucide icons are bundled with the app
 > - Only essential Lucide icons are imported to minimize bundle size
-> - Tested on Linux (Arch CachyOS) and Windows 11
-> - Mac builds need testing
-
-> [!NOTE]
-> For comprehensive coding guidelines, style conventions, and development best practices (e.g., naming, error handling, testing), see [AGENTS.md](AGENTS.md).
+> - Tested on Linux (Arch CachyOS), MacOS (Tahoe) and Windows 11
 
 ## Project Structure
 
@@ -169,17 +167,13 @@ Check the **History** tab to view your past posts and their status.
 
 > [!NOTE]
 > **Security Features:**
-> - ✅ Everything runs locally on your computer
-> - ✅ Credentials are encrypted using Electron's safeStorage (OS-level encryption)
-> - ✅ X OAuth handled securely in Electron backend
-> - ✅ No external servers involved (except the social media APIs)
-> - ✅ Notifications cache stored in notifications.json
+> - ✅ Everything runs locally. No external servers touch your data except the social media APIs themselves.
+> - ✅ Credentials are encrypted using Electron's safeStorage (OS-level encryption via Keychain, DPAPI, or Libsecret).
 
-> [!WARNING]
-> **Security Considerations:**
-> - ⚠️ SafeStorage encryption requires your OS to have a password/login set up
-> - ⚠️ If safeStorage is unavailable, credentials fall back to encrypted localStorage
-> - ⚠️ Use app-specific passwords where available (like Bluesky's app passwords)
+> [!CAUTION]
+> **Encryption Fallback:**
+> - If your OS does not have a secure store (like a keyring) configured, Electron may fall back to basic_text encryption. In this scenario, your credentials are only as secure as your file system permissions.
+> - Always use a system-level login password to ensure safeStorage is actually "safe."
 
 For security-related concerns, please see our [Security Policy](SECURITY.md).
 
@@ -276,15 +270,11 @@ The project uses a custom test runner for integration tests focused on end-to-en
 - **Run a single test file**: `node test/sync.test.js` - Execute specific test files directly
 - **Run specific test files**: `node test/sync-scenario.test.js`, `node test/sync-idempotent.test.js`
 
-For detailed testing guidelines, including how to write and run tests, see [AGENTS.md](AGENTS.md).
-
 ### Development Commands
 
 - **Start development server**: `npm run dev` - Runs Vite dev server with hot-reload and launches Electron app
 - **Build for production**: `npm run build` - Builds with Vite and creates distributable packages
 - **Run built app**: `npm start` - Launches the built Electron application
-
-For detailed coding guidelines, build instructions, and conventions, see [AGENTS.md](AGENTS.md).
 
 ### Debugging Built App
 
