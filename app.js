@@ -451,6 +451,21 @@ window.deleteCurrentPrompt = function () {
 
 // Page load
 window.addEventListener('DOMContentLoaded', async () => {
+    // Initialize window controls style synchronously to avoid flash
+    const settingsSaved = localStorage.getItem('socialSoxSettings');
+    let initialStyle = 'macos-circles';
+    if (settingsSaved) {
+        try {
+            const settings = JSON.parse(settingsSaved);
+            initialStyle = settings.windowControlsStyle || 'macos-circles';
+        } catch (error) {
+            // Ignore parse errors
+        }
+    }
+    import('./src/modules/storage.js').then(module => {
+        module.updateWindowControlsStyle(initialStyle);
+    });
+
     loadCredentials();
     updateCharCount(); // Update character count after loading platforms
     try {
@@ -664,7 +679,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    document.querySelectorAll('input, textarea').forEach(input => {
+    document.querySelectorAll('input, textarea, select').forEach(input => {
         input.addEventListener('change', async () => await saveCredentials());
     });
 
