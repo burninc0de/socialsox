@@ -408,7 +408,7 @@ export function createPostHtml(post, index, context = 'feed', platformIcons = {}
                     </div>
                 </div>
                 
-                <a href="${post.url}" target="_blank" class="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors whitespace-nowrap ml-2">
+                <a href="${post.url}" target="_blank" class="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-2 shrink-0">
                     ${timeString}${langBadge}
                 </a>
             </div>

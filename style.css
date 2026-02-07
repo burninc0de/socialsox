@@ -67,6 +67,16 @@
     /* Dark mode hover */
 }
 
+::-webkit-scrollbar-corner {
+    background: #f3f4f6;
+    /* Light mode */
+}
+
+.dark ::-webkit-scrollbar-corner {
+    background: #2d3748;
+    /* Dark mode - matches track */
+}
+
 /* Platform button active state icons */
 .platform-toggle img {
     transition: filter 300ms ease;
@@ -212,6 +222,38 @@ textarea {
     resize: none;
 }
 
-.post-content a {
+ .post-content a {
     @apply text-primary-600 dark:text-primary-500 hover:underline;
+}
+
+/* Prevent horizontal overflow in home feed */
+#homeFeedList img {
+    max-width: 100%;
+    height: auto;
+}
+
+#homeFeedList .break-words {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+}
+
+/* Ensure flex containers don't overflow */
+#homeFeedList > div {
+    min-width: 0;
+}
+
+/* Handle long URLs in post content */
+.post-content {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+}
+
+/* Handle <pre> tags in post content - allow wrapping */
+.post-content pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-x: auto;
+    max-width: 100%;
 }

@@ -79,12 +79,13 @@ async function loadMorePosts() {
             </div>
         `).join('');
         
-        sentinel.insertAdjacentHTML('beforebegin', skeletonHtml);
+        feedList.insertAdjacentHTML('beforeend', skeletonHtml);
     }
 
     try {
         const posts = [];
         const promises = [];
+        const errors = [];
 
         const mixVal = parseInt(localStorage.getItem('socialSoxFeedMix') || '50', 10);
         const total = 40;
@@ -105,6 +106,7 @@ async function loadMorePosts() {
                 window.homeFeedPagination.mastodonCursor = result.nextCursor;
             }).catch(e => {
                 console.error('Mastodon pagination error:', e);
+                errors.push(`Mastodon: ${e.message}`);
             }));
         }
 
@@ -122,6 +124,7 @@ async function loadMorePosts() {
                 window.homeFeedPagination.blueskyCursor = result.nextCursor;
             }).catch(e => {
                 console.error('Bluesky pagination error:', e);
+                errors.push(`Bluesky: ${e.message}`);
             }));
         }
 
@@ -140,7 +143,12 @@ async function loadMorePosts() {
         if (posts.length === 0) {
             window.homeFeedPagination.hasMore = false;
             if (sentinel) {
-                sentinel.innerHTML = '<span class="text-sm text-gray-400">No more posts</span>';
+                if (errors.length > 0) {
+                    sentinel.innerHTML = '<span class="text-sm text-red-400">Error loading more posts</span>';
+                    window.showToast('Failed to load more posts. Check your connection and credentials.', 'error');
+                } else {
+                    sentinel.innerHTML = '<span class="text-sm text-gray-400">No more posts</span>';
+                }
             }
         } else {
             appendToHomeFeed(posts);
@@ -148,6 +156,7 @@ async function loadMorePosts() {
 
     } catch (error) {
         console.error('Error loading more posts:', error);
+        window.showToast(`Error loading more posts: ${error.message}`, 'error');
     } finally {
         window.homeFeedPagination.isLoading = false;
     }
