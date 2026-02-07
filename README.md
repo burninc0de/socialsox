@@ -170,7 +170,7 @@ Check the **History** tab to view your past posts and their status.
 > - ✅ Everything runs locally. No external servers touch your data except the social media APIs themselves.
 > - ✅ Credentials are encrypted using Electron's safeStorage (OS-level encryption via Keychain, DPAPI, or Libsecret).
 
-> [!CAUTION]
+> [!WARNING]
 > **Encryption Fallback:**
 > - If your OS does not have a secure store (like a keyring) configured, Electron may fall back to basic_text encryption. In this scenario, your credentials are only as secure as your file system permissions.
 > - Always use a system-level login password to ensure safeStorage is actually "safe."
