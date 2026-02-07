@@ -346,17 +346,17 @@ export function updateWindowControlsStyle(style) {
         controlsContainer.className = 'window-controls flex h-full';
 
         const minimizeBtn = document.createElement('button');
-        minimizeBtn.className = 'w-8 h-full flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-600 dark:text-gray-400';
+        minimizeBtn.className = 'w-10 h-full flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-600 dark:text-gray-400';
         minimizeBtn.onclick = () => window.electron.minimizeWindow();
         minimizeBtn.innerHTML = '<svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 6H11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
 
         const maximizeBtn = document.createElement('button');
-        maximizeBtn.className = 'w-8 h-full flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-600 dark:text-gray-400';
+        maximizeBtn.className = 'w-10 h-full flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-600 dark:text-gray-400';
         maximizeBtn.onclick = () => window.electron.maximizeWindow();
         maximizeBtn.innerHTML = '<svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="1.5" y="1.5" width="9" height="9" stroke="currentColor" stroke-width="1.2"/></svg>';
 
         const closeBtn = document.createElement('button');
-        closeBtn.className = 'w-8 h-full flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors text-gray-600 dark:text-gray-400';
+        closeBtn.className = 'w-10 h-full flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors text-gray-600 dark:text-gray-400';
         closeBtn.onclick = () => window.electron.closeWindow();
         closeBtn.innerHTML = '<svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L11 11M11 1L1 11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
         
@@ -388,12 +388,12 @@ export function updateWindowControlsStyle(style) {
     if (typeof lucide !== 'undefined' && typeof window.lucideIcons !== 'undefined') {
         lucide.createIcons({icons: window.lucideIcons});
     }
-    // Reduce title bar right padding for compact (basic) controls so they sit
-    // closer to the window edge. Restore to default for other styles.
+    // Remove title bar right padding for compact (basic) controls so they sit
+    // flush with the window edge. Restore to default for other styles.
     const titleBar = document.querySelector('.title-bar');
     if (titleBar) {
         if (style === 'lucide-icons') {
-            titleBar.style.paddingRight = '0.5rem';
+            titleBar.style.paddingRight = '0';
         } else {
             titleBar.style.paddingRight = '';
         }
