@@ -33,12 +33,6 @@ Today's social media landscape is fragmented. Your audience is scattered across 
 ### Settings & Credentials
 ![Configure API credentials and app settings](screenshots/settings.png)
 
-### Scheduled Posts
-![Schedule posts for future publication](screenshots/schedule.png)
-
-### Statistics & Analytics
-![View posting statistics and charts](screenshots/stats.png)
-
 ## Project Notes
 
 > [!NOTE]
