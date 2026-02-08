@@ -30,6 +30,7 @@ const schedulePath = path.join(app.getPath('userData'), 'schedule.json');
 const syncSettingsPath = path.join(app.getPath('userData'), 'sync-settings.json');
 const deletedIdsPath = path.join(app.getPath('userData'), 'deleted-ids.json');
 const dismissedIdsPath = path.join(app.getPath('userData'), 'dismissed-ids.json');
+const externalLinksPath = path.join(app.getPath('userData'), 'external-links-setting.json');
 
 // Debug log path (appends sanitized Bluesky debug dumps)
 const blueskyDebugLogPath = path.join(app.getPath('userData'), 'bluesky-debug.json');
@@ -48,6 +49,16 @@ async function saveWindowBounds(bounds) {
         await fs.writeFile(configPath, JSON.stringify(bounds));
     } catch (error) {
         console.error('Failed to save window bounds:', error);
+    }
+}
+
+// Helper function to get external links setting
+async function getExternalLinksSetting() {
+    try {
+        const data = await fs.readFile(externalLinksPath, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        return { enabled: false };
     }
 }
 
@@ -106,26 +117,33 @@ async function createWindow() {
         console.log(`[Renderer]: ${message}`);
     });
 
-    // Handle new windows (target="_blank") to open in new Electron window
+    // Handle new windows (target="_blank") based on user preference
     win.webContents.setWindowOpenHandler((details) => {
-        const newWin = new BrowserWindow({
-            width: 800,
-            height: 600,
-            webPreferences: {
-                nodeIntegration: false,
-                contextIsolation: true,
-                enableRemoteModule: false,
-                webSecurity: true,
-                allowRunningInsecureContent: false,
-                preload: path.join(__dirname, 'preload.js')
-            },
-            icon: trayIconPath,
-            title: 'SocialSox - Link',
-            autoHideMenuBar: true,
-            frame: true,
-            backgroundColor: '#ffffff'
+        // Check if external links should open in browser
+        getExternalLinksSetting().then(setting => {
+            if (setting.enabled) {
+                require('electron').shell.openExternal(details.url);
+            } else {
+                const newWin = new BrowserWindow({
+                    width: 800,
+                    height: 600,
+                    webPreferences: {
+                        nodeIntegration: false,
+                        contextIsolation: true,
+                        enableRemoteModule: false,
+                        webSecurity: true,
+                        allowRunningInsecureContent: false,
+                        preload: path.join(__dirname, 'preload.js')
+                    },
+                    icon: trayIconPath,
+                    title: 'SocialSox - Link',
+                    autoHideMenuBar: true,
+                    frame: true,
+                    backgroundColor: '#ffffff'
+                });
+                newWin.loadURL(details.url);
+            }
         });
-        newWin.loadURL(details.url);
         return { action: 'deny' }; // Prevent default behavior
     });
 
@@ -661,6 +679,16 @@ ipcMain.handle('delete-window-config', async () => {
     }
 });
 
+ipcMain.handle('delete-external-links-setting', async () => {
+    try {
+        await fs.unlink(externalLinksPath);
+        return true;
+    } catch (error) {
+        // File doesn't exist or can't be deleted, that's ok
+        return true;
+    }
+});
+
 ipcMain.handle('read-history', async () => {
     try {
         const data = await fs.readFile(historyPath, 'utf8');
@@ -741,6 +769,26 @@ ipcMain.handle('write-sync-settings', async (event, settings) => {
         return true;
     } catch (error) {
         console.error('Failed to save sync settings:', error);
+        return false;
+    }
+});
+
+// External links setting: read and write
+ipcMain.handle('get-external-links-setting', async () => {
+    try {
+        const data = await fs.readFile(externalLinksPath, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        return { enabled: false };
+    }
+});
+
+ipcMain.handle('set-external-links-setting', async (event, enabled) => {
+    try {
+        await fs.writeFile(externalLinksPath, JSON.stringify({ enabled }, null, 2));
+        return true;
+    } catch (error) {
+        console.error('Failed to save external links setting:', error);
         return false;
     }
 });

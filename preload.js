@@ -41,6 +41,7 @@ contextBridge.exposeInMainWorld(
         writeNotifications: (notifications) => ipcRenderer.invoke('write-notifications', notifications),
         deleteNotifications: () => ipcRenderer.invoke('delete-notifications'),
         deleteWindowConfig: () => ipcRenderer.invoke('delete-window-config'),
+        deleteExternalLinksSetting: () => ipcRenderer.invoke('delete-external-links-setting'),
         readHistory: () => ipcRenderer.invoke('read-history'),
         writeHistory: (history) => ipcRenderer.invoke('write-history', history),
         deleteHistory: () => ipcRenderer.invoke('delete-history'),
@@ -55,6 +56,8 @@ contextBridge.exposeInMainWorld(
         trackDeletedNotification: (id) => ipcRenderer.invoke('track-deleted-notification', id),
         trackDeletedScheduled: (id) => ipcRenderer.invoke('track-deleted-scheduled', id),
         trackDismissedNotification: (id) => ipcRenderer.invoke('track-dismissed-notification', id),
-        readDismissedNotifications: () => ipcRenderer.invoke('read-dismissed-notifications')
+        readDismissedNotifications: () => ipcRenderer.invoke('read-dismissed-notifications'),
+        getExternalLinksSetting: () => ipcRenderer.invoke('get-external-links-setting'),
+        setExternalLinksSetting: (enabled) => ipcRenderer.invoke('set-external-links-setting', enabled)
     }
 );

@@ -56,6 +56,9 @@ window.platforms = {
     bluesky: false
 };
 
+// Cache external links setting for synchronous access
+let externalLinksEnabled = false;
+
 // Make prompt functions globally available
 window.updatePromptSelect = updatePromptSelect;
 window.updatePromptDisplay = updatePromptDisplay;
@@ -552,9 +555,39 @@ window.addEventListener('DOMContentLoaded', async () => {
         });
         document.getElementById('resetTrayIconBtn').style.display = 'block';
     }
-    window.electron.setTrayIcon(trayIconPathStored); const externalLinksStored = localStorage.getItem('socialSoxExternalLinks');
-    const externalLinks = externalLinksStored !== null ? externalLinksStored === 'true' : false;
-    document.getElementById('externalLinksToggle').checked = externalLinks;
+    window.electron.setTrayIcon(trayIconPathStored);
+
+    // Load external links setting from main process (with localStorage migration fallback)
+    try {
+        const setting = await window.electron.getExternalLinksSetting();
+        const externalLinksFromMain = setting.enabled;
+        const externalLinksStored = localStorage.getItem('socialSoxExternalLinks');
+
+        if (externalLinksStored !== null) {
+            // Migrate from localStorage to main process if needed
+            const externalLinksFromLocal = externalLinksStored === 'true';
+            if (externalLinksFromLocal !== externalLinksFromMain) {
+                await window.electron.setExternalLinksSetting(externalLinksFromLocal);
+                document.getElementById('externalLinksToggle').checked = externalLinksFromLocal;
+                externalLinksEnabled = externalLinksFromLocal;
+            } else {
+                document.getElementById('externalLinksToggle').checked = externalLinksFromMain;
+                externalLinksEnabled = externalLinksFromMain;
+            }
+            // Clear localStorage after migration
+            localStorage.removeItem('socialSoxExternalLinks');
+        } else {
+            document.getElementById('externalLinksToggle').checked = externalLinksFromMain;
+            externalLinksEnabled = externalLinksFromMain;
+        }
+    } catch (error) {
+        console.error('Failed to load external links setting:', error);
+        // Fallback to localStorage if main process fails
+        const externalLinksStored = localStorage.getItem('socialSoxExternalLinks');
+        const externalLinks = externalLinksStored !== null ? externalLinksStored === 'true' : false;
+        document.getElementById('externalLinksToggle').checked = externalLinks;
+        externalLinksEnabled = externalLinks;
+    }
 
     // Initialize prompt select
     updatePromptSelect(localStorage.getItem('socialSoxSelectedPromptId') || 'default');
@@ -627,9 +660,14 @@ window.addEventListener('DOMContentLoaded', async () => {
         window.electron.setTrayEnabled(isEnabled);
     });
 
-    document.getElementById('externalLinksToggle').addEventListener('change', function () {
+    document.getElementById('externalLinksToggle').addEventListener('change', async function () {
         const isEnabled = this.checked;
-        localStorage.setItem('socialSoxExternalLinks', isEnabled);
+        externalLinksEnabled = isEnabled; // Update cached value
+        try {
+            await window.electron.setExternalLinksSetting(isEnabled);
+        } catch (error) {
+            console.error('Failed to save external links setting:', error);
+        }
     });
 
     document.getElementById('debugModeToggle').addEventListener('change', function () {
@@ -766,8 +804,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('click', function (e) {
         if (e.target.tagName === 'A' && e.target.href) {
             e.preventDefault();
-            const external = localStorage.getItem('socialSoxExternalLinks') === 'true';
-            if (external) {
+            if (externalLinksEnabled) {
                 window.electron.openExternalLink(e.target.href);
             } else {
                 window.open(e.target.href, '_blank');
@@ -1244,6 +1281,13 @@ function resetAllData() {
     }
 
     document.getElementById('externalLinksToggle').checked = false;
+    externalLinksEnabled = false;
+    if (window.electron && window.electron.setExternalLinksSetting) {
+        window.electron.setExternalLinksSetting(false);
+    }
+    if (window.electron && window.electron.deleteExternalLinksSetting) {
+        window.electron.deleteExternalLinksSetting();
+    }
 
     document.getElementById('windowControlsStyle').value = 'lucide-icons';
     import('./src/modules/storage.js').then(module => {
