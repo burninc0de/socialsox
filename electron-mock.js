@@ -13,6 +13,14 @@ if (!window.electron) {
       };
     },
     
+    replyToTwitter: async (tweetId, message, apiKey, apiSecret, accessToken, accessTokenSecret) => {
+      console.log('[Mock] Twitter reply to', tweetId, 'would be sent:', message);
+      return {
+        success: false,
+        error: 'Twitter posting requires Electron app (run: npm start)'
+      };
+    },
+    
     testTwitterConfig: async (apiKey, apiSecret, accessToken, accessTokenSecret) => {
       console.log('[Mock] Twitter config test');
       return {

@@ -115,15 +115,31 @@ export async function postToMastodon(message, instance, token, imageFiles = []) 
 }
 
 export async function postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageDataArray = []) {
-    // Check Twitter's 280 character limit
-    if (message.length > 280) {
-        throw new Error(`Twitter posts are limited to 280 characters. Your message is ${message.length} characters long.`);
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const links = message.match(urlRegex) || [];
+    console.log('Twitter: Links found:', links, 'count:', links.length);
+    const messageWithoutLinks = message.replace(urlRegex, '').replace(/\n\s*\n/g, '\n').trim();
+    
+    let displayMessage;
+    let effectiveLength;
+    
+    if (links.length > 0) {
+        displayMessage = messageWithoutLinks.length > 0 ? messageWithoutLinks : ' ';
+        effectiveLength = messageWithoutLinks.length;
+    } else {
+        displayMessage = message;
+        effectiveLength = message.length;
+    }
+    
+    if (effectiveLength > 280) {
+        throw new Error(`Twitter posts are limited to 280 characters. Your message is ${effectiveLength} characters long.`);
     }
     
     if (window.electron && window.electron.postToTwitter) {
         console.log('Calling Electron backend for Twitter...');
-        const result = await window.electron.postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageDataArray);
+        const result = await window.electron.postToTwitter(displayMessage, apiKey, apiSecret, accessToken, accessTokenSecret, imageDataArray);
         console.log('Twitter result:', result);
+        console.log('Twitter result.data:', result.data, 'result.data.id:', result.data?.id);
         
         if (!result.success) {
             let errorMsg = result.error;
@@ -134,6 +150,22 @@ export async function postToTwitter(message, apiKey, apiSecret, accessToken, acc
             }
             throw new Error(errorMsg);
         }
+        
+        if (links.length > 0) {
+            const tweetId = result.tweetId || result.data?.edit_history_tweet_ids?.[0];
+            console.log('Twitter: Checking reply condition - links:', links.length, 'tweetId:', tweetId);
+            if (tweetId) {
+                console.log('Twitter: Posting link reply to', tweetId, 'with links:', links);
+                const linkMessage = links.join(' ');
+                try {
+                    const replyResult = await window.electron.replyToTwitter(tweetId, linkMessage, apiKey, apiSecret, accessToken, accessTokenSecret);
+                    console.log('Twitter link reply result:', replyResult);
+                } catch (replyError) {
+                    console.error('Twitter link reply failed:', replyError);
+                }
+            }
+        }
+        
         return { success: true, url: result.url };
     } else {
         throw new Error('Twitter posting requires Electron app (run: npm start)');

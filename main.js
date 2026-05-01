@@ -306,8 +306,9 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
 
         const result = await client.v2.tweet(tweetData);
         console.log('Twitter: Success!', result);
-        const tweetUrl = `https://twitter.com/i/status/${result.data.id}`;
-        return { success: true, data: result, url: tweetUrl };
+        const tweetId = result.data.id;
+        const tweetUrl = `https://twitter.com/i/status/${tweetId}`;
+        return { success: true, tweetId: tweetId, url: tweetUrl };
     } catch (error) {
         console.error('Twitter Error:', error);
         console.error('Twitter Error Code:', error.code);
@@ -322,6 +323,30 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
         }
 
         return { success: false, error: errorMessage, code: error.code, details: error.data };
+    }
+});
+
+// Handle Twitter reply to own tweet
+ipcMain.handle('reply-to-twitter', async (event, { tweetId, message, apiKey, apiSecret, accessToken, accessTokenSecret }) => {
+    try {
+        console.log('Twitter: Replying to tweet:', tweetId, 'with message:', message);
+
+        const client = new TwitterApi({
+            appKey: apiKey,
+            appSecret: apiSecret,
+            accessToken: accessToken,
+            accessSecret: accessTokenSecret,
+        });
+
+        const result = await client.v2.reply(message, tweetId);
+        console.log('Twitter: Reply success!', result);
+        const replyUrl = `https://twitter.com/i/status/${result.data.id}`;
+        return { success: true, data: result, url: replyUrl };
+    } catch (error) {
+        console.error('Twitter Reply Error:', error);
+        console.error('Twitter Reply Error code:', error.code);
+        console.error('Twitter Reply Error data:', error.data);
+        return { success: false, error: error.message, code: error.code, details: error.data };
     }
 });
 
