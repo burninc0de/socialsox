@@ -1,8 +1,34 @@
 const { app, BrowserWindow, ipcMain, dialog, clipboard, Tray, Menu, Notification, safeStorage } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
+const crypto = require('crypto');
 
 app.setAppUserModelId('com.socialsox.app');
+
+function getMachineDerivedKey() {
+    const machineId = process.env.COMPUTER_VENDOR_ID || process.env.HOSTNAME || process.env.USER || 'socialsox-fallback';
+    return crypto.createHash('sha256').update(machineId).digest();
+}
+
+function encryptFallback(data) {
+    const key = getMachineDerivedKey();
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+    const encrypted = Buffer.concat([cipher.update(data, 'utf8'), cipher.final()]);
+    const authTag = cipher.getAuthTag();
+    return Buffer.concat([iv, authTag, encrypted]).toString('base64');
+}
+
+function decryptFallback(encryptedData) {
+    const key = getMachineDerivedKey();
+    const buffer = Buffer.from(encryptedData, 'base64');
+    const iv = buffer.subarray(0, 16);
+    const authTag = buffer.subarray(16, 32);
+    const encrypted = buffer.subarray(32);
+    const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+    decipher.setAuthTag(authTag);
+    return decipher.update(encrypted) + decipher.final('utf8');
+}
 
 let tray = null;
 let isQuiting = false;
@@ -591,7 +617,7 @@ ipcMain.handle('get-version', () => app.getVersion());
 // SafeStorage handlers for credentials
 ipcMain.handle('encrypt-credentials', async (event, data) => {
     if (!safeStorage.isEncryptionAvailable()) {
-        throw new Error('Encryption is not available on this system');
+        return encryptFallback(data);
     }
     const encrypted = safeStorage.encryptString(data);
     return encrypted.toString('base64');
@@ -599,7 +625,7 @@ ipcMain.handle('encrypt-credentials', async (event, data) => {
 
 ipcMain.handle('decrypt-credentials', async (event, encryptedData) => {
     if (!safeStorage.isEncryptionAvailable()) {
-        throw new Error('Encryption is not available on this system');
+        return decryptFallback(encryptedData);
     }
     const buffer = Buffer.from(encryptedData, 'base64');
     return safeStorage.decryptString(buffer);
