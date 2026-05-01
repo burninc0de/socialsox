@@ -115,15 +115,16 @@ export async function postToMastodon(message, instance, token, imageFiles = []) 
 }
 
 export async function postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageDataArray = []) {
+    const stripLinksTwitter = window.stripLinksTwitter !== false;
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     const links = message.match(urlRegex) || [];
-    console.log('Twitter: Links found:', links, 'count:', links.length);
+    console.log('Twitter: Links found:', links, 'count:', links.length, 'stripLinksTwitter:', stripLinksTwitter);
     const messageWithoutLinks = message.replace(urlRegex, '').replace(/\n\s*\n/g, '\n').trim();
     
     let displayMessage;
     let effectiveLength;
     
-    if (links.length > 0) {
+    if (stripLinksTwitter && links.length > 0) {
         displayMessage = messageWithoutLinks.length > 0 ? messageWithoutLinks : ' ';
         effectiveLength = messageWithoutLinks.length;
     } else {
@@ -151,7 +152,7 @@ export async function postToTwitter(message, apiKey, apiSecret, accessToken, acc
             throw new Error(errorMsg);
         }
         
-        if (links.length > 0) {
+        if (stripLinksTwitter && links.length > 0) {
             const tweetId = result.tweetId || result.data?.edit_history_tweet_ids?.[0];
             console.log('Twitter: Checking reply condition - links:', links.length, 'tweetId:', tweetId);
             if (tweetId) {

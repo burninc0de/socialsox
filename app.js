@@ -529,6 +529,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     window.debugMode = debugMode;
     updateDebugModeStyling(debugMode);
 
+    const stripLinksTwitterStored = localStorage.getItem('socialSoxStripLinksTwitter');
+    const stripLinksTwitter = stripLinksTwitterStored !== null ? stripLinksTwitterStored === 'true' : true;
+    document.getElementById('stripLinksTwitterToggle').checked = stripLinksTwitter;
+    window.stripLinksTwitter = stripLinksTwitter;
+
     const trayEnabledStored = localStorage.getItem('socialSoxTrayEnabled');
     const trayEnabled = trayEnabledStored !== null ? trayEnabledStored === 'true' : false;
     document.getElementById('trayIconToggle').checked = trayEnabled;
@@ -675,6 +680,12 @@ window.addEventListener('DOMContentLoaded', async () => {
         localStorage.setItem('socialSoxDebugMode', isEnabled);
         window.debugMode = isEnabled;
         updateDebugModeStyling(isEnabled);
+    });
+
+    document.getElementById('stripLinksTwitterToggle').addEventListener('change', function () {
+        const isEnabled = this.checked;
+        localStorage.setItem('socialSoxStripLinksTwitter', isEnabled);
+        window.stripLinksTwitter = isEnabled;
     });
 
     document.getElementById('windowControlsStyle').addEventListener('change', function () {
