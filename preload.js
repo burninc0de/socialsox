@@ -5,8 +5,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld(
     'electron',
     {
-        postToTwitter: (message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData) =>
-            ipcRenderer.invoke('post-to-twitter', { message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData }),
+        postToTwitter: (message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData, isVideoData) =>
+            ipcRenderer.invoke('post-to-twitter', { message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData, isVideoData }),
         replyToTwitter: (tweetId, message, apiKey, apiSecret, accessToken, accessTokenSecret) =>
             ipcRenderer.invoke('reply-to-twitter', { tweetId, message, apiKey, apiSecret, accessToken, accessTokenSecret }),
         testTwitterConfig: (apiKey, apiSecret, accessToken, accessTokenSecret) =>

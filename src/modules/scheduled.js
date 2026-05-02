@@ -405,19 +405,19 @@ export async function checkAndSendDuePosts() {
             document.getElementById('message').value = post.message;
 
             // Handle images if present
-            if (post.images && post.images.length > 0) {
-                // Convert base64 images back to File objects
+if (post.images && post.images.length > 0) {
                 const imageFiles = [];
                 for (let i = 0; i < post.images.length; i++) {
                     const base64 = post.images[i];
                     const response = await fetch(base64);
                     const blob = await response.blob();
-                    const file = new File([blob], `scheduled-image-${i}.jpg`, { type: 'image/jpeg' });
+                    const mimeMatch = base64.match(/^data:([^;]+);/);
+                    const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+                    const ext = mimeType.split('/')[1] || 'bin';
+                    const file = new File([blob], `scheduled-media-${i}.${ext}`, { type: mimeType });
                     imageFiles.push(file);
-
                 }
 
-                // Set images in the upload module
                 if (window.setSelectedImages) {
                     window.setSelectedImages(imageFiles);
                 }

@@ -1083,8 +1083,11 @@ async function postToAll() {
 
     const selectedImages = getSelectedImages();
     let imageDataArray = [];
+    let isVideoArray = [];
     if (selectedImages.length > 0) {
         for (const image of selectedImages) {
+            const isVideo = image.type.startsWith('video/');
+            isVideoArray.push(isVideo);
             const reader = new FileReader();
             const imageData = await new Promise((resolve) => {
                 reader.onload = (e) => resolve(e.target.result);
@@ -1136,7 +1139,7 @@ async function postToAll() {
 
                 if (apiKey && apiSecret && accessToken && accessTokenSecret) {
                     try {
-                        const result = await postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageDataArray);
+                        const result = await postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageDataArray, isVideoArray);
                         results.push({ platform: 'Twitter', success: true, url: result.url });
                     } catch (error) {
                         let errorMsg = error.message;

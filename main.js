@@ -269,11 +269,11 @@ ipcMain.on('open-external-link', (event, url) => {
 });
 
 // Handle Twitter posting from renderer
-ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData }) => {
+ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, accessToken, accessTokenSecret, imageData, isVideoData }) => {
     try {
         console.log('Twitter: Attempting to post...');
         console.log('Twitter: Message length:', message.length);
-        console.log('Twitter: Has images:', Array.isArray(imageData) ? imageData.length : (imageData ? 1 : 0));
+        console.log('Twitter: Has media:', Array.isArray(imageData) ? imageData.length : (imageData ? 1 : 0));
 
         const client = new TwitterApi({
             appKey: apiKey,
@@ -284,16 +284,29 @@ ipcMain.handle('post-to-twitter', async (event, { message, apiKey, apiSecret, ac
 
         let mediaIds = [];
 
-        // Upload images if provided
+        // Upload media if provided
         if (imageData) {
             const imageArray = Array.isArray(imageData) ? imageData : [imageData];
+            const isVideoArray = Array.isArray(isVideoData) ? isVideoData : [isVideoData];
 
-            for (const imgData of imageArray.slice(0, 4)) {
-                console.log('Twitter: Uploading image...');
+            for (let i = 0; i < imageArray.slice(0, 4).length; i++) {
+                const imgData = imageArray[i];
+                const isVideo = isVideoArray[i];
+                console.log('Twitter: Uploading media...', isVideo ? 'video' : 'image');
                 const base64Data = imgData.split(',')[1];
                 const buffer = Buffer.from(base64Data, 'base64');
-                const mediaId = await client.v1.uploadMedia(buffer, { mimeType: 'image/jpeg' });
-                console.log('Twitter: Image uploaded, mediaId:', mediaId);
+                
+                let mimeType = 'image/jpeg';
+                if (isVideo) {
+                    mimeType = imgData.includes('video/mp4') ? 'video/mp4' : 'video/webm';
+                } else if (imgData.includes('image/png')) {
+                    mimeType = 'image/png';
+                } else if (imgData.includes('image/gif')) {
+                    mimeType = 'image/gif';
+                }
+                
+                const mediaId = await client.v1.uploadMedia(buffer, { mimeType });
+                console.log('Twitter: Media uploaded, mediaId:', mediaId);
                 mediaIds.push(mediaId);
             }
         }

@@ -58,6 +58,13 @@ export async function testBlueskyConfig(handle, password) {
     return { success: true, username: session.handle, did: session.did };
 }
 
+async function waitForMediaReady(instance, token, mediaId) {
+    window.showStatus('Video uploaded, waiting 20s for processing...', 'info');
+    await new Promise(resolve => setTimeout(resolve, 20000));
+    window.showStatus('Video processing complete', 'info');
+    return true;
+}
+
 export async function postToMastodon(message, instance, token, imageFiles = []) {
     let cleanInstance = instance.trim();
     if (cleanInstance.endsWith('/')) {
@@ -83,11 +90,18 @@ export async function postToMastodon(message, instance, token, imageFiles = []) 
             
             if (!mediaResponse.ok) {
                 const errorText = await mediaResponse.text();
-                throw new Error(`Image upload failed: ${errorText}`);
+                throw new Error(`Media upload failed: ${errorText}`);
             }
             
             const mediaData = await mediaResponse.json();
-            mediaIds.push(mediaData.id);
+            const mediaId = mediaData.id;
+            
+            const isVideo = imageFile.type.startsWith('video/');
+            if (isVideo) {
+                await waitForMediaReady(cleanInstance, token, mediaId);
+            }
+            
+            mediaIds.push(mediaId);
         }
     }
     
@@ -114,7 +128,7 @@ export async function postToMastodon(message, instance, token, imageFiles = []) 
     return { success: true, url: data.url };
 }
 
-export async function postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageDataArray = []) {
+export async function postToTwitter(message, apiKey, apiSecret, accessToken, accessTokenSecret, imageDataArray = [], isVideoArray = []) {
     const stripLinksTwitter = window.stripLinksTwitter !== false;
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     const links = message.match(urlRegex) || [];
@@ -138,7 +152,7 @@ export async function postToTwitter(message, apiKey, apiSecret, accessToken, acc
     
     if (window.electron && window.electron.postToTwitter) {
         console.log('Calling Electron backend for Twitter...');
-        const result = await window.electron.postToTwitter(displayMessage, apiKey, apiSecret, accessToken, accessTokenSecret, imageDataArray);
+        const result = await window.electron.postToTwitter(displayMessage, apiKey, apiSecret, accessToken, accessTokenSecret, imageDataArray, isVideoArray);
         console.log('Twitter result:', result);
         console.log('Twitter result.data:', result.data, 'result.data.id:', result.data?.id);
         
