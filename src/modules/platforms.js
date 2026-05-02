@@ -207,27 +207,54 @@ export async function postToBluesky(message, handle, password, imageFiles = []) 
     const session = await sessionResponse.json();
     
     let imageBlobs = [];
+    let hasVideo = false;
+    let videoBlob = null;
     
     if (imageFiles && imageFiles.length > 0) {
         for (const imageFile of imageFiles.slice(0, 4)) {
-            const imageBytes = await imageFile.arrayBuffer();
+            const isVideo = imageFile.type.startsWith('video/');
             
-            const uploadResponse = await fetch('https://bsky.social/xrpc/com.atproto.repo.uploadBlob', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${session.accessJwt}`,
-                    'Content-Type': imageFile.type
-                },
-                body: imageBytes
-            });
-            
-            if (!uploadResponse.ok) {
-                const errorText = await uploadResponse.text();
-                throw new Error(`Image upload failed: ${errorText}`);
+            if (isVideo) {
+                if (!videoBlob) {
+                    const videoBytes = await imageFile.arrayBuffer();
+                    const uploadResponse = await fetch('https://bsky.social/xrpc/com.atproto.repo.uploadBlob', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${session.accessJwt}`,
+                            'Content-Type': imageFile.type
+                        },
+                        body: videoBytes
+                    });
+                    
+                    if (!uploadResponse.ok) {
+                        const errorText = await uploadResponse.text();
+                        throw new Error(`Video upload failed: ${errorText}`);
+                    }
+                    
+                    const uploadData = await uploadResponse.json();
+                    videoBlob = uploadData.blob;
+                    hasVideo = true;
+                }
+            } else {
+                const imageBytes = await imageFile.arrayBuffer();
+                
+                const uploadResponse = await fetch('https://bsky.social/xrpc/com.atproto.repo.uploadBlob', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${session.accessJwt}`,
+                        'Content-Type': imageFile.type
+                    },
+                    body: imageBytes
+                });
+                
+                if (!uploadResponse.ok) {
+                    const errorText = await uploadResponse.text();
+                    throw new Error(`Image upload failed: ${errorText}`);
+                }
+                
+                const uploadData = await uploadResponse.json();
+                imageBlobs.push(uploadData.blob);
             }
-            
-            const uploadData = await uploadResponse.json();
-            imageBlobs.push(uploadData.blob);
         }
     }
     
@@ -326,14 +353,30 @@ export async function postToBluesky(message, handle, password, imageFiles = []) 
         record.facets = facets;
     }
     
-    if (imageBlobs.length > 0) {
-        record.embed = {
-            $type: 'app.bsky.embed.images',
-            images: imageBlobs.map(blob => ({
-                alt: '',
-                image: blob
-            }))
-        };
+    if (imageBlobs.length > 0 || hasVideo) {
+        if (hasVideo && imageBlobs.length > 0) {
+            record.embed = {
+                $type: 'app.bsky.embed.video',
+                videos: [{ ...videoBlob, mimeType: 'video/mp4' }],
+                images: imageBlobs.map(blob => ({
+                    alt: '',
+                    image: blob
+                }))
+            };
+        } else if (hasVideo) {
+            record.embed = {
+                $type: 'app.bsky.embed.video',
+                video: { ...videoBlob, mimeType: 'video/mp4' }
+            };
+        } else {
+            record.embed = {
+                $type: 'app.bsky.embed.images',
+                images: imageBlobs.map(blob => ({
+                    alt: '',
+                    image: blob
+                }))
+            };
+        }
     }
     
     const postResponse = await fetch('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
