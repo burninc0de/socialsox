@@ -628,6 +628,17 @@
                 </div>
             </div>
 
+            <!-- SafeStorage Warning -->
+            <div id="safeStorageWarning" class="hidden mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-lg">
+                <div class="flex items-start gap-3">
+                    <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0"></i>
+                    <div>
+                        <h3 class="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">Weak Encryption Warning</h3>
+                        <p class="text-xs text-amber-700 dark:text-amber-400">Your operating system does not provide a secure credential store (keyring/Keychain/DPAPI). Credentials will be encrypted with a machine-based fallback key, which is less secure. Anyone with access to your device may be able to decrypt them.</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- API Credentials -->
             <div class="mb-8">
                 <h2

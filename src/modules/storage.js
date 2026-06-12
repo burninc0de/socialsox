@@ -178,6 +178,12 @@ export async function loadCredentials() {
             const isActive = window.platforms[platform];
             btn.classList.toggle('active', isActive);
         });
+
+        const safeStorageAvailable = await window.electron.isSafeStorageAvailable();
+        const warningEl = document.getElementById('safeStorageWarning');
+        if (warningEl) {
+            warningEl.classList.toggle('hidden', safeStorageAvailable);
+        }
     } catch (error) {
         console.error('Error loading credentials from localStorage:', error);
         window.showStatus?.('Error loading saved credentials. Storage may be corrupted. Try "Reset All Data" in Settings.', 'error');

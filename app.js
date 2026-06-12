@@ -1,8 +1,8 @@
 
 // Import lucide icons
-import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, MessageCircleX, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify, Plus, Scissors, Hash, Languages, Ban, Home, Check, ArrowLeft, ExternalLink, UserMinus } from 'lucide';
+import { createIcons, PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, MessageCircleX, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify, Plus, Scissors, Hash, Languages, Ban, Home, Check, ArrowLeft, ExternalLink, UserMinus, AlertTriangle } from 'lucide';
 
-const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, MessageCircleX, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify, Plus, Scissors, Hash, scissors: Scissors, hash: Hash, Languages, languages: Languages, Ban, Home, Check, ArrowLeft, ExternalLink, UserMinus };
+const icons = { PenSquare, History, Bell, Settings, Camera, Trash2, RefreshCw, CheckCircle, ChevronDown, Download, Upload, Minus, Maximize, X, Loader2, Clock, Pen, Save, Heart, MessageCircle, MessageCircleX, Repeat2, UserPlus, Quote, WandSparkles, BarChart3, AlignJustify, Plus, Scissors, Hash, scissors: Scissors, hash: Hash, Languages, languages: Languages, Ban, Home, Check, ArrowLeft, ExternalLink, UserMinus, AlertTriangle };
 
 // Import Chart.js
 import Chart from 'chart.js/auto';

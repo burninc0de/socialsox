@@ -5,6 +5,16 @@ const crypto = require('crypto');
 
 app.setAppUserModelId('com.socialsox.app');
 
+if (process.platform === 'linux') {
+    const recognizedDEs = /^(GNOME|KDE|XFCE|X-Cinnamon|Deepin|Pantheon|UKUI|unity|kde[456]?|lxqt|lxde|budgie|mate|enlightenment|endless|old)$/i;
+    const desktop = process.env.XDG_CURRENT_DESKTOP || '';
+    const isRecognized = desktop.split(':').some(d => recognizedDEs.test(d.trim()));
+
+    if (!isRecognized) {
+        app.commandLine.appendSwitch('password-store', 'gnome-libsecret');
+    }
+}
+
 function getMachineDerivedKey() {
     const machineId = process.env.COMPUTER_VENDOR_ID || process.env.HOSTNAME || process.env.USER || 'socialsox-fallback';
     return crypto.createHash('sha256').update(machineId).digest();
@@ -651,6 +661,8 @@ app.whenReady().then(() => {
 });
 
 ipcMain.handle('get-version', () => app.getVersion());
+
+ipcMain.handle('is-safe-storage-available', () => safeStorage.isEncryptionAvailable());
 
 // SafeStorage handlers for credentials
 ipcMain.handle('encrypt-credentials', async (event, data) => {

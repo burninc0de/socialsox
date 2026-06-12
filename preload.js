@@ -35,6 +35,7 @@ contextBridge.exposeInMainWorld(
         getVersion: () => ipcRenderer.invoke('get-version'),
         encryptCredentials: (data) => ipcRenderer.invoke('encrypt-credentials', data),
         decryptCredentials: (encryptedData) => ipcRenderer.invoke('decrypt-credentials', encryptedData),
+        isSafeStorageAvailable: () => ipcRenderer.invoke('is-safe-storage-available'),
         getAssetsPath: () => ipcRenderer.invoke('get-assets-path'),
         getPlatformIcons: () => ipcRenderer.invoke('get-platform-icons'),
         // Write debug logs (object will be serialized on the main side)
