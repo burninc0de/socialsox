@@ -354,7 +354,7 @@ export async function loadAndDisplayScheduled() {
 
 export async function checkAndSendDuePosts() {
     try {
-        const scheduled = await window.electron.readScheduled();
+        let scheduled = await window.electron.readScheduled();
 
         // Stop polling if no posts remain (safety check)
         if (scheduled.length === 0) {
