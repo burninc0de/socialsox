@@ -50,10 +50,24 @@ export function setupImageUpload() {
     });
     
     document.addEventListener('paste', async (e) => {
+        const items = e.clipboardData?.items;
+        if (items) {
+            for (const item of items) {
+                if (item.type.startsWith('image/')) {
+                    e.preventDefault();
+                    const file = item.getAsFile();
+                    if (file) {
+                        handleMediaFiles([file]);
+                        return;
+                    }
+                }
+            }
+        }
         const imageData = await window.electron.readClipboardImage();
         if (imageData) {
+            e.preventDefault();
             const file = dataURLToFile(imageData, 'clipboard-image.png');
-            handleImageFiles([file]);
+            handleMediaFiles([file]);
         }
     });
 }
