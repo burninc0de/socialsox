@@ -35,9 +35,13 @@
     "chart.js": "^4.5.1",
     "copilot": "^0.0.2",
     "lucide": "^0.554.0",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.3",
     "tar": "^7.5.11",
     "twitter-api-v2": "^1.28.0"
+  },
+  "overrides": {
+    "brace-expansion": "5.0.8",
+    "minimatch": "10.2.5"
   },
   "build": {
     "appId": "com.socialsox.app",
