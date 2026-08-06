@@ -8,6 +8,13 @@ export default defineConfig({
       {
         // Main process entry file
         entry: 'main.js',
+        vite: {
+          build: {
+            rollupOptions: {
+              external: ['sharp', /^@img\/.*/],
+            },
+          },
+        },
       },
       {
         // Preload script
