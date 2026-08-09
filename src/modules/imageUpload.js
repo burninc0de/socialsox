@@ -127,7 +127,7 @@ function addImagePreview(dataURL, index) {
     const img = document.createElement('img');
     img.src = dataURL;
     img.alt = 'Preview';
-    img.className = 'w-full h-32 object-cover rounded pointer-events-none';
+    img.className = 'w-full h-44 object-cover rounded pointer-events-none';
     
     const removeBtn = document.createElement('button');
     removeBtn.className = 'absolute top-3 right-3 w-6 h-6 rounded-full bg-red-500 text-white border-0 cursor-pointer text-sm leading-none hover:bg-red-600 transition-colors z-10';
@@ -156,7 +156,7 @@ function addVideoPreview(file, index) {
     previewDiv.addEventListener('dragend', handleDragEnd);
     
     const videoWrapper = document.createElement('div');
-    videoWrapper.className = 'w-full h-32 rounded pointer-events-none flex items-center justify-center bg-gray-200 dark:bg-gray-600 relative';
+    videoWrapper.className = 'w-full h-44 rounded pointer-events-none flex items-center justify-center bg-gray-200 dark:bg-gray-600 relative';
     
     const videoIcon = document.createElement('div');
     videoIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
