@@ -16,7 +16,7 @@ window.lucideIcons = icons;
 
 
 // Import modules
-import { saveCredentials, loadCredentials, exportCredentials, importCredentials } from './src/modules/storage.js';
+import { saveCredentials, loadCredentials, exportCredentials, importCredentials, updateWindowControlsStyle } from './src/modules/storage.js';
 import { postToMastodon, postToTwitter, postToBluesky, testMastodonConfig, testTwitterConfig, testBlueskyConfig } from './src/modules/platforms.js';
 import { optimizeTweet, testGrokApi } from './src/modules/ai.js';
 import { showStatus, showToast, updateCharCount, switchTab, toggleCollapsible, showPlatformStatus, clearPlatformStatuses } from './src/modules/ui.js';
@@ -25,7 +25,6 @@ import { loadHomeFeed } from './src/modules/home/index.js';
 import { showStats, closeStatsModal } from './src/modules/stats.js';
 import { setupImageUpload, removeImage, getSelectedImages, setSelectedImages } from './src/modules/imageUpload.js';
 import {
-    getAllCachedNotifications,
     clearNotificationsCache,
     startNotificationPolling,
     restartNotificationPolling,
@@ -465,9 +464,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             // Ignore parse errors
         }
     }
-    import('./src/modules/storage.js').then(module => {
-        module.updateWindowControlsStyle(initialStyle);
-    });
+    updateWindowControlsStyle(initialStyle);
 
     loadCredentials();
     updateCharCount(); // Update character count after loading platforms
@@ -597,14 +594,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Initialize prompt select
     updatePromptSelect(localStorage.getItem('socialSoxSelectedPromptId') || 'default');
 
-    const cachedNotifications = getAllCachedNotifications();
-    if (cachedNotifications.length > 0) {
-        // Import displayNotifications dynamically to avoid circular dependency
-        import('./src/modules/notifications.js').then(module => {
-            // Already displayed via the function
-        });
-    }
-
     startNotificationPolling();
     startNotificationPolling();
 
@@ -690,9 +679,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('windowControlsStyle').addEventListener('change', function () {
         const style = this.value;
-        import('./src/modules/storage.js').then(module => {
-            module.updateWindowControlsStyle(style);
-        });
+        updateWindowControlsStyle(style);
     });
 
     document.getElementById('syncEnabledToggle').addEventListener('change', function () {
@@ -1304,9 +1291,7 @@ function resetAllData() {
     }
 
     document.getElementById('windowControlsStyle').value = 'lucide-icons';
-    import('./src/modules/storage.js').then(module => {
-        module.updateWindowControlsStyle('lucide-icons');
-    });
+    updateWindowControlsStyle('lucide-icons');
 
     const historyList = document.getElementById('historyList');
     const noHistory = document.getElementById('noHistory');

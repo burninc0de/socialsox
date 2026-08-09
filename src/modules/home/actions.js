@@ -1,4 +1,4 @@
-import { displayHomeFeed, updateHashtagFollowButton, renderThreadView, showProfileSkeleton } from './render.js';
+import { displayHomeFeed, updateHashtagFollowButton, renderThreadView, showProfileSkeleton, showSkeletonLoaders } from './render.js';
 import { fetchMastodonHashtag, fetchBlueskyHashtag, fetchMastodonUserFeed, fetchBlueskyUserFeed, fetchMastodonThread, fetchBlueskyThread, fetchMastodonProfile, fetchBlueskyProfile } from './api.js';
 
 let currentReplyPost = null;
@@ -1053,7 +1053,6 @@ window.handleHashtagClick = async function (tag, platform) {
     }
 
     // Show skeleton loaders
-    const { showSkeletonLoaders } = await import('./render.js');
     showSkeletonLoaders(5);
 
     // Jump to top AFTER skeleton loaders are inserted
