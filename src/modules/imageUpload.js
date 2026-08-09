@@ -156,11 +156,11 @@ function addVideoPreview(file, index) {
     previewDiv.addEventListener('dragend', handleDragEnd);
     
     const videoWrapper = document.createElement('div');
-    videoWrapper.className = 'w-full h-44 rounded pointer-events-none flex items-center justify-center bg-gray-200 dark:bg-gray-600 relative';
+    videoWrapper.className = 'w-full h-44 rounded pointer-events-none flex items-center justify-center bg-gray-200 dark:bg-gray-600 relative overflow-hidden';
     
     const videoIcon = document.createElement('div');
-    videoIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
-    videoIcon.className = 'text-gray-500 dark:text-gray-400';
+    videoIcon.innerHTML = '<div class="w-12 h-12 rounded-full bg-black bg-opacity-50 flex items-center justify-center pointer-events-none"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="text-white" style="margin-left:3px"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div>';
+    videoIcon.className = 'absolute inset-0 m-auto flex items-center justify-center pointer-events-none';
     
     const duration = document.createElement('span');
     duration.className = 'absolute bottom-2 right-2 text-xs bg-black bg-opacity-70 text-white px-1 rounded';
@@ -185,6 +185,67 @@ function addVideoPreview(file, index) {
     previewDiv.appendChild(videoWrapper);
     previewDiv.appendChild(removeBtn);
     container.appendChild(previewDiv);
+    
+    getVideoThumbnail(file).then(dataURL => {
+        if (dataURL) {
+            const img = document.createElement('img');
+            img.src = dataURL;
+            img.alt = 'Video preview';
+            img.className = 'w-full h-full object-cover absolute inset-0';
+            videoWrapper.insertBefore(img, videoIcon);
+        }
+    });
+}
+
+function getVideoThumbnail(file) {
+    return new Promise((resolve) => {
+        const video = document.createElement('video');
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = 'auto';
+        video.src = URL.createObjectURL(file);
+
+        const cleanup = () => URL.revokeObjectURL(video.src);
+
+        video.addEventListener('loadeddata', () => {
+            const seekTo = Math.min(0.1, (video.duration || 0) / 2);
+            if (seekTo <= 0) {
+                setTimeout(drawThumbnail, 0);
+                return;
+            }
+            try {
+                video.currentTime = seekTo;
+            } catch (e) {
+                drawThumbnail();
+            }
+        });
+
+        const drawThumbnail = () => {
+            try {
+                if (!video.videoWidth) {
+                    cleanup();
+                    resolve(null);
+                    return;
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                cleanup();
+                resolve(canvas.toDataURL('image/jpeg', 0.7));
+            } catch (e) {
+                cleanup();
+                resolve(null);
+            }
+        };
+
+        video.addEventListener('seeked', drawThumbnail);
+        video.addEventListener('error', () => {
+            cleanup();
+            resolve(null);
+        });
+    });
 }
 
 function formatFileSize(bytes) {
