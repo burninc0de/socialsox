@@ -39,6 +39,10 @@
     "tar": "^7.5.11",
     "twitter-api-v2": "^1.28.0"
   },
+  "overrides": {
+    "@xmldom/xmldom": "^0.8.15",
+    "fast-uri": "^3.1.7"
+  },
   "build": {
     "appId": "com.socialsox.app",
     "productName": "SocialSox",
