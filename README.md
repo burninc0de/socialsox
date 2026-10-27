@@ -1,5 +1,20 @@
 # <img src="tray.png" alt="🧦" width="32" /> SocialSox
 
+> [!WARNING]
+> ## 🪦 Archived — no longer maintained (October 2026)
+>
+> **X killed the cheap write path this app was built on, so posting via X now fails with `✗ Twitter: credits depleted`.**
+>
+> | Date | Change |
+> | :- | :- |
+> | **Feb 6, 2026** | [X API Pay-Per-Use](https://docs.x.com/x-api/getting-started/pricing) launched — prepaid credits replace tiered plans, tracked per request in a new [developer console](https://console.x.com) |
+> | **Feb 23, 2026** | [Programmatic replies restricted](https://docs.x.com/changelog) — replies via `POST /2/tweets` are only allowed when the original post's author has "summoned" you (self-serve tiers) |
+> | **Apr 20, 2026** | [Write pricing changed](https://docs.x.com/x-api/fundamentals/post-cap) — `POST /2/tweets` is **$0.015/request**, **$0.20** if the post contains a URL; like/follow/quote-post endpoints removed from self-serve tiers |
+>
+> With a zero (or negative) credit balance, every request is rejected — including the config test, which is itself a billed `v2.me()` read. There is no free path left for a hobby crossposter, and chasing a moving, per-request-billed target isn't worth the maintenance. This repo is archived as-is: read-only, no issues or PRs actioned.
+>
+> **Still fine:** the Mastodon and Bluesky integrations have no such constraints and work as before. Fork it and delete `postToTwitter`/`replyToTwitter` from `main.js` if you want a maintained crossposter, or use [Postiz](https://github.com/gitroomhq/postiz-app) for a full-featured one.
+
 A cross-platform desktop app for posting to Mastodon, X, and Bluesky—separately or all at once.
 
 ## Why SocialSox?
